@@ -66,13 +66,13 @@ namespace GraphBLAS
                  typename SemiringT,
                  typename AMatrixT,
                  typename BMatrixT>
-        inline void internal_mxm(CMatrixT            &C,
+        inline void original_mxm(CMatrixT            &C,
                                  MMatrixT    const   &M,
                                  AccumT      const   &accum,
                                  SemiringT            op,
                                  AMatrixT    const   &A,
                                  BMatrixT    const   &B,
-                                 bool                 replace_flag = false)
+                                 bool                 replace_flag)
         {
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
@@ -235,67 +235,94 @@ namespace GraphBLAS
 
         //**********************************************************************
         template<typename CScalarT,
+                 typename AccumT,
                  typename SemiringT,
                  typename AScalarT,
                  typename BScalarT>
-        inline void sparse_mxm_NoMask_NoAccum_ATB(
+        inline void sparse_mxm_NoMask_Accum_AB(
             LilSparseMatrix<CScalarT>       &C,
+            AccumT                           accum,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            //Frontend checks the dimensions, but use C dimensions explicitly
-            IndexType nrow_C(C.nrows());
-            IndexType ncol_C(C.ncols());
-
-            IndexType nrow_A(A.nrows());
-            IndexType nrow_B(B.nrows());
-
-            typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
-
-            C.clear();
-
-            if ((A.nvals() == 0) && (B.nvals() == 0))
-            {
-                return;
-            }
-
-            // =================================================================
-            // Do the basic axpy work with the semiring.
-            TRowType Ci_tmp;
-
-            for (IndexType k = 0; k < nrow_A; ++k)
-            {
-                if (A[k].empty() || B[k].empty()) continue;
-
-                auto Ak_it(A[k].begin());
-
-                while (Ak_it != A[k].end())
-                {
-                    IndexType    i(std::get<0>(*Ak_it));
-                    AScalarT  a_ki(std::get<1>(*Ak_it));
-
-                    auto Bk_it(B[k].begin());
-
-                    Ci_tmp.clear();
-
-                    while (Bk_it != B[k].end())
-                    {
-                        IndexType j(std::get<0>(*Bk_it));
-                        D3ScalarType t_kj(semiring.mult(a_ki, std::get<1>(*Bk_it)));
-                        Ci_tmp.push_back(std::make_tuple(j, t_kj));
-                        ++Bk_it;
-                    }
-
-                    C.mergeRow(i, Ci_tmp, AdditiveMonoidFromSemiring<SemiringT>(semiring));
-                    ++Ak_it;
-                }
-            }
-
-            GRB_LOG_VERBOSE("C: " << C);
-
+            std::cout << "sparse_mxm_NoMask_Accum_AB not implemented yet.\n";
         }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_Mask_NoAccum_AB(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_Mask_NoAccum_AB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_Mask_Accum_AB(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            AccumT                           accum,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_Mask_Accum_AB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_CompMask_NoAccum_AB(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_CompMask_NoAccum_AB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_CompMask_Accum_AB(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            AccumT                           accum,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_CompMask_Accum_AB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        //**********************************************************************
 
         //**********************************************************************
         template<typename CScalarT,
@@ -433,7 +460,7 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                 replace_flag = false)
+            bool                             replace_flag)
         {
              //Frontend checks the dimensions, but use C dimensions explicitly
             IndexType nrow_C(C.nrows());
@@ -504,7 +531,7 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                 replace_flag = false)
+            bool                             replace_flag)
         {
              //Frontend checks the dimensions, but use C dimensions explicitly
             IndexType nrow_C(C.nrows());
@@ -574,16 +601,353 @@ namespace GraphBLAS
         }
 
         //**********************************************************************
-        /// Implementations of 4.3.1 mxm: A * B
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_CompMask_NoAccum_ABT(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_CompMask_NoAccum_ABT not implemented yet.";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_CompMask_Accum_ABT(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            AccumT                    const &accum,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_CompMask_Accum_ABT not implemented yet.";
+        }
+
+        //**********************************************************************
+        //**********************************************************************
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_NoMask_NoAccum_ATB(
+            LilSparseMatrix<CScalarT>       &C,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B)
+        {
+            //Frontend checks the dimensions, but use C dimensions explicitly
+            IndexType nrow_C(C.nrows());
+            IndexType ncol_C(C.ncols());
+
+            IndexType nrow_A(A.nrows());
+            IndexType nrow_B(B.nrows());
+
+            typedef typename SemiringT::result_type D3ScalarType;
+            typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
+
+            C.clear();
+
+            if ((A.nvals() == 0) && (B.nvals() == 0))
+            {
+                return;
+            }
+
+            // =================================================================
+            // Do the basic axpy work with the semiring.
+            TRowType Ci_tmp;
+
+            for (IndexType k = 0; k < nrow_A; ++k)
+            {
+                if (A[k].empty() || B[k].empty()) continue;
+
+                auto Ak_it(A[k].begin());
+
+                while (Ak_it != A[k].end())
+                {
+                    IndexType    i(std::get<0>(*Ak_it));
+                    AScalarT  a_ki(std::get<1>(*Ak_it));
+
+                    auto Bk_it(B[k].begin());
+
+                    Ci_tmp.clear();
+
+                    while (Bk_it != B[k].end())
+                    {
+                        IndexType j(std::get<0>(*Bk_it));
+                        D3ScalarType t_kj(semiring.mult(a_ki, std::get<1>(*Bk_it)));
+                        Ci_tmp.push_back(std::make_tuple(j, t_kj));
+                        ++Bk_it;
+                    }
+
+                    C.mergeRow(i, Ci_tmp, AdditiveMonoidFromSemiring<SemiringT>(semiring));
+                    ++Ak_it;
+                }
+            }
+
+            GRB_LOG_VERBOSE("C: " << C);
+
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_NoMask_Accum_ATB(
+            LilSparseMatrix<CScalarT>       &C,
+            AccumT                           accum,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B)
+        {
+            std::cout << "sparse_mxm_NoMask_Accum_ATB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_Mask_NoAccum_ATB(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_Mask_NoAccum_ATB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_Mask_Accum_ATB(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            AccumT                           accum,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_Mask_Accum_ATB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_CompMask_NoAccum_ATB(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_CompMask_NoAccum_ATB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_CompMask_Accum_ATB(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            AccumT                           accum,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_CompMask_Accum_ATB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        //**********************************************************************
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_NoMask_NoAccum_ATBT(
+            LilSparseMatrix<CScalarT>       &C,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B)
+        {
+            C.clear();
+            if ((A.nvals() == 0) && (B.nvals() == 0)) return;
+
+            // =================================================================
+            // Build this completely based on the semiring
+            for (IndexType j = 0; j < B.nrows(); ++j)
+            {
+                if (B[j].empty()) continue;
+
+                for (auto const &Bj_elt : B[j])
+                {
+                    IndexType   k(std::get<0>(Bj_elt));
+                    auto     b_jk(std::get<1>(Bj_elt));
+
+                    if (A[k].empty()) continue;
+
+                    for (auto const &Ak_elt : A[k])
+                    {
+                        IndexType   i(std::get<0>(Ak_elt));
+                        auto     a_ki(std::get<1>(Ak_elt));
+
+                        CScalarT tmp_val(semiring.mult(b_jk, a_ki));
+
+                        if (!C[i].empty() && (std::get<0>(C[i].back()) == j))
+                        {
+                            std::get<1>(C[i].back()) =
+                                semiring.add(std::get<1>(C[i].back()), tmp_val);
+                        }
+                        else
+                        {
+                            C[i].push_back(std::make_pair(j, tmp_val));
+                        }
+                    }
+                }
+            }
+
+            C.recomputeNvals();
+            GRB_LOG_VERBOSE("C: " << C);
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_NoMask_Accum_ATBT(
+            LilSparseMatrix<CScalarT>       &C,
+            AccumT                           accum,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B)
+        {
+            std::cout << "sparse_mxm_NoMask_Accum_AB not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_Mask_NoAccum_ATBT(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_Mask_NoAccum_ATBT not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_Mask_Accum_ATBT(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            AccumT                           accum,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_Mask_Accum_ATBT not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_CompMask_NoAccum_ATBT(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_CompMask_NoAccum_ATBT not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        inline void sparse_mxm_CompMask_Accum_ATBT(
+            LilSparseMatrix<CScalarT>       &C,
+            LilSparseMatrix<MScalarT> const &M,
+            AccumT                           accum,
+            SemiringT                        semiring,
+            LilSparseMatrix<AScalarT> const &A,
+            LilSparseMatrix<BScalarT> const &B,
+            bool                             replace_flag)
+        {
+            std::cout << "sparse_mxm_CompMask_Accum_ATBT not implemented yet.\n";
+        }
+
+        //**********************************************************************
+        //**********************************************************************
+        //**********************************************************************
+
+        //**********************************************************************
+        /// Dispatch for 4.3.1 mxm: A * B
         //**********************************************************************
         template<class CMat, class SR, class AMat, class BMat>
         inline void mxm(CMat                 &C,
                         NoMask       const   &,
                         NoAccumulate const   &,
                         SR                    op,
-                        AMat                const   &A,
-                        BMat                const   &B,
-                        bool                          replace_flag)
+                        AMat         const   &A,
+                        BMat         const   &B,
+                        bool                  replace_flag)
         {
             std::cout << "C := (A*B)" << std::endl;
             sparse_mxm_NoMask_NoAccum_AB(C, op, A, B);
@@ -594,11 +958,12 @@ namespace GraphBLAS
                         NoMask       const   &,
                         Accum        const   &accum,
                         SR                    op,
-                        AMat                const   &A,
-                        BMat                const   &B,
-                        bool                          replace_flag)
+                        AMat         const   &A,
+                        BMat         const   &B,
+                        bool                  replace_flag)
         {
             std::cout << "C := C + (A*B)" << std::endl;
+            sparse_mxm_NoMask_Accum_AB(C, accum, op, A, B);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -606,12 +971,27 @@ namespace GraphBLAS
                         MMat         const   &M,
                         NoAccumulate const   &,
                         SR                    op,
-                        AMat                const   &A,
-                        BMat                const   &B,
-                        bool                          replace_flag)
+                        AMat         const   &A,
+                        BMat         const   &B,
+                        bool                  replace_flag)
         {
             std::cout << "C<M" << (replace_flag ? ",z>" : ">")
                       << " := (A*B)" << std::endl;
+            sparse_mxm_Mask_NoAccum_AB(C, M, op, A, B, replace_flag);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat            &C,
+                        MMat    const   &M,
+                        Accum   const   &accum,
+                        SR               op,
+                        AMat    const   &A,
+                        BMat    const   &B,
+                        bool             replace_flag)
+        {
+            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+                      << " := (C + A*B)" << std::endl;
+            sparse_mxm_Mask_Accum_AB(C, M, accum, op, A, B, replace_flag);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -625,19 +1005,8 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (A*B)" << std::endl;
-        }
-
-        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
-        inline void mxm(CMat            &C,
-                        MMat    const   &M,
-                        Accum   const   &accum,
-                        SR               op,
-                        AMat                const   &A,
-                        BMat                const   &B,
-                        bool                          replace_flag)
-        {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
-                      << " := (C + A*B)" << std::endl;
+            sparse_mxm_CompMask_NoAccum_AB(C, strip_matrix_complement(M),
+                                           op, A, B, replace_flag);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -651,10 +1020,12 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (C + A*B)" << std::endl;
+            sparse_mxm_CompMask_Accum_AB(C, strip_matrix_complement(M), accum,
+                                         op, A, B, replace_flag);
         }
 
         //**********************************************************************
-        /// Implementations of 4.3.1 mxm: A * B'
+        // Dispatch for 4.3.1 mxm: A * B'
         //**********************************************************************
         template<class CMat, class SR, class AMat, class BMat>
         inline void mxm(CMat                 &C,
@@ -693,7 +1064,8 @@ namespace GraphBLAS
         {
             std::cout << "C<M" << (replace_flag ? ",z>" : ">")
                       << " := (A*B')" << std::endl;
-            sparse_mxm_Mask_NoAccum_ABT(C, M, op, A, strip_transpose(B), replace_flag);
+            sparse_mxm_Mask_NoAccum_ABT(C, M, op,
+                                        A, strip_transpose(B), replace_flag);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -707,7 +1079,8 @@ namespace GraphBLAS
         {
             std::cout << "C<M" << (replace_flag ? ",z>" : ">")
                       << " := (C + A*B')" << std::endl;
-            sparse_mxm_Mask_Accum_ABT(C, M, accum, op, A, strip_transpose(B), replace_flag);
+            sparse_mxm_Mask_Accum_ABT(C, M, accum, op,
+                                      A, strip_transpose(B), replace_flag);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -721,6 +1094,9 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (A*B')" << std::endl;
+            sparse_mxm_CompMask_NoAccum_ABT(
+                C, strip_matrix_complement(M), op,
+                A, strip_transpose(B), replace_flag);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -734,47 +1110,68 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (C + A*B')" << std::endl;
+            sparse_mxm_CompMask_Accum_ABT(
+                C, strip_matrix_complement(M), op, accum,
+                A, strip_transpose(B), replace_flag);
         }
 
         //**********************************************************************
-        /// Implementations of 4.3.1 mxm: A' * B
+        // Dispatch for 4.3.1 mxm: A' * B
         //**********************************************************************
         template<class CMat, class SR, class AMat, class BMat>
-        inline void mxm(CMat                 &C,
-                        NoMask       const   &,
-                        NoAccumulate const   &,
-                        SR                    op,
+        inline void mxm(CMat                        &C,
+                        NoMask              const   &,
+                        NoAccumulate        const   &,
+                        SR                           op,
                         TransposeView<AMat> const   &A,
                         BMat                const   &B,
-                        bool                          replace_flag)
+                        bool                         replace_flag)
         {
             std::cout << "C := (A'*B)" << std::endl;
             sparse_mxm_NoMask_NoAccum_ATB(C, op, strip_transpose(A), B);
         }
 
         template<class CMat, class Accum, class SR, class AMat, class BMat>
-        inline void mxm(CMat                 &C,
-                        NoMask       const   &,
-                        Accum        const   &accum,
-                        SR                    op,
+        inline void mxm(CMat                        &C,
+                        NoMask              const   &,
+                        Accum               const   &accum,
+                        SR                           op,
                         TransposeView<AMat> const   &A,
                         BMat                const   &B,
-                        bool                          replace_flag)
+                        bool                         replace_flag)
         {
             std::cout << "C := C + (A'*B)" << std::endl;
+            sparse_mxm_NoMask_Accum_ATB(C, accum, op, strip_transpose(A), B);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
-        inline void mxm(CMat                 &C,
-                        MMat         const   &M,
-                        NoAccumulate const   &,
-                        SR                    op,
+        inline void mxm(CMat                        &C,
+                        MMat                const   &M,
+                        NoAccumulate        const   &,
+                        SR                           op,
                         TransposeView<AMat> const   &A,
                         BMat                const   &B,
-                        bool                          replace_flag)
+                        bool                         replace_flag)
         {
             std::cout << "C<M" << (replace_flag ? ",z>" : ">")
                       << " := (A'*B)" << std::endl;
+            sparse_mxm_Mask_NoAccum_ATB(C, M, op,
+                                        strip_transpose(A), B, replace_flag);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat                        &C,
+                        MMat                const   &M,
+                        Accum               const   &accum,
+                        SR                           op,
+                        TransposeView<AMat> const   &A,
+                        BMat                const   &B,
+                        bool                         replace_flag)
+        {
+            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+                      << " := (C + A'*B)" << std::endl;
+            sparse_mxm_Mask_Accum_ATB(C, M, accum, op,
+                                      strip_transpose(A), B, replace_flag);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -782,42 +1179,35 @@ namespace GraphBLAS
                         MatrixComplementView<MMat> const   &M,
                         NoAccumulate               const   &,
                         SR                                  op,
-                        TransposeView<AMat>       const   &A,
-                        BMat                      const   &B,
+                        TransposeView<AMat>        const   &A,
+                        BMat                       const   &B,
                         bool                                replace_flag)
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (A'*B)" << std::endl;
+            sparse_mxm_CompMask_NoAccum_ATB(
+                C, strip_matrix_complement(M), op,
+                strip_transpose(A), B, replace_flag);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
-        inline void mxm(CMat            &C,
-                        MMat    const   &M,
-                        Accum   const   &accum,
-                        SR               op,
-                        TransposeView<AMat> const   &A,
-                        BMat                const   &B,
-                        bool                          replace_flag)
-        {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
-                      << " := (C + A'*B)" << std::endl;
-        }
-
-        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
-        inline void mxm(CMat                                  &C,
-                        MatrixComplementView<MMat>    const   &M,
-                        Accum                         const   &accum,
-                        SR                                     op,
-                        TransposeView<AMat>          const   &A,
-                        BMat                         const   &B,
-                        bool                                   replace_flag)
+        inline void mxm(CMat                               &C,
+                        MatrixComplementView<MMat> const   &M,
+                        Accum                      const   &accum,
+                        SR                                  op,
+                        TransposeView<AMat>        const   &A,
+                        BMat                       const   &B,
+                        bool                                replace_flag)
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (C + A'*B)" << std::endl;
+            sparse_mxm_CompMask_Accum_ATB(
+                C, strip_matrix_complement(M), op, accum,
+                strip_transpose(A), B, replace_flag);
         }
 
         //**********************************************************************
-        /// Implementations of 4.3.1 mxm: A' * B'
+        // Dispatch for of 4.3.1 mxm: A' * B'
         //**********************************************************************
         template<class CMat, class SR, class AMat, class BMat>
         inline void mxm(CMat                 &C,
@@ -829,6 +1219,8 @@ namespace GraphBLAS
                         bool                          replace_flag)
         {
             std::cout << "C := (A'*B')" << std::endl;
+            sparse_mxm_NoMask_NoAccum_ATBT(C, op, strip_transpose(A),
+                                           strip_transpose(B));
         }
 
         template<class CMat, class Accum, class SR, class AMat, class BMat>
@@ -841,6 +1233,9 @@ namespace GraphBLAS
                         bool                          replace_flag)
         {
             std::cout << "C := C + (A'*B')" << std::endl;
+            sparse_mxm_NoMask_Accum_ATBT(
+                C, accum, op,
+                strip_transpose(A), strip_transpose(B));
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -854,6 +1249,25 @@ namespace GraphBLAS
         {
             std::cout << "C<M" << (replace_flag ? ",z>" : ">")
                       << " := (A'*B')" << std::endl;
+            sparse_mxm_Mask_NoAccum_ATBT(
+                C, M, op,
+                strip_transpose(A), strip_transpose(B), replace_flag);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat            &C,
+                        MMat    const   &M,
+                        Accum   const   &accum,
+                        SR               op,
+                        TransposeView<AMat> const   &A,
+                        TransposeView<BMat> const   &B,
+                        bool                          replace_flag)
+        {
+            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+                      << " := (C + A'*B')" << std::endl;
+            sparse_mxm_Mask_Accum_ATBT(
+                C, M, accum, op,
+                strip_transpose(A), strip_transpose(B), replace_flag);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -867,19 +1281,9 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (A'*B')" << std::endl;
-        }
-
-        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
-        inline void mxm(CMat            &C,
-                        MMat    const   &M,
-                        Accum   const   &accum,
-                        SR               op,
-                        TransposeView<AMat> const   &A,
-                        TransposeView<BMat> const   &B,
-                        bool                          replace_flag)
-        {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
-                      << " := (C + A'*B')" << std::endl;
+            sparse_mxm_CompMask_NoAccum_ATBT(
+                C, strip_matrix_complement(M), op,
+                strip_transpose(A), strip_transpose(B), replace_flag);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -893,6 +1297,9 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (C + A'*B')" << std::endl;
+            sparse_mxm_CompMask_Accum_ATBT(
+                C, strip_matrix_complement(M), op, accum,
+                strip_transpose(A), strip_transpose(B), replace_flag);
         }
 
     } // backend

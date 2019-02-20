@@ -286,11 +286,7 @@ BOOST_AUTO_TEST_CASE(test_b_transpose)
         GraphBLAS::ArithmeticSemiring<double>(),
         mA, transpose(mB));
 
-    GraphBLAS::print_matrix(std::cout, result, "result");
-    GraphBLAS::print_matrix(std::cout, answer, "answer");
     BOOST_CHECK_EQUAL(result, answer);
-    GraphBLAS::print_matrix(std::cout, result, "result");
-    GraphBLAS::print_matrix(std::cout, answer, "answer");
 }
 
 //****************************************************************************
@@ -322,7 +318,7 @@ BOOST_AUTO_TEST_CASE(test_a_and_b_transpose)
         GraphBLAS::ArithmeticSemiring<double>(),
         transpose(mA), transpose(mB));
 
-    //BOOST_CHECK_EQUAL(result, answer);
+    BOOST_CHECK_EQUAL(result, answer);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

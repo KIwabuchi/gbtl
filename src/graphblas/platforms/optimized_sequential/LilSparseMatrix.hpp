@@ -354,8 +354,23 @@ namespace GraphBLAS
                 }
             }
 
+            void recomputeNvals()
+            {
+                IndexType nvals(0);
+
+                for (auto elt : m_data)
+                {
+                    nvals += elt.size();
+                }
+                m_nvals = nvals;
+            }
+
             // Row access
             typedef std::vector<std::tuple<IndexType, ScalarT>> RowType;
+
+            // Warning if you use this non-const row accessor then you should
+            // call recomputeNvals() at some point to fix it
+            RowType &operator[](IndexType row_index) { return m_data[row_index]; }
 
             RowType const &operator[](IndexType row_index) const
             {
