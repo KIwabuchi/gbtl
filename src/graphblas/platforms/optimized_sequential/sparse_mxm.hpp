@@ -57,6 +57,30 @@ namespace GraphBLAS
 {
     namespace backend
     {
+        template <typename TupleIteratorT>
+        bool advanceAndCheckMaskIterator(
+            TupleIteratorT &it, TupleIteratorT const &it_end, IndexType target_index)
+        {
+            while ((it != it_end) && (std::get<0>(*it) < target_index))
+            {
+                ++it;
+            }
+            return ((it != it_end) &&
+                    (std::get<0>(*it) == target_index) &&
+                    (static_cast<bool>(std::get<1>(*it))));
+        }
+
+        template <typename TupleIteratorT>
+        bool advanceTupleIterator(
+            TupleIteratorT &it, TupleIteratorT const &it_end, IndexType target_index)
+        {
+            while ((it != it_end) && (std::get<0>(*it) < target_index))
+            {
+                ++it;
+            }
+            return (it != it_end);
+        }
+
 #if 0
         //**********************************************************************
         /// Implementation of 4.3.1 mxm: Matrix-matrix multiply
@@ -77,52 +101,42 @@ namespace GraphBLAS
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
             IndexType ncol_B(B.ncols());
-            //Frontend checks the dimensions, but use C explicitly
-            IndexType nrow_C(C.nrows());
-            IndexType ncol_C(C.ncols());
 
             typedef typename SemiringT::result_type D3ScalarType;
             typedef typename AMatrixT::ScalarType AScalarType;
             typedef typename BMatrixT::ScalarType BScalarType;
             typedef typename CMatrixT::ScalarType CScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarType> > CColType;
-            typedef std::vector<std::tuple<IndexType,D3ScalarType> > TColType;
+            typedef std::vector<std::tuple<IndexType,CScalarType> > CRowType;
+            typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
 
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
-            LilSparseMatrix<D3ScalarType> T(nrow_A, ncol_B);
+            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
 
             // Build this completely based on the semiring
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
-                // create a column of result at a time
-                TColType T_col;
-                for (IndexType col_idx = 0; col_idx < ncol_B; ++col_idx)
+                // create one rows of the result at a time
+                for (IndexType row_idx = 0; row_idx < nrow_A; ++row_idx)
                 {
-                    typename BMatrixT::ColType B_col(B.getCol(col_idx));
+                    typename AMatrixT::RowType A_row(A.getRow(row_idx));
+                    if (A_row.empty()) continue;
 
-                    if (!B_col.empty())
+                    for (IndexType col_idx = 0; col_idx < ncol_B; ++col_idx)
                     {
-                        for (IndexType row_idx = 0; row_idx < nrow_A; ++row_idx)
+                        typename BMatrixT::ColType B_col(B.getCol(col_idx));
+
+                        if (B_col.empty()) continue;
+
+                        D3ScalarType T_val;
+                        if (dot(T_val, A_row, B_col, op))
                         {
-                            typename AMatrixT::RowType A_row(A.getRow(row_idx));
-                            if (!A_row.empty())
-                            {
-                                D3ScalarType T_val;
-                                if (dot(T_val, A_row, B_col, op))
-                                {
-                                    T_col.push_back(
-                                            std::make_tuple(row_idx, T_val));
-                                }
-                            }
-                        }
-                        if (!T_col.empty())
-                        {
-                            T.setCol(col_idx, T_col);
-                            T_col.clear();
+                            T[row_index].push_back(
+                                std::make_tuple(col_idx, T_val));
                         }
                     }
                 }
+                T.recomputeNvals();
             }
 
             GRB_LOG_VERBOSE("T: " << T);
@@ -157,12 +171,7 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            //Frontend checks the dimensions, but use C dimensions explicitly
-            IndexType nrow_C(C.nrows());
-            IndexType ncol_C(C.ncols());
-
-            IndexType nrow_A(A.nrows());
-            IndexType nrow_B(B.nrows());
+            // Frontend checks the dimensions
 
             typedef typename SemiringT::result_type D3ScalarType;
             typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
@@ -178,7 +187,7 @@ namespace GraphBLAS
             CRowType C_row;
 
             // Build this completely based on the semiring
-            for (IndexType i = 0; i < nrow_A; ++i)
+            for (IndexType i = 0; i < A.nrows(); ++i)
             {
                 C_row.clear();
                 for (auto const &Ai_elt : A[i])
@@ -230,7 +239,6 @@ namespace GraphBLAS
             }
 
             GRB_LOG_VERBOSE("C: " << C);
-
         }
 
         //**********************************************************************
@@ -263,7 +271,77 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_Mask_NoAccum_AB not implemented yet.\n";
+            std::cout << "sparse_mxm_Mask_NoAccum_AB IN PROGRESS.\n";
+            // Frontend checks the dimensions
+
+            typedef typename SemiringT::result_type D3ScalarType;
+            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
+
+            if (((A.nvals() == 0) && (B.nvals() == 0)) || (M.nvals() == 0))
+            {
+                C.clear();
+                return;
+            }
+
+            // =================================================================
+            // Do the basic axpy work with the semiring.
+            CRowType C_row;
+
+            for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
+            {
+                if (M[i].empty()) continue; // nothing to do if row of mask is empty
+
+                C_row.clear();
+                for (auto const &Ai_elt : A[i])
+                {
+                    IndexType    k(std::get<0>(Ai_elt));
+                    AScalarT  a_ik(std::get<1>(Ai_elt));
+
+                    if (B[k].empty()) continue;
+
+                    auto Ci_iter = C_row.begin();
+                    auto Mi_iter = M[i].begin();
+                    for (auto const &Bk_elt : B[k])
+                    {
+                        IndexType    j(std::get<0>(Bk_elt));
+
+                        // scan through M[i] to see if mask allows write.
+                        if (!advanceAndCheckMaskIterator(Mi_iter, M[i].end(), j))
+                            continue;
+
+                        BScalarT  b_kj(std::get<1>(Bk_elt));
+
+                        // scan through C_row to find insert/merge point
+                        advanceTupleIterator(Ci_iter, C_row.end(), j);
+
+                        auto t_ij(semiring.mult(a_ik, b_kj));
+
+                        if (Ci_iter == C_row.end())
+                        {
+                            C_row.push_back(
+                                std::make_tuple(j, static_cast<CScalarT>(t_ij)));
+                            Ci_iter = C_row.end();
+                        }
+                        else if (std::get<0>(*Ci_iter) == j)
+                        {
+                            std::get<1>(*Ci_iter) =
+                                semiring.add(std::get<1>(*Ci_iter), t_ij);
+                            ++Ci_iter;
+                        }
+                        else
+                        {
+                            Ci_iter = C_row.insert(
+                                Ci_iter,
+                                std::make_tuple(j, static_cast<CScalarT>(t_ij)));
+                            ++Ci_iter;
+                        }
+                    }
+                }
+
+                C.setRow(i, C_row);  // set even if it is empty.
+            }
+
+            GRB_LOG_VERBOSE("C: " << C);
         }
 
         //**********************************************************************
@@ -336,11 +414,6 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B)
         {
             //Frontend checks the dimensions, but use C dimensions explicitly
-            IndexType nrow_C(C.nrows());
-            IndexType ncol_C(C.ncols());
-
-            IndexType nrow_A(A.nrows());
-            IndexType ncol_BT(B.nrows());
 
             typedef typename SemiringT::result_type D3ScalarType;
             typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
@@ -356,12 +429,12 @@ namespace GraphBLAS
             CRowType C_row;
 
             // Build this completely based on the semiring
-            for (IndexType i = 0; i < nrow_A; ++i)
+            for (IndexType i = 0; i < A.nrows(); ++i)
             {
                 if (A[i].empty()) continue;
 
                 // fill row i of T
-                for (IndexType j = 0; j < ncol_BT; ++j)
+                for (IndexType j = 0; j < B.nrows(); ++j)
                 {
                     if (B[j].empty()) continue;
 
@@ -397,11 +470,6 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B)
         {
             //Frontend checks the dimensions, but use C dimensions explicitly
-            IndexType nrow_C(C.nrows());
-            IndexType ncol_C(C.ncols());
-
-            IndexType nrow_A(A.nrows());
-            IndexType ncol_BT(B.nrows());
 
             typedef typename SemiringT::result_type D3ScalarType;
             typedef typename AccumT::result_type ZScalarType;
@@ -417,12 +485,12 @@ namespace GraphBLAS
             // Build this completely based on the semiring
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
-                for (IndexType i = 0; i < nrow_A; ++i)
+                for (IndexType i = 0; i < A.nrows(); ++i)
                 {
                     if (A[i].empty()) continue;
 
                     // fill row i of T
-                    for (IndexType j = 0; j < ncol_BT; ++j)
+                    for (IndexType j = 0; j < B.nrows(); ++j)
                     {
                         if (B[j].empty()) continue;
 
@@ -462,12 +530,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-             //Frontend checks the dimensions, but use C dimensions explicitly
-            IndexType nrow_C(C.nrows());
-            IndexType ncol_C(C.ncols());
-
-            IndexType nrow_A(A.nrows());
-            IndexType ncol_BT(B.nrows());
+            //Frontend checks the dimensions, but use C dimensions explicitly
 
             typedef typename SemiringT::result_type D3ScalarType;
             typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
@@ -475,19 +538,19 @@ namespace GraphBLAS
 
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
-            LilSparseMatrix<D3ScalarType> T(nrow_A, ncol_BT);
+            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
             TRowType T_row;
 
             // Build this completely based on the semiring
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
-                for (IndexType i = 0; i < nrow_A; ++i)
+                for (IndexType i = 0; i < A.nrows(); ++i)
                 {
                     auto A_row_i(A.getRow(i));
                     if (A_row_i.empty()) continue;
 
                     // fill row i of T
-                    for (IndexType j = 0; j < ncol_BT; ++j)
+                    for (IndexType j = 0; j < B.nrows(); ++j)
                     {
                         auto B_row_j(B.getRow(j));
                         if (B_row_j.empty()) continue;
@@ -533,12 +596,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-             //Frontend checks the dimensions, but use C dimensions explicitly
-            IndexType nrow_C(C.nrows());
-            IndexType ncol_C(C.ncols());
-
-            IndexType nrow_A(A.nrows());
-            IndexType ncol_BT(B.nrows());
+            // Frontend checks the dimensions
 
             typedef typename SemiringT::result_type D3ScalarType;
             typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
@@ -546,19 +604,19 @@ namespace GraphBLAS
 
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
-            LilSparseMatrix<D3ScalarType> T(nrow_A, ncol_BT);
+            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
             TRowType T_row;
 
             // Build this completely based on the semiring
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
-                for (IndexType i = 0; i < nrow_A; ++i)
+                for (IndexType i = 0; i < A.nrows(); ++i)
                 {
                     auto A_row_i(A.getRow(i));
                     if (A_row_i.empty()) continue;
 
                     // fill row i of T
-                    for (IndexType j = 0; j < ncol_BT; ++j)
+                    for (IndexType j = 0; j < B.nrows(); ++j)
                     {
                         auto B_row_j(B.getRow(j));
                         if (B_row_j.empty()) continue;
@@ -588,7 +646,7 @@ namespace GraphBLAS
                 std::is_same<AccumT, NoAccumulate>::value,
                 D3ScalarType,
                 typename AccumT::result_type>::type ZScalarType;
-            LilSparseMatrix<ZScalarType> Z(nrow_C, ncol_C);
+            LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
 
             ewise_or_opt_accum(Z, C, T, accum);
 
@@ -650,12 +708,7 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            //Frontend checks the dimensions, but use C dimensions explicitly
-            IndexType nrow_C(C.nrows());
-            IndexType ncol_C(C.ncols());
-
-            IndexType nrow_A(A.nrows());
-            IndexType nrow_B(B.nrows());
+            //Frontend checks the dimensions
 
             typedef typename SemiringT::result_type D3ScalarType;
             typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
@@ -671,7 +724,7 @@ namespace GraphBLAS
             // Do the basic axpy work with the semiring.
             TRowType Ci_tmp;
 
-            for (IndexType k = 0; k < nrow_A; ++k)
+            for (IndexType k = 0; k < A.nrows(); ++k)
             {
                 if (A[k].empty() || B[k].empty()) continue;
 
@@ -694,7 +747,8 @@ namespace GraphBLAS
                         ++Bk_it;
                     }
 
-                    C.mergeRow(i, Ci_tmp, AdditiveMonoidFromSemiring<SemiringT>(semiring));
+                    C.mergeRow(i, Ci_tmp,
+                               AdditiveMonoidFromSemiring<SemiringT>(semiring));
                     ++Ak_it;
                 }
             }
