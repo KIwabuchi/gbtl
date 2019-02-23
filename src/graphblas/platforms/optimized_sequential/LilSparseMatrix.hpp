@@ -415,11 +415,11 @@ namespace GraphBLAS
             }
 
             // Allow casting. TODO one that does not need casting?
-            template <typename OtherScalarT, typename MonoidT>
+            template <typename OtherScalarT, typename BinaryFunctionT>
             void mergeRow(
                 IndexType row_index,
                 std::vector<std::tuple<IndexType, OtherScalarT> > const &row_data,
-                MonoidT op)
+                BinaryFunctionT op)
             {
                 if (row_data.empty()) return;
                 if (m_data[row_index].empty())

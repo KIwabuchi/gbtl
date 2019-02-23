@@ -57,28 +57,225 @@ namespace GraphBLAS
 {
     namespace backend
     {
-        template <typename TupleIteratorT>
-        bool advanceAndCheckMaskIterator(
-            TupleIteratorT &it, TupleIteratorT const &it_end, IndexType target_index)
-        {
-            while ((it != it_end) && (std::get<0>(*it) < target_index))
-            {
-                ++it;
-            }
-            return ((it != it_end) &&
-                    (std::get<0>(*it) == target_index) &&
-                    (static_cast<bool>(std::get<1>(*it))));
-        }
-
+        // *******************************************************************
+        // Return true if iterator points to location with target_index;
+        // otherwise returns the at the insertion point for target_index
+        // which could be it_end.
         template <typename TupleIteratorT>
         bool advanceTupleIterator(
             TupleIteratorT &it, TupleIteratorT const &it_end, IndexType target_index)
         {
+            GRB_LOG_FN_BEGIN("advanceTupleIterator: tgt = " << target_index);
+
             while ((it != it_end) && (std::get<0>(*it) < target_index))
             {
                 ++it;
             }
-            return (it != it_end);
+            GRB_LOG_FN_END("advanceTupleIterator target_found = "
+                           << ((it != it_end) && (std::get<0>(*it) == target_index)));
+            return ((it != it_end) && (std::get<0>(*it) == target_index));
+        }
+
+        // *******************************************************************
+        // Only returns true if target index is found AND it evaluates to true
+        template <typename TupleIteratorT>
+        bool advanceAndCheckMaskIterator(TupleIteratorT       &it,
+                                         TupleIteratorT const &it_end,
+                                         IndexType             target_index)
+        {
+            GRB_LOG_FN_BEGIN("advanceAndCheckMaskIterator: tgt = " << target_index);
+
+            bool tmp = (advanceTupleIterator(it, it_end, target_index) &&
+                        (static_cast<bool>(std::get<1>(*it))));
+
+            GRB_LOG_FN_END("advanceAndCheckMaskIterator res = " << tmp);
+            return tmp;
+        }
+
+        // *******************************************************************
+        /// perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>>
+        ///
+        /// c += a_ik*b[:]
+        template<typename CScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        void axpy(std::vector<std::tuple<IndexType, CScalarT>>       &c,
+                  SemiringT                                           semiring,
+                  AScalarT                                            a,
+                  std::vector<std::tuple<IndexType, BScalarT>> const &b)
+        {
+            GRB_LOG_FN_BEGIN("axpy");
+            auto c_it = c.begin();
+
+            for (auto const &b_elt : b)
+            {
+                IndexType    j(std::get<0>(b_elt));
+                BScalarT  b_j(std::get<1>(b_elt));
+                GRB_LOG_VERBOSE("j = " << j);
+
+                auto t_j(semiring.mult(a, b_j));
+                GRB_LOG_VERBOSE("temp = " << t_j);
+
+                // scan through C_row to find insert/merge point
+                if (advanceTupleIterator(c_it, c.end(), j))
+                {
+                    GRB_LOG_VERBOSE("Accumulating");
+                    std::get<1>(*c_it) = semiring.add(std::get<1>(*c_it), t_j);
+                    ++c_it;
+                }
+                else
+                {
+                    GRB_LOG_VERBOSE("Inserting");
+                    c_it = c.insert(c_it,
+                                    std::make_tuple(j, static_cast<CScalarT>(t_j)));
+                    ++c_it;
+                }
+            }
+            GRB_LOG_FN_END("axpy");
+        }
+
+        // *******************************************************************
+        /// perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>>
+        ///
+        /// c<[m[:]]> += a_ik*b[:]
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        void maskedAxpy(std::vector<std::tuple<IndexType, CScalarT>>       &c,
+                        std::vector<std::tuple<IndexType, MScalarT>> const &m,
+                        bool                                                scmp_flag,
+                        SemiringT                                           semiring,
+                        AScalarT                                            a,
+                        std::vector<std::tuple<IndexType, BScalarT>> const &b)
+        {
+            GRB_LOG_FN_BEGIN("maskedAxpy");
+
+            if (m.empty() && scmp_flag)
+            {
+                axpy(c, semiring, a, b);
+                return;
+            }
+
+            auto c_it = c.begin();
+            auto m_it = m.begin();
+
+            for (auto const &b_elt : b)
+            {
+                IndexType    j(std::get<0>(b_elt));
+                GRB_LOG_VERBOSE("j = " << j);
+
+                // scan through M[i] to see if mask allows write.
+                if (advanceAndCheckMaskIterator(m_it, m.end(), j) == scmp_flag)
+                {
+                    GRB_LOG_VERBOSE("Skipping j = " << j);
+                    continue;
+                }
+
+                BScalarT  b_j(std::get<1>(b_elt));
+
+                auto t_j(semiring.mult(a, b_j));
+                GRB_LOG_VERBOSE("temp = " << t_j);
+
+                // scan through C_row to find insert/merge point
+                if (advanceTupleIterator(c_it, c.end(), j))
+                {
+                    GRB_LOG_VERBOSE("Accumulating");
+                    std::get<1>(*c_it) = semiring.add(std::get<1>(*c_it), t_j);
+                    ++c_it;
+                }
+                else
+                {
+                    GRB_LOG_VERBOSE("Inserting");
+                    c_it = c.insert(c_it,
+                                    std::make_tuple(j, static_cast<CScalarT>(t_j)));
+                    ++c_it;
+                }
+            }
+            GRB_LOG_FN_END("maskedAxpy");
+        }
+
+        /// Perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>> (note result is accumulated into rhs
+        ///
+        /// rhs = m ^ lhs (accum) rhs
+        template<typename CScalarT,
+                 typename AccumT,
+                 typename MScalarT>
+        void maskedAccum(std::vector<std::tuple<IndexType, CScalarT>>       &rhs,
+                         std::vector<std::tuple<IndexType, MScalarT>> const &m,
+                         bool                                                scmp_flag,
+                         AccumT                                              op,
+                         std::vector<std::tuple<IndexType, CScalarT>> const &lhs)
+        {
+            GRB_LOG_FN_BEGIN("maskedAccum");
+            auto r_it = rhs.begin();
+            auto m_it = m.begin();
+
+            // for each element of the input matrix find out if it is not in mask
+            for (auto const &l_elt : lhs)
+            {
+                IndexType l_idx(std::get<0>(l_elt));
+
+                // scan through M[i] to see if mask allows write.
+                if (advanceAndCheckMaskIterator(m_it, m.end(), l_idx) == scmp_flag)
+                {
+                    GRB_LOG_VERBOSE("Skipping l_idx = " << l_idx);
+                    continue;
+                }
+
+                // if mask has a stored value at j that evaluates to true, ewiseadd
+                // (using accum) with rhs and store result in rhs
+                if (advanceTupleIterator(r_it, rhs.end(), l_idx))
+                {
+                    std::get<1>(*r_it) =
+                        op(std::get<1>(l_elt) , std::get<1>(*r_it));
+                }
+                else
+                {
+                    // insert the value
+                    r_it = rhs.insert(r_it, l_elt);
+                    ++r_it;
+                }
+
+            }
+            GRB_LOG_FN_END("maskedAccum");
+        }
+
+        /// Perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>>
+        ///
+        /// c = (m ^ c) U (!m ^ a)  (assumes c and a are disjoint sets)
+        template<typename CScalarT,
+                 typename MScalarT>
+        void maskedMerge(std::vector<std::tuple<IndexType, CScalarT>>       &c,
+                         std::vector<std::tuple<IndexType, MScalarT>> const &m,
+                         bool                                                scmp_flag,
+                         std::vector<std::tuple<IndexType, CScalarT>> const &a)
+        {
+            GRB_LOG_FN_BEGIN("maskedMerge");
+            auto c_it = c.begin();
+            auto m_it = m.begin();
+
+            // for each element of the input matrix find out if it is not in mask
+            for (auto const &a_j : a)
+            {
+                IndexType j(std::get<0>(a_j));
+
+                // if mask has a stored value at j that evaluates to true then skip
+                if (!advanceAndCheckMaskIterator(m_it, m.end(), j) == scmp_flag)
+                    continue;
+
+                // ..otherwise merge
+                advanceTupleIterator(c_it, c.end(), j);
+                c_it = c.insert(c_it, a_j);
+                ++c_it;
+            }
+            GRB_LOG_FN_END("maskedMerge");
         }
 
 #if 0
@@ -171,22 +368,23 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            // Frontend checks the dimensions
+            std::cout << "sparse_mxm_NoMask_Accum_AB COMPLETE.\n";
 
-            typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
-
-            if ((A.nvals() == 0) && (B.nvals() == 0))
+            // C = A +.* B
+            // short circuit conditions
+            if ((A.nvals() == 0) || (B.nvals() == 0))
             {
                 C.clear();
                 return;
             }
 
             // =================================================================
-            // Do the basic axpy work with the semiring.
+
+            typedef typename SemiringT::result_type D3ScalarType;
+            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
+
             CRowType C_row;
 
-            // Build this completely based on the semiring
             for (IndexType i = 0; i < A.nrows(); ++i)
             {
                 C_row.clear();
@@ -197,42 +395,7 @@ namespace GraphBLAS
 
                     if (B[k].empty()) continue;
 
-                    auto Ci_iter = C_row.begin();
-                    for (auto const &Bk_elt : B[k])
-                    {
-                        IndexType    j(std::get<0>(Bk_elt));
-                        BScalarT  b_kj(std::get<1>(Bk_elt));
-
-                        // scan through C_row to find insert/merge point
-                        IndexType j_C;
-                        while ((Ci_iter != C_row.end()) &&
-                               ((j_C = std::get<0>(*Ci_iter)) < j))
-                        {
-                            ++Ci_iter;
-                        }
-
-                        auto t_ij(semiring.mult(a_ik, b_kj));
-
-                        if (Ci_iter == C_row.end())
-                        {
-                            C_row.push_back(
-                                std::make_tuple(j, static_cast<CScalarT>(t_ij)));
-                            Ci_iter = C_row.end();
-                        }
-                        else if (j_C == j)
-                        {
-                            std::get<1>(*Ci_iter) =
-                                semiring.add(std::get<1>(*Ci_iter), t_ij);
-                            ++Ci_iter;
-                        }
-                        else
-                        {
-                            Ci_iter = C_row.insert(
-                                Ci_iter,
-                                std::make_tuple(j, static_cast<CScalarT>(t_ij)));
-                            ++Ci_iter;
-                        }
-                    }
+                    axpy(C_row, semiring, a_ik, B[k]);
                 }
 
                 C.setRow(i, C_row);  // set even if it is empty.
@@ -254,7 +417,39 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            std::cout << "sparse_mxm_NoMask_Accum_AB not implemented yet.\n";
+            std::cout << "sparse_mxm_NoMask_Accum_AB IN PROGRESS.\n";
+
+            // C = C + A +.* B
+            // short circuit conditions
+            if ((A.nvals() == 0) || (B.nvals() == 0))
+            {
+                return; // do nothing
+            }
+
+            // =================================================================
+
+            typedef typename SemiringT::result_type D3ScalarType;
+            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
+
+            CRowType C_row;
+
+            for (IndexType i = 0; i < A.nrows(); ++i)
+            {
+                C_row.clear();
+                for (auto const &Ai_elt : A[i])
+                {
+                    IndexType    k(std::get<0>(Ai_elt));
+                    AScalarT  a_ik(std::get<1>(Ai_elt));
+
+                    if (B[k].empty()) continue;
+
+                    axpy(C_row, semiring, a_ik, B[k]);
+                }
+
+                C.mergeRow(i, C_row, accum);  // set even if it is empty.
+            }
+
+            GRB_LOG_VERBOSE("C: " << C);
         }
 
         //**********************************************************************
@@ -271,20 +466,28 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_Mask_NoAccum_AB IN PROGRESS.\n";
-            // Frontend checks the dimensions
+            std::cout << "sparse_mxm_Mask_NoAccum_AB IN PROGRESS (empty mask?).\n";
 
-            typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
-
-            if (((A.nvals() == 0) && (B.nvals() == 0)) || (M.nvals() == 0))
+            // C<M,z> = A +.* B
+            //        =               [M .* (A +.* B)], z = "replace"
+            //        = [!M .* C]  U  [M .* (A +.* B)], z = "merge"
+            // short circuit conditions
+            if (replace_flag &&
+                ((A.nvals() == 0) || (B.nvals() == 0) || (M.nvals() == 0)))
             {
                 C.clear();
                 return;
             }
+            else if (!replace_flag && (M.nvals() == 0))
+            {
+                return; // do nothing
+            }
 
             // =================================================================
-            // Do the basic axpy work with the semiring.
+
+            typedef typename SemiringT::result_type D3ScalarType;
+            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
+
             CRowType C_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
@@ -299,43 +502,12 @@ namespace GraphBLAS
 
                     if (B[k].empty()) continue;
 
-                    auto Ci_iter = C_row.begin();
-                    auto Mi_iter = M[i].begin();
-                    for (auto const &Bk_elt : B[k])
-                    {
-                        IndexType    j(std::get<0>(Bk_elt));
+                    maskedAxpy(C_row, M[i], false, semiring, a_ik, B[k]);  // C[i]<M[i]> += a_ik*B[k]
+                }
 
-                        // scan through M[i] to see if mask allows write.
-                        if (!advanceAndCheckMaskIterator(Mi_iter, M[i].end(), j))
-                            continue;
-
-                        BScalarT  b_kj(std::get<1>(Bk_elt));
-
-                        // scan through C_row to find insert/merge point
-                        advanceTupleIterator(Ci_iter, C_row.end(), j);
-
-                        auto t_ij(semiring.mult(a_ik, b_kj));
-
-                        if (Ci_iter == C_row.end())
-                        {
-                            C_row.push_back(
-                                std::make_tuple(j, static_cast<CScalarT>(t_ij)));
-                            Ci_iter = C_row.end();
-                        }
-                        else if (std::get<0>(*Ci_iter) == j)
-                        {
-                            std::get<1>(*Ci_iter) =
-                                semiring.add(std::get<1>(*Ci_iter), t_ij);
-                            ++Ci_iter;
-                        }
-                        else
-                        {
-                            Ci_iter = C_row.insert(
-                                Ci_iter,
-                                std::make_tuple(j, static_cast<CScalarT>(t_ij)));
-                            ++Ci_iter;
-                        }
-                    }
+                if (!replace_flag)
+                {
+                    maskedMerge(C_row, M[i], false, C[i]);
                 }
 
                 C.setRow(i, C_row);  // set even if it is empty.
@@ -360,7 +532,58 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_Mask_Accum_AB not implemented yet.\n";
+            std::cout << "sparse_mxm_Mask_Accum_AB COMPLETE.\n";
+
+            // C<M,z> = C + (A +.* B)
+            //        =               [M .* [C + (A +.* B)]], z = "replace"
+            //        = [!M .* C]  U  [M .* [C + (A +.* B)]], z = "merge"
+            // short circuit conditions
+            if (replace_flag && (M.nvals() == 0))
+            {
+                C.clear();
+                return;
+            }
+            else if (!replace_flag && (M.nvals() == 0))
+            {
+                return; // do nothing
+            }
+
+            // =================================================================
+
+            typedef typename SemiringT::result_type D3ScalarType;
+            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
+
+            CRowType C_row;
+
+            for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
+            {
+                if (M[i].empty()) continue; // nothing to do if row of mask is empty
+
+                C_row.clear();
+                for (auto const &Ai_elt : A[i])
+                {
+                    IndexType    k(std::get<0>(Ai_elt));
+                    AScalarT  a_ik(std::get<1>(Ai_elt));
+
+                    if (B[k].empty()) continue;
+
+                    maskedAxpy(C_row, M[i], false, semiring, a_ik, B[k]);  // C[i]<M[i]> += a_ik*B[k]
+                }
+
+                if (replace_flag)
+                {
+                    maskedAccum(C_row, M[i], false, accum, C[i]);
+                    C.setRow(i, C_row);
+                }
+                else /* merge */
+                {
+                    maskedMerge(C_row, M[i], false, C[i]);
+                    C.mergeRow(i, C_row, accum);  // set even if it is empty.
+                }
+
+            }
+
+            GRB_LOG_VERBOSE("C: " << C);
         }
 
         //**********************************************************************
@@ -377,7 +600,49 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_CompMask_NoAccum_AB not implemented yet.\n";
+            std::cout << "sparse_mxm_CompMask_NoAccum_AB IN PROGRESS (empty mask?).\n";
+
+            // C<!M,z> = A +.* B
+            //        =              [!M .* (A +.* B)], z = "replace"
+            //        = [M .* C]  U  [!M .* (A +.* B)], z = "merge"
+            // short circuit conditions
+            if (replace_flag && ((A.nvals() == 0) || (B.nvals() == 0)))
+            {
+                C.clear();
+                return;
+            }
+
+            // =================================================================
+
+            typedef typename SemiringT::result_type D3ScalarType;
+            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
+
+            CRowType C_row;
+
+            for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
+            {
+                // if M[i] is empty it is like NoMask_NoAccum
+
+                C_row.clear();
+                for (auto const &Ai_elt : A[i])
+                {
+                    IndexType    k(std::get<0>(Ai_elt));
+                    AScalarT  a_ik(std::get<1>(Ai_elt));
+
+                    if (B[k].empty()) continue;
+
+                    maskedAxpy(C_row, M[i], true, semiring, a_ik, B[k]);  // C[i]<!M[i]> += a_ik*B[k]
+                }
+
+                if (!replace_flag && !M[i].empty())
+                {
+                    maskedMerge(C_row, M[i], true, C[i]);
+                }
+
+                C.setRow(i, C_row);  // set even if it is empty.
+            }
+
+            GRB_LOG_VERBOSE("C: " << C);
         }
 
         //**********************************************************************
@@ -396,7 +661,55 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_CompMask_Accum_AB not implemented yet.\n";
+            std::cout << "sparse_mxm_CompMask_Accum_AB IN PROGRESS.\n";
+
+            // C<!M,z> = C + (A +.* B)
+            //         =              [!M .* [C + (A +.* B)]], z = "replace"
+            //         = [M .* C]  U  [!M .* [C + (A +.* B)]], z = "merge"
+            // short circuit conditions
+            if (replace_flag &&
+                (M.nvals() == 0) &&
+                ((A.nvals() == 0) || (B.nvals() == 0)))
+            {
+                return; // do nothing
+            }
+
+            // =================================================================
+
+            typedef typename SemiringT::result_type D3ScalarType;
+            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
+
+            CRowType C_row;
+
+            for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
+            {
+                // if M[i] is empty it is like NoMask_NoAccum
+
+                C_row.clear();
+                for (auto const &Ai_elt : A[i])
+                {
+                    IndexType    k(std::get<0>(Ai_elt));
+                    AScalarT  a_ik(std::get<1>(Ai_elt));
+
+                    if (B[k].empty()) continue;
+
+                    maskedAxpy(C_row, M[i], true, semiring, a_ik, B[k]);  // C[i]<M[i]> += a_ik*B[k]
+                }
+
+                if (replace_flag)
+                {
+                    maskedAccum(C_row, M[i], true, accum, C[i]);
+                    C.setRow(i, C_row);
+                }
+                else /* merge */
+                {
+                    maskedMerge(C_row, M[i], true, C[i]);
+                    C.mergeRow(i, C_row, accum);  // set even if it is empty.
+                }
+
+            }
+
+            GRB_LOG_VERBOSE("C: " << C);
         }
 
         //**********************************************************************
@@ -672,7 +985,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_CompMask_NoAccum_ABT not implemented yet.";
+            std::cout << "sparse_mxm_CompMask_NoAccum_ABT not implemented yet.\n";
         }
 
         //**********************************************************************
@@ -691,7 +1004,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_CompMask_Accum_ABT not implemented yet.";
+            std::cout << "sparse_mxm_CompMask_Accum_ABT not implemented yet.\n";
         }
 
         //**********************************************************************
@@ -912,7 +1225,7 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            std::cout << "sparse_mxm_NoMask_Accum_AB not implemented yet.\n";
+            std::cout << "sparse_mxm_NoMask_Accum_ATBT not implemented yet.\n";
         }
 
         //**********************************************************************
