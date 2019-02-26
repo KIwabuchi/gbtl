@@ -290,8 +290,11 @@ namespace GraphBLAS
                 }
                 else
                 {
-                    z.push_back(std::make_tuple(
-                                    t_idx, op(std::get<1>(*c_it) , std::get<1>(*t_it))));
+                    z.push_back(
+                        std::make_tuple(
+                            t_idx,
+                            static_cast<CScalarT>(op(std::get<1>(*c_it),
+                                                     std::get<1>(*t_it)))));
                     ++t_it;
                     ++c_it;
                 }
@@ -355,7 +358,9 @@ namespace GraphBLAS
         /// Perform the following operation on sparse vectors implemented as
         /// vector<tuple<Index, value>>
         ///
-        /// co = (!m ^ ci) U z, where z = (m ^ t) assumes disjoint sets
+        /// c = (!m ^ ci) U z, where z = (m ^ t)  where union assumes disjoint sets
+        ///  or
+        /// c = (m ^ ci)  U z, where z = (!m ^ t) if scmp_flag==true
         template<typename CScalarT,
                  typename MScalarT,
                  typename ZScalarT>
@@ -409,7 +414,7 @@ namespace GraphBLAS
 
 #if 0
         //**********************************************************************
-        /// Implementation of 4.3.1 mxm: Matrix-matrix multiply
+        /// 'sequential' Implementation of 4.3.1 mxm: Matrix-matrix multiply
         template<typename CMatrixT,
                  typename MMatrixT,
                  typename AccumT,
@@ -429,10 +434,6 @@ namespace GraphBLAS
             IndexType ncol_B(B.ncols());
 
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef typename AMatrixT::ScalarType AScalarType;
-            typedef typename BMatrixT::ScalarType BScalarType;
-            typedef typename CMatrixT::ScalarType CScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarType> > CRowType;
             typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
 
             // =================================================================
@@ -487,6 +488,9 @@ namespace GraphBLAS
 #endif
 
         //**********************************************************************
+        //**********************************************************************
+
+        //**********************************************************************
         template<typename CScalarT,
                  typename SemiringT,
                  typename AScalarT,
@@ -510,13 +514,11 @@ namespace GraphBLAS
             // =================================================================
 
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
-
-            CRowType C_row;
+            typename LilSparseMatrix<D3ScalarType>::RowType T_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i)
             {
-                C_row.clear();
+                T_row.clear();
                 for (auto const &Ai_elt : A[i])
                 {
                     IndexType    k(std::get<0>(Ai_elt));
@@ -524,10 +526,11 @@ namespace GraphBLAS
 
                     if (B[k].empty()) continue;
 
-                    axpy(C_row, semiring, a_ik, B[k]);
+                    // T[i] += (a_ik*B[k])  // must reduce in D3
+                    axpy(T_row, semiring, a_ik, B[k]);
                 }
 
-                C.setRow(i, C_row);  // set even if it is empty.
+                C.setRow(i, T_row);  // set even if it is empty.
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -558,9 +561,7 @@ namespace GraphBLAS
             // =================================================================
 
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
-
-            TRowType T_row;
+            typename LilSparseMatrix<D3ScalarType>::RowType T_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i)
             {
@@ -572,11 +573,13 @@ namespace GraphBLAS
 
                     if (B[k].empty()) continue;
 
+                    // T[i] += (a_ik*B[k])  // must reduce in D3
                     axpy(T_row, semiring, a_ik, B[k]);
                 }
 
                 if (!T_row.empty())
                 {
+                    // C[i] = C[i] + T[i]
                     C.mergeRow(i, T_row, accum);
                 }
             }
@@ -618,10 +621,8 @@ namespace GraphBLAS
             // =================================================================
 
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
-            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
-
-            TRowType T_row;
+            typename LilSparseMatrix<D3ScalarType>::RowType T_row;
+            typename LilSparseMatrix<CScalarT>::RowType C_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
             {
@@ -642,7 +643,7 @@ namespace GraphBLAS
                 if (!replace_flag)
                 {
                     // C[i] = [!M .* C]  U  T[i], z = "merge"
-                    CRowType C_row;
+                    C_row.clear();
                     maskedMerge(C_row, M[i], false, C[i], T_row);
                     C.setRow(i, C_row);
                 }
@@ -692,12 +693,10 @@ namespace GraphBLAS
 
             typedef typename SemiringT::result_type D3ScalarType;
             typedef typename AccumT::result_type ZScalarType;
-            typedef std::vector<std::tuple<IndexType,D3ScalarType>> TRowType;
-            typedef std::vector<std::tuple<IndexType,ZScalarType>>  ZRowType;
-            typedef std::vector<std::tuple<IndexType,CScalarT>>     CRowType;
 
-            TRowType T_row;
-            ZRowType Z_row;
+            typename LilSparseMatrix<D3ScalarType>::RowType T_row;
+            typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
+            typename LilSparseMatrix<CScalarT>::RowType     C_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
             {
@@ -722,7 +721,7 @@ namespace GraphBLAS
                 if (!replace_flag) /* z = merge */
                 {
                     // C[i]  = [!M .* C]  U  Z[i]
-                    CRowType C_row;
+                    C_row.clear();
                     maskedMerge(C_row, M[i], false, C[i], Z_row);
                     C.setRow(i, C_row);  // set even if it is empty.
                 }
@@ -731,7 +730,6 @@ namespace GraphBLAS
                     // C[i] = Z[i]
                     C.setRow(i, Z_row);
                 }
-
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -766,15 +764,14 @@ namespace GraphBLAS
             // =================================================================
 
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
-
-            CRowType C_row;
+            typename LilSparseMatrix<D3ScalarType>::RowType T_row;
+            typename LilSparseMatrix<CScalarT>::RowType     Z_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
             {
                 // if M[i] is empty it is like NoMask_NoAccum
 
-                C_row.clear();
+                T_row.clear();
                 for (auto const &Ai_elt : A[i])
                 {
                     IndexType    k(std::get<0>(Ai_elt));
@@ -782,15 +779,22 @@ namespace GraphBLAS
 
                     if (B[k].empty()) continue;
 
-                    maskedAxpy(C_row, M[i], true, semiring, a_ik, B[k]);  // C[i]<!M[i]> += a_ik*B[k]
+                    // T[i] += !M[i] .* (a_ik*B[k])  // must reduce in D3
+                    maskedAxpy(T_row, M[i], true, semiring, a_ik, B[k]);
                 }
 
-                if (!replace_flag && !M[i].empty())
+                if (replace_flag || M[i].empty())
                 {
-                    maskedMerge(C_row, M[i], true, C[i]);
+                    // C[i] = T[i]
+                    C.setRow(i, T_row);  // set even if it is empty.
                 }
-
-                C.setRow(i, C_row);  // set even if it is empty.
+                else
+                {
+                    Z_row.clear();
+                    // Z[i] = (M[i] .* C[i]) U T[i]
+                    maskedMerge(Z_row, M[i], true, C[i], T_row);
+                    C.setRow(i, Z_row);
+                }
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -828,15 +832,15 @@ namespace GraphBLAS
             // =================================================================
 
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
-
-            CRowType C_row;
+            typename LilSparseMatrix<D3ScalarType>::RowType T_row;
+            typename LilSparseMatrix<CScalarT>::RowType     Z_row; // domain okay?
+            typename LilSparseMatrix<CScalarT>::RowType     C_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
             {
                 // if M[i] is empty it is like NoMask_NoAccum
 
-                C_row.clear();
+                T_row.clear();
                 for (auto const &Ai_elt : A[i])
                 {
                     IndexType    k(std::get<0>(Ai_elt));
@@ -844,18 +848,24 @@ namespace GraphBLAS
 
                     if (B[k].empty()) continue;
 
-                    maskedAxpy(C_row, M[i], true, semiring, a_ik, B[k]);  // C[i]<M[i]> += a_ik*B[k]
+                    // T[i] += !M[i] .* (a_ik*B[k])  // must reduce in D3
+                    maskedAxpy(T_row, M[i], true, semiring, a_ik, B[k]);
                 }
 
-                if (replace_flag)
+                // Z[i] = (!M[i] .* C[i]) + T[i], where T[i] is masked buy !M[i]
+                Z_row.clear();
+                maskedAccum(Z_row, M[i], true, accum, C[i], T_row);
+
+                if (replace_flag || M[i].empty())
                 {
-                    maskedAccum(C_row, M[i], true, accum, C[i]);
-                    C.setRow(i, C_row);
+                    C.setRow(i, Z_row);
                 }
                 else /* merge */
                 {
-                    maskedMerge(C_row, M[i], true, C[i]);
-                    C.mergeRow(i, C_row, accum);  // set even if it is empty.
+                    // C[i] = [M[i] .* C[i]]  U  Z[i], where Z is disjoint from M
+                    C_row.clear();  // TODO: is an extra vector necessary?
+                    maskedMerge(C_row, M[i], true, C[i], Z_row);
+                    C.setRow(i, C_row);
                 }
 
             }
@@ -890,13 +900,12 @@ namespace GraphBLAS
             // =================================================================
 
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
-
-            CRowType C_row;
+            typename LilSparseMatrix<CScalarT>::RowType C_row;
 
             // Build this completely based on the semiring
             for (IndexType i = 0; i < A.nrows(); ++i)
             {
+                C_row.clear();
                 if (A[i].empty()) continue;
 
                 // fill row i of T
@@ -915,7 +924,6 @@ namespace GraphBLAS
                 }
 
                 C.setRow(i, C_row);  // set even if it is empty.
-                C_row.clear();
             }
 
             GRB_LOG_VERBOSE("C: " << C);
