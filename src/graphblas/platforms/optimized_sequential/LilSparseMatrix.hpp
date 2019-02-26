@@ -414,12 +414,13 @@ namespace GraphBLAS
                 m_data[row_index].swap(row_data); // = row_data;
             }
 
-            // Allow casting. TODO one that does not need casting?
-            template <typename OtherScalarT, typename BinaryFunctionT>
+
+            // Allow casting. TODO Do we need one that does not need casting?
+            template <typename OtherScalarT, typename AccumT>
             void mergeRow(
                 IndexType row_index,
                 std::vector<std::tuple<IndexType, OtherScalarT> > const &row_data,
-                BinaryFunctionT op)
+                AccumT    op)
             {
                 if (row_data.empty()) return;
                 if (m_data[row_index].empty())
@@ -443,14 +444,17 @@ namespace GraphBLAS
                     }
                     else if (ri < li)
                     {
-                        tmp.push_back(*r_it);
+                        tmp.push_back(
+                            std::make_tuple(
+                                ri, static_cast<ScalarT>(std::get<1>(*r_it))));
                         ++r_it;
                     }
                     else
                     {
                         tmp.push_back(
-                            std::make_pair(
-                                li, op(std::get<1>(*l_it), std::get<1>(*r_it))));
+                            std::make_tuple(
+                                li, static_cast<ScalarT>(op(std::get<1>(*l_it),
+                                                            std::get<1>(*r_it)))));
                         ++l_it;
                         ++r_it;
                     }
