@@ -412,7 +412,7 @@ namespace GraphBLAS
         }
 
 
-#if 0
+#if 1
         //**********************************************************************
         /// 'sequential' Implementation of 4.3.1 mxm: Matrix-matrix multiply
         template<typename CMatrixT,
@@ -423,7 +423,7 @@ namespace GraphBLAS
                  typename BMatrixT>
         inline void original_mxm(CMatrixT            &C,
                                  MMatrixT    const   &M,
-                                 AccumT      const   &accum,
+                                 AccumT               accum,
                                  SemiringT            op,
                                  AMatrixT    const   &A,
                                  BMatrixT    const   &B,
@@ -458,7 +458,7 @@ namespace GraphBLAS
                         D3ScalarType T_val;
                         if (dot(T_val, A_row, B_col, op))
                         {
-                            T[row_index].push_back(
+                            T[row_idx].push_back(
                                 std::make_tuple(col_idx, T_val));
                         }
                     }
@@ -474,7 +474,7 @@ namespace GraphBLAS
                 std::is_same<AccumT, NoAccumulate>::value,
                 D3ScalarType,
                 typename AccumT::result_type>::type ZScalarType;
-            LilSparseMatrix<ZScalarType> Z(nrow_C, ncol_C);
+            LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
 
             ewise_or_opt_accum(Z, C, T, accum);
 
