@@ -306,7 +306,7 @@ namespace GraphBLAS
                  typename SequenceT>
         inline void assign(WVectorT           &w,
                            MaskT        const &mask,
-                           AccumT              accum,
+                           AccumT       const &accum,
                            UVectorT     const &u,
                            SequenceT    const &indices,
                            bool                replace_flag)
@@ -359,7 +359,7 @@ namespace GraphBLAS
                  typename ColSequenceT>
         inline void assign(CMatrixT               &C,
                            MaskT            const &mask,
-                           AccumT                  accum,
+                           AccumT           const &accum,
                            AMatrixT         const &A,
                            RowSequenceT     const &row_indices,
                            ColSequenceT     const &col_indices,
@@ -413,7 +413,7 @@ namespace GraphBLAS
                  typename SequenceT>
         inline void assign(CMatrixT               &C,
                            MaskT            const &mask,
-                           AccumT                  accum,
+                           AccumT           const &accum,
                            UVectorT         const &u,
                            SequenceT        const &row_indices,
                            IndexType               col_index,
@@ -466,7 +466,7 @@ namespace GraphBLAS
                  typename SequenceT>
         inline void assign(CMatrixT               &C,
                            MaskT            const &mask,
-                           AccumT                  accum,
+                           AccumT           const &accum,
                            UVectorT         const &u,
                            IndexType               row_index,
                            SequenceT        const &col_indices,
@@ -519,7 +519,7 @@ namespace GraphBLAS
                  typename SequenceT>
         inline void assign_constant(WVectorT             &w,
                                     MaskT          const &mask,
-                                    AccumT                accum,
+                                    AccumT         const &accum,
                                     ValueT                val,
                                     SequenceT      const &indices,
                                     bool                  replace_flag = false)
@@ -569,7 +569,7 @@ namespace GraphBLAS
                  typename ColIndicesT>
         inline void assign_constant(CMatrixT             &C,
                                     MaskT          const &Mask,
-                                    AccumT                accum,
+                                    AccumT         const &accum,
                                     ValueT                val,
                                     RowIndicesT  const &row_indices,
                                     ColIndicesT  const &col_indices,

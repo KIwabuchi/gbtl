@@ -405,7 +405,7 @@ namespace GraphBLAS
             // When not casting vector swap used...should we use move semantics?
             void setRow(
                 IndexType row_index,
-                std::vector<std::tuple<IndexType, ScalarT> > &row_data)
+                std::vector<std::tuple<IndexType, ScalarT> > &&row_data)
             {
                 IndexType old_nvals = m_data[row_index].size();
                 IndexType new_nvals = row_data.size();

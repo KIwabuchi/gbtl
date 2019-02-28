@@ -65,7 +65,7 @@ namespace GraphBLAS
         inline void apply(
             GraphBLAS::backend::Vector<WScalarT, WTagsT...> &w,
             MaskT                                     const &mask,
-            AccumT                                           accum,
+            AccumT                                    const &accum,
             UnaryFunctionT                                   op,
             UVectorT                                  const &u,
             bool                                             replace_flag = false)
@@ -122,7 +122,7 @@ namespace GraphBLAS
         inline void apply(
             GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
             MaskT                                     const &mask,
-            AccumT                                           accum,
+            AccumT                                    const &accum,
             UnaryFunctionT                                   op,
             AMatrixT                                  const &A,
             bool                                             replace_flag = false)

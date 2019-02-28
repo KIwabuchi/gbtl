@@ -27,6 +27,8 @@
  * DM18-0559
  */
 
+//#define GRAPHBLAS_LOGGING_LEVEL 2
+
 #include <graphblas/graphblas.hpp>
 
 #define BOOST_TEST_MAIN
@@ -113,6 +115,7 @@ namespace
              {true, true,  true,  false}};
 
 }
+
 //****************************************************************************
 // checking result from graphblas test framework
 BOOST_AUTO_TEST_CASE(graphblas_tf_mxm30)

@@ -62,7 +62,7 @@ namespace GraphBLAS
                  typename UVectorT>
         inline void mxv(WVectorT        &w,
                         MaskT     const &mask,
-                        AccumT           accum,
+                        AccumT    const &accum,
                         SemiringT        op,
                         AMatrixT  const &A,
                         UVectorT  const &u,

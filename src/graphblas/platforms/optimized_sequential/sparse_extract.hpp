@@ -329,7 +329,7 @@ namespace GraphBLAS
                  typename SequenceT>
         void extract(WVectorT                 &w,
                      MVectorT           const &mask,
-                     AccumT                    accum,
+                     AccumT             const &accum,
                      UVectorT           const &u,
                      SequenceT          const &indices,
                      bool                      replace_flag = false)
@@ -387,7 +387,7 @@ namespace GraphBLAS
                  typename ColSequenceT>
         void extract(CMatrixT                   &C,
                      MMatrixT           const   &Mask,
-                     AccumT                      accum,
+                     AccumT             const   &accum,
                      AMatrixT           const   &A,
                      RowSequenceT       const   &row_indices,
                      ColSequenceT       const   &col_indices,
@@ -446,7 +446,7 @@ namespace GraphBLAS
                  typename SequenceT>
         void extract(WVectorT                 &w,
                      MaskVectorT        const &mask,
-                     AccumT                    accum,
+                     AccumT             const &accum,
                      AMatrixT           const &A,
                      SequenceT          const &row_indices,
                      IndexType                 col_index,

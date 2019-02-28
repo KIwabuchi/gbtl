@@ -105,17 +105,30 @@ int main(int argc, char **argv)
     std::cout << "Running algorithm(s)..." << std::endl;
     T count(0);
 
+    // Perform triangle counting with three different algorithms
+    //===================
     auto start = std::chrono::steady_clock::now();
 
-    // Perform triangle counting with three different algorithms
     count = algorithms::triangle_count_newGBTL(L, U);
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>
         (std::chrono::steady_clock::now() - start);
 
-    std::cout << "# triangles = " << count << std::endl;
+    std::cout << "# triangles (newGBTL) = " << count << std::endl;
     std::cout << "Elapsed time: " << duration.count() << " msec." << std::endl;
 
+    //===================
+    start = std::chrono::steady_clock::now();
+
+    count = algorithms::triangle_count_masked(L, U);
+
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>
+        (std::chrono::steady_clock::now() - start);
+
+    std::cout << "# triangles (LU) = " << count << std::endl;
+    std::cout << "Elapsed time: " << duration.count() << " msec." << std::endl;
+
+    //===================
     start = std::chrono::steady_clock::now();
 
     count = algorithms::triangle_count_masked(L);

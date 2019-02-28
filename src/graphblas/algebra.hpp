@@ -47,28 +47,28 @@ namespace GraphBLAS
     struct Identity
     {
         typedef D2 result_type;
-        inline D2 operator()(D1 input) { return input; }
+        inline D2 operator()(D1 input) const { return input; }
     };
 
     template <typename D1 = bool, typename D2 = D1>
     struct LogicalNot
     {
         typedef D2 result_type;
-        inline D2 operator()(D1 input) { return !input; }
+        inline D2 operator()(D1 input) const { return !input; }
     };
 
     template <typename D1, typename D2 = D1>
     struct AdditiveInverse
     {
         typedef D2 result_type;
-        inline D2 operator()(D1 input) { return -input; }
+        inline D2 operator()(D1 input) const { return -input; }
     };
 
     template <typename D1, typename D2 = D1>
     struct MultiplicativeInverse
     {
         typedef D2 result_type;
-        inline D2 operator()(D1 input)
+        inline D2 operator()(D1 input) const
         {
             return static_cast<D2>(1) / input;
         }
@@ -91,7 +91,7 @@ namespace GraphBLAS
             op(operation)
         {}
 
-        result_type operator()(ValueType const &value)
+        result_type operator()(ValueType const &value) const
         {
             return op(value, n);
         }
@@ -110,7 +110,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs || rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs || rhs; }
     };
 
     template <typename D1 = bool, typename D2 = D1, typename D3 = D1>
@@ -119,7 +119,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs && rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs && rhs; }
     };
 
     template <typename D1 = bool, typename D2 = D1, typename D3 = D1>
@@ -129,8 +129,8 @@ namespace GraphBLAS
         typedef D2 rhs_type;
         typedef D3 result_type;
         // ((bool)lhs) != ((bool)rhs)
-        // inline D3 operator()(D1 lhs, D2 rhs) { return lhs ^ rhs; }
-        inline D3 operator()(D1 lhs, D2 rhs)
+        // inline D3 operator()(D1 lhs, D2 rhs) const { return lhs ^ rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const
         {
             return ((lhs && !rhs) || (!lhs && rhs));
         }
@@ -142,7 +142,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs == rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs == rhs; }
     };
 
     template <typename D1, typename D2 = D1, typename D3 = bool>
@@ -151,7 +151,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs != rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs != rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = bool>
@@ -160,7 +160,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs > rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs > rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = bool>
@@ -169,7 +169,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs < rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs < rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = bool>
@@ -178,7 +178,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs >= rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs >= rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = bool>
@@ -187,7 +187,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs <= rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs <= rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
@@ -196,7 +196,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
@@ -205,7 +205,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
@@ -214,7 +214,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs < rhs ? lhs : rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs < rhs ? lhs : rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
@@ -223,7 +223,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs < rhs ? rhs : lhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs < rhs ? rhs : lhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
@@ -232,7 +232,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs + rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs + rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
@@ -241,7 +241,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs - rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs - rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
@@ -250,7 +250,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs * rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs * rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
@@ -259,7 +259,7 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return lhs / rhs; }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return lhs / rhs; }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
@@ -268,14 +268,14 @@ namespace GraphBLAS
         typedef D1 lhs_type;
         typedef D2 rhs_type;
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return std::pow(lhs, rhs); }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return std::pow(lhs, rhs); }
     };
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Xor
     {
         typedef D3 result_type;
-        inline D3 operator()(D1 lhs, D2 rhs) { return (lhs ^ rhs); }
+        inline D3 operator()(D1 lhs, D2 rhs) const { return (lhs ^ rhs); }
     };
 
 } // namespace GraphBLAS

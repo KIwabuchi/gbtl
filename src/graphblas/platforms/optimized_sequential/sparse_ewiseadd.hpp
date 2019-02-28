@@ -67,7 +67,7 @@ namespace GraphBLAS
         inline void eWiseAdd(
             GraphBLAS::backend::Vector<WScalarT, WTagsT...> &w,
             MaskT                                     const &mask,
-            AccumT                                           accum,
+            AccumT                                    const &accum,
             BinaryOpT                                        op,
             UVectorT                                  const &u,
             VVectorT                                  const &v,
@@ -108,7 +108,7 @@ namespace GraphBLAS
         inline void eWiseAdd(
             GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
             MaskT                                     const &Mask,
-            AccumT                                           accum,
+            AccumT                                    const &accum,
             BinaryOpT                                        op,
             AMatrixT                                  const &A,
             BMatrixT                                  const &B,

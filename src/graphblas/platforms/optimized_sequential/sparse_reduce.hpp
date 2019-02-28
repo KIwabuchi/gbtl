@@ -60,7 +60,7 @@ namespace GraphBLAS
                  typename AMatrixT>
         inline void reduce(WVectorT        &w,
                            MaskT     const &mask,
-                           AccumT           accum,
+                           AccumT    const &accum,
                            BinaryOpT        op,
                            AMatrixT  const &A,
                            bool             replace_flag = false)
@@ -114,7 +114,7 @@ namespace GraphBLAS
                  typename MonoidT, // monoid only
                  typename UVectorT>
         inline void reduce_vector_to_scalar(ValueT         &val,
-                                            AccumT          accum,
+                                            AccumT   const &accum,
                                             MonoidT         op,
                                             UVectorT const &u)
         {
@@ -152,7 +152,7 @@ namespace GraphBLAS
                  typename MonoidT, // monoid only
                  typename AMatrixT>
         inline void reduce_matrix_to_scalar(ValueT         &val,
-                                            AccumT          accum,
+                                            AccumT   const &accum,
                                             MonoidT         op,
                                             AMatrixT const &A)
         {

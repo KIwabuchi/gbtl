@@ -62,7 +62,7 @@ namespace GraphBLAS
                  typename AMatrixT>
         inline void transpose(CMatrixT       &C,
                               MaskT    const &mask,
-                              AccumT          accum,
+                              AccumT   const &accum,
                               AMatrixT const &A,
                               bool            replace_flag = false)
         {
