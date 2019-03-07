@@ -365,6 +365,16 @@ namespace GraphBLAS
                 m_nvals = nvals;
             }
 
+            // TODO: add error checking on dimensions?
+            void swap(LilSparseMatrix<ScalarT> &rhs)
+            {
+                for (IndexType idx = 0; idx < m_data.size(); ++idx)
+                {
+                    m_data[idx].swap(rhs.m_data[idx]);
+                }
+                m_nvals = rhs.m_nvals;
+            }
+
             // Row access
             typedef std::vector<std::tuple<IndexType, ScalarT>> RowType;
 
@@ -416,11 +426,23 @@ namespace GraphBLAS
 
 
             // Allow casting. TODO Do we need one that does not need casting?
+            // mergeRow with no accumulator is same as setRow
             template <typename OtherScalarT, typename AccumT>
             void mergeRow(
                 IndexType row_index,
-                std::vector<std::tuple<IndexType, OtherScalarT> > const &row_data,
-                AccumT    op)
+                std::vector<std::tuple<IndexType, OtherScalarT> > &row_data,
+                NoAccumulate const &op)
+            {
+                setRow(row_index, row_data);
+            }
+
+
+            // Allow casting. TODO Do we need one that does not need casting?
+            template <typename OtherScalarT, typename AccumT>
+            void mergeRow(
+                IndexType row_index,
+                std::vector<std::tuple<IndexType, OtherScalarT> > &row_data,
+                AccumT const &op)
             {
                 if (row_data.empty()) return;
                 if (m_data[row_index].empty())
