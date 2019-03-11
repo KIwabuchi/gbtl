@@ -1060,6 +1060,305 @@ namespace GraphBLAS
             return IndexSequenceRange(0, n);
         }
 
+
+        //********************************************************************
+        // mxm helpers (may be of more general use).
+        //********************************************************************
+
+
+        // *******************************************************************
+        // Return true if iterator points to location with target_index;
+        // otherwise returns the at the insertion point for target_index
+        // which could be it_end.
+        template <typename TupleIteratorT>
+        bool advance_and_check_tuple_iterator(
+            TupleIteratorT       &it,
+            TupleIteratorT const &it_end,
+            IndexType             target_index)
+        {
+            GRB_LOG_FN_BEGIN("advance_and_check_tuple_iterator: tgt = "
+                             << target_index);
+
+            while ((it != it_end) && (std::get<0>(*it) < target_index))
+            {
+                ++it;
+            }
+
+            bool tmp = ((it != it_end) && (std::get<0>(*it) == target_index));
+            GRB_LOG_FN_END("advance_and_check_tuple_iterator target_found = "
+                           << tmp);
+            return tmp;
+        }
+
+        // *******************************************************************
+        // Only returns true if target index is found AND it evaluates to true
+        /// @todo Need to add support for STRUCTURE_ONLY
+        template <typename TupleIteratorT>
+        bool advance_and_check_mask_iterator(
+            TupleIteratorT       &it,
+            TupleIteratorT const &it_end,
+            IndexType             target_index)
+        {
+            GRB_LOG_FN_BEGIN("advance_and_check_mask_iterator: tgt = "
+                             << target_index);
+
+            bool tmp =
+                (advance_and_check_tuple_iterator(it, it_end, target_index) &&
+                 (static_cast<bool>(std::get<1>(*it))));
+
+            GRB_LOG_FN_END("advance_and_check_mask_iterator res = " << tmp);
+            return tmp;
+        }
+
+        // *******************************************************************
+        /// perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>>
+        ///
+        /// c += a_ik*b[:]
+        template<typename CScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        void axpy(
+            std::vector<std::tuple<IndexType, CScalarT>>       &c,
+            SemiringT                                           semiring,
+            AScalarT                                            a,
+            std::vector<std::tuple<IndexType, BScalarT>> const &b)
+        {
+            GRB_LOG_FN_BEGIN("axpy");
+            auto c_it = c.begin();
+
+            for (auto const &b_elt : b)
+            {
+                IndexType   j(std::get<0>(b_elt));
+                BScalarT  b_j(std::get<1>(b_elt));
+                GRB_LOG_VERBOSE("j = " << j);
+
+                auto t_j(semiring.mult(a, b_j));
+                GRB_LOG_VERBOSE("temp = " << t_j);
+
+                // scan through C_row to find insert/merge point
+                if (advance_and_check_tuple_iterator(c_it, c.end(), j))
+                {
+                    GRB_LOG_VERBOSE("Accumulating");
+                    std::get<1>(*c_it) = semiring.add(std::get<1>(*c_it), t_j);
+                    ++c_it;
+                }
+                else
+                {
+                    GRB_LOG_VERBOSE("Inserting");
+                    c_it = c.insert(c_it,
+                                    std::make_tuple(j, static_cast<CScalarT>(t_j)));
+                    ++c_it;
+                }
+            }
+            GRB_LOG_FN_END("axpy");
+        }
+
+        // *******************************************************************
+        /// perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>>
+        ///
+        /// c<[m[:]]> += a_ik*b[:]
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        void masked_axpy(
+            std::vector<std::tuple<IndexType, CScalarT>>       &c,
+            std::vector<std::tuple<IndexType, MScalarT>> const &m,
+            bool                                                scmp_flag,
+            SemiringT                                           semiring,
+            AScalarT                                            a,
+            std::vector<std::tuple<IndexType, BScalarT>> const &b)
+        {
+            GRB_LOG_FN_BEGIN("masked_axpy");
+
+            if (m.empty() && scmp_flag)
+            {
+                axpy(c, semiring, a, b);
+                return;
+            }
+
+            auto c_it = c.begin();
+            auto m_it = m.begin();
+
+            for (auto const &b_elt : b)
+            {
+                IndexType    j(std::get<0>(b_elt));
+                GRB_LOG_VERBOSE("j = " << j);
+
+                // scan through M[i] to see if mask allows write.
+                if (advance_and_check_mask_iterator(m_it, m.end(), j) == scmp_flag)
+                {
+                    GRB_LOG_VERBOSE("Skipping j = " << j);
+                    continue;
+                }
+
+                BScalarT  b_j(std::get<1>(b_elt));
+
+                auto t_j(semiring.mult(a, b_j));
+                GRB_LOG_VERBOSE("temp = " << t_j);
+
+                // scan through C_row to find insert/merge point
+                if (advance_and_check_tuple_iterator(c_it, c.end(), j))
+                {
+                    GRB_LOG_VERBOSE("Accumulating");
+                    std::get<1>(*c_it) = semiring.add(std::get<1>(*c_it), t_j);
+                    ++c_it;
+                }
+                else
+                {
+                    GRB_LOG_VERBOSE("Inserting");
+                    c_it = c.insert(c_it,
+                                    std::make_tuple(j, static_cast<CScalarT>(t_j)));
+                    ++c_it;
+                }
+            }
+            GRB_LOG_FN_END("masked_axpy");
+        }
+
+        // *******************************************************************
+        /// Perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>> (t assumed to be masked already)
+        ///
+        /// z = m ^ c (accum) t
+        template<typename CScalarT,
+                 typename AccumT,
+                 typename MScalarT,
+                 typename AScalarT,
+                 typename BScalarT>
+        void masked_accum(
+            std::vector<std::tuple<IndexType, CScalarT>>       &z,
+            std::vector<std::tuple<IndexType, MScalarT>> const &m,
+            bool                                                scmp_flag,
+            AccumT                                       const &accum,
+            std::vector<std::tuple<IndexType, AScalarT>> const &c,
+            std::vector<std::tuple<IndexType, BScalarT>> const &t)
+        {
+            GRB_LOG_FN_BEGIN("masked_accum.v2");
+            auto t_it = t.begin();
+            auto m_it = m.begin();
+            auto c_it = c.begin();
+
+            // for each element of c find out if it is not in mask
+            while ((t_it != t.end()) && (c_it != c.end()))
+            {
+                IndexType t_idx(std::get<0>(*t_it));
+                IndexType c_idx(std::get<0>(*c_it));
+                if (t_idx < c_idx)
+                {
+                    // t already masked
+                    z.push_back(std::make_tuple(
+                                    t_idx,
+                                    static_cast<CScalarT>(std::get<1>(*t_it))));
+                    ++t_it;
+                }
+                else if (c_idx < t_idx)
+                {
+                    if (advance_and_check_mask_iterator(m_it, m.end(), c_idx) != scmp_flag)
+                    {
+                        z.push_back(std::make_tuple(
+                                        c_idx,
+                                        static_cast<CScalarT>(std::get<1>(*c_it))));
+                    }
+                    ++c_it;
+                }
+                else
+                {
+                    z.push_back(
+                        std::make_tuple(
+                            t_idx,
+                            static_cast<CScalarT>(accum(std::get<1>(*c_it),
+                                                        std::get<1>(*t_it)))));
+                    ++t_it;
+                    ++c_it;
+                }
+            }
+
+            while (t_it != t.end())
+            {
+                z.push_back(std::make_tuple(
+                                std::get<0>(*t_it),
+                                static_cast<CScalarT>(std::get<1>(*t_it))));
+                ++t_it;
+            }
+
+            while (c_it != c.end())
+            {
+                IndexType c_idx(std::get<0>(*c_it));
+                if (advance_and_check_mask_iterator(m_it, m.end(), c_idx) != scmp_flag)
+                {
+                    z.push_back(std::make_tuple(c_idx, std::get<1>(*c_it)));
+                }
+                ++c_it;
+            }
+            GRB_LOG_FN_END("masked_accum.v2");
+        }
+
+
+        // *******************************************************************
+        /// Perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>>
+        ///
+        /// if scmp_flag == false:
+        ///    c = (!m ^ ci) U z, where z = (m ^ t);  i.e., union assumes disjoint sets
+        /// else:
+        ///   c =   (m ^ ci) U z, where z = (!m ^ t)
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename ZScalarT>
+        void masked_merge(
+            std::vector<std::tuple<IndexType, CScalarT>>       &c,
+            std::vector<std::tuple<IndexType, MScalarT>> const &m,
+            bool                                                scmp_flag,
+            std::vector<std::tuple<IndexType, CScalarT>> const &ci,
+            std::vector<std::tuple<IndexType, ZScalarT>> const &z)
+        {
+            GRB_LOG_FN_BEGIN("masked_merge.v2");
+            auto m_it = m.begin();
+            auto c_it = ci.begin();
+            auto z_it = z.begin();
+
+            c.clear();
+
+            IndexType next_z;
+            for (auto const &elt : z)
+            {
+                next_z = std::get<0>(elt);
+                while (c_it != ci.end() && (std::get<0>(*c_it) < next_z))
+                {
+                    IndexType next_c(std::get<0>(*c_it));
+                    if (advance_and_check_mask_iterator(m_it, m.end(), next_c) == scmp_flag)
+                    {
+                        c.push_back(std::make_tuple(next_c, std::get<1>(*c_it)));
+                    }
+                    ++c_it;
+                }
+                c.push_back(std::make_tuple(next_z, static_cast<CScalarT>(std::get<1>(elt))));
+            }
+
+
+            while (c_it != ci.end() && (!z.empty() && (std::get<0>(*c_it) <= next_z)))
+            {
+                ++c_it;
+            }
+
+            while (c_it != ci.end())
+            {
+                IndexType next_c(std::get<0>(*c_it));
+                if (advance_and_check_mask_iterator(m_it, m.end(), next_c) == scmp_flag)
+                {
+                    c.push_back(std::make_tuple(next_c, std::get<1>(*c_it)));
+                }
+                ++c_it;
+            }
+
+            GRB_LOG_FN_END("masked_merge.v2");
+        }
+
+
     } // backend
 } // GraphBLAS
 
