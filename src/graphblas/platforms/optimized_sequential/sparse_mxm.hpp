@@ -61,7 +61,7 @@ namespace GraphBLAS
 {
     namespace backend
     {
-#if 0
+#if 1
         //**********************************************************************
         /// 'sequential' Implementation of 4.3.1 mxm: Matrix-matrix multiply
         template<typename CMatrixT,
@@ -92,17 +92,16 @@ namespace GraphBLAS
             // Build this completely based on the semiring
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
-                // create one rows of the result at a time
-                for (IndexType row_idx = 0; row_idx < nrow_A; ++row_idx)
+                for (IndexType col_idx = 0; col_idx < ncol_B; ++col_idx)
                 {
-                    typename AMatrixT::RowType A_row(A.getRow(row_idx));
-                    if (A_row.empty()) continue;
+                    typename BMatrixT::ColType B_col(B.getCol(col_idx));
+                    if (B_col.empty()) continue;
 
-                    for (IndexType col_idx = 0; col_idx < ncol_B; ++col_idx)
+                    // create one rows of the result at a time
+                    for (IndexType row_idx = 0; row_idx < nrow_A; ++row_idx)
                     {
-                        typename BMatrixT::ColType B_col(B.getCol(col_idx));
-
-                        if (B_col.empty()) continue;
+                        typename AMatrixT::RowType A_row(A.getRow(row_idx));
+                        if (A_row.empty()) continue;
 
                         D3ScalarType T_val;
                         if (dot(T_val, A_row, B_col, op))

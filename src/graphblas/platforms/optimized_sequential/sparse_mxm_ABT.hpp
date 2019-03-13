@@ -419,7 +419,7 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            std::cout << "sparse_mxm_NoMask_NoAccum_ABT COMPLETED.\n";
+            //std::cout << "sparse_mxm_NoMask_NoAccum_ABT COMPLETED.\n";
 
             // C = (A +.* B')
             // short circuit conditions
@@ -433,7 +433,7 @@ namespace GraphBLAS
 
             if ((void*)&C == (void*)&B)
             {
-                std::cout << "ABT USING CTMP\n";
+                //std::cout << "ABT USING CTMP\n";
                 // create temporary to prevent overwrite of inputs
                 LilSparseMatrix<CScalarT> Ctmp(C.nrows(), C.ncols());
                 ABT_NoMask_NoAccum_kernel(Ctmp, semiring, A, B);
@@ -460,7 +460,7 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            std::cout << "sparse_mxm_NoMask_Accum_ABT COMPLETED.\n";
+            //std::cout << "sparse_mxm_NoMask_Accum_ABT COMPLETED.\n";
 
             // C = C + (A +.* B')
             // short circuit conditions?
@@ -503,7 +503,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_Mask_NoAccum_ABT COMPLETED.\n";
+            //std::cout << "sparse_mxm_Mask_NoAccum_ABT COMPLETED.\n";
 
             // C<M,z> = (A +.* B')
             //        =             [M .* (A +.* B')], z = replace
@@ -568,7 +568,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_Mask_Accum_ABT COMPLETED.\n";
+            //std::cout << "sparse_mxm_Mask_Accum_ABT COMPLETED.\n";
 
             // C<M,z> = C + (A +.* B')
             //        =               [M .* [C + (A +.* B')]], z = "replace"
@@ -639,7 +639,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_CompMask_NoAccum_ABT COMPLETED.\n";
+            //std::cout << "sparse_mxm_CompMask_NoAccum_ABT COMPLETED.\n";
 
             // C<M,z> =            [!M .* (A +.* B')], z = replace
             //        = [M .* C] U [!M .* (A +.* B')], z = merge
@@ -700,7 +700,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_CompMask_Accum_ABT COMPLETED.\n";
+            //std::cout << "sparse_mxm_CompMask_Accum_ABT COMPLETED.\n";
 
             // C<M,z> = C + (A +.* B')
             //        =              [!M .* [C + (A +.* B')]], z = "replace"

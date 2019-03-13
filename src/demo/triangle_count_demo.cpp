@@ -35,6 +35,7 @@
 
 #include <graphblas/graphblas.hpp>
 #include <algorithms/triangle_count.hpp>
+#include "Timer.hpp"
 
 //****************************************************************************
 int main(int argc, char **argv)
@@ -105,38 +106,32 @@ int main(int argc, char **argv)
     std::cout << "Running algorithm(s)..." << std::endl;
     T count(0);
 
+    Timer<std::chrono::steady_clock> my_timer;
+
     // Perform triangle counting with three different algorithms
     //===================
-    auto start = std::chrono::steady_clock::now();
-
+    my_timer.start();
     count = algorithms::triangle_count_newGBTL(L, U);
-
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>
-        (std::chrono::steady_clock::now() - start);
+    my_timer.stop();
 
     std::cout << "# triangles (newGBTL) = " << count << std::endl;
-    std::cout << "Elapsed time: " << duration.count() << " msec." << std::endl;
+    std::cout << "Elapsed time: " << my_timer.elapsed() << " msec." << std::endl;
 
     //===================
-    start = std::chrono::steady_clock::now();
-
+    my_timer.start();
     count = algorithms::triangle_count_masked(L, U);
-
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>
-        (std::chrono::steady_clock::now() - start);
+    my_timer.stop();
 
     std::cout << "# triangles (LU) = " << count << std::endl;
-    std::cout << "Elapsed time: " << duration.count() << " msec." << std::endl;
+    std::cout << "Elapsed time: " << my_timer.elapsed() << " msec." << std::endl;
 
     //===================
-    start = std::chrono::steady_clock::now();
-
+    my_timer.start();
     count = algorithms::triangle_count_masked(L);
+    my_timer.stop();
 
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>
-        (std::chrono::steady_clock::now() - start);
     std::cout << "# triangles (masked) = " << count << std::endl;
-    std::cout << "Elapsed time: " << duration.count() << " msec." << std::endl;
+    std::cout << "Elapsed time: " << my_timer.elapsed() << " msec." << std::endl;
 
     //count = algorithms::triangle_count_flame1_newGBTL(U);
     //std::cout << "# triangles = " << count << std::endl;

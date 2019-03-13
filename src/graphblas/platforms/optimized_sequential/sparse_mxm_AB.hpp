@@ -370,8 +370,6 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            std::cout << "sparse_mxm_NoMask_NoAccum_AB COMPLETE.\n";
-
             // C = A +.* B
             // short circuit conditions
             if ((A.nvals() == 0) || (B.nvals() == 0))
@@ -410,8 +408,6 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            std::cout << "sparse_mxm_NoMask_Accum_AB COMPLETED.\n";
-
             // C = C + (A +.* B)
             // short circuit conditions
             if ((A.nvals() == 0) || (B.nvals() == 0))
@@ -453,8 +449,6 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_Mask_NoAccum_AB COMPLETED (empty mask?).\n";
-
             // C<M,z> = A +.* B
             //        =               [M .* (A +.* B)], z = "replace"
             //        = [!M .* C]  U  [M .* (A +.* B)], z = "merge"
@@ -518,8 +512,6 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_Mask_Accum_AB COMPLETE.\n";
-
             // C<M,z> = C + (A +.* B)
             //        =               [M .* [C + (A +.* B)]], z = "replace"
             //        = [!M .* C]  U  [M .* [C + (A +.* B)]], z = "merge"
@@ -589,8 +581,6 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_CompMask_NoAccum_AB COMPLETED (empty mask?).\n";
-
             // C<!M,z> = A +.* B
             //        =              [!M .* (A +.* B)], z = "replace"
             //        = [M .* C]  U  [!M .* (A +.* B)], z = "merge"
@@ -649,8 +639,6 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             bool                             replace_flag)
         {
-            std::cout << "sparse_mxm_CompMask_Accum_AB COMPLETED.\n";
-
             // C<!M,z> = C + (A +.* B)
             //         =              [!M .* [C + (A +.* B)]], z = "replace"
             //         = [M .* C]  U  [!M .* [C + (A +.* B)]], z = "merge"
