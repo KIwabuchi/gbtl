@@ -126,8 +126,98 @@ namespace algorithms
 {
     //************************************************************************
     /**
-     * @brief Perform a single breadth first search (BFS) traversal on the
-     *        given graph.
+     * @brief Perform a single "parent" breadth first search (BFS) traversal
+     *        on the given graph.
+     *
+     * @param[in]  graph        N x N adjacency matrix of the graph on which to
+     *                          perform a BFS. (NOT the transpose).  The value
+     *                          1 should indicate an edge.
+     * @param[in]  source       Index of the root vertex to use in the
+     *                          calculation.
+     * @param[out] parent_list  The list of parents for each traversal (row)
+     *                          specified in the roots array.
+     */
+    template <typename MatrixT,
+              typename ParentListVectorT>
+    void bfs(MatrixT const          &graph,
+             GraphBLAS::IndexType    source,
+             ParentListVectorT      &parent_list)
+    {
+        using T = typename MatrixT::ScalarType;
+        GraphBLAS::IndexType const N(graph.nrows());
+
+        // assert parent_list is N-vector
+        // assert source is in proper range
+        // assert parent_list ScalarType is GraphBLAS::IndexType
+
+        // create index ramp for index-of() functionality
+        GraphBLAS::Vector<GraphBLAS::IndexType> index_ramp(N);
+        {
+            std::vector<GraphBLAS::IndexType> idx(N);
+            std::vector<GraphBLAS::IndexType> idx1(N);
+            for (GraphBLAS::IndexType i = 0; i < N; ++i)
+            {
+                idx[i] = i;
+                idx1[i]= i + 1;  // off-by-one until structure only mask
+            }
+
+            index_ramp.build(idx.begin(), idx1.begin(), N);
+        }
+
+        // initialize wavefront to source node.
+        GraphBLAS::Vector<GraphBLAS::IndexType> wavefront(N);
+        wavefront.setElement(source, 1UL);
+
+        // set root parent to self; off-by-one until structure only mask
+        parent_list.clear();
+        parent_list.setElement(source, source + 1);
+
+        while (wavefront.nvals() > 0)
+        {
+            // convert all stored values to their 1-based column index
+            GraphBLAS::eWiseMult(wavefront,
+                                 GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
+                                 GraphBLAS::First<GraphBLAS::IndexType>(),
+                                 index_ramp, wavefront);
+
+            // Select1st because we are left multiplying wavefront rows
+            // Masking out the parent list ensures wavefront values do not
+            // overlap values already stored in the parent list
+            GraphBLAS::vxm(wavefront,
+                           GraphBLAS::complement(parent_list),
+                           GraphBLAS::NoAccumulate(),
+                           GraphBLAS::MinSelect1stSemiring<GraphBLAS::IndexType>(),
+                           wavefront, graph, true);
+
+            // We don't need to mask here since we did it in mxm.
+            // Merges new parents in current wavefront with existing parents
+            // parent_list<!parent_list,merge> += wavefront
+            GraphBLAS::apply(parent_list,
+                             GraphBLAS::NoMask(),
+                             GraphBLAS::Plus<GraphBLAS::IndexType>(),
+                             GraphBLAS::Identity<GraphBLAS::IndexType>(),
+                             wavefront,
+                             false);
+        }
+
+        // REMOVE THE FOLLOWING SUBTRACTION WHEN STRUCTURE ONLY MASKS IMPL'ED
+        // Restore zero-based indices by subtracting 1 from all stored values
+        GraphBLAS::BinaryOp_Bind2nd<unsigned int,
+                                    GraphBLAS::Minus<unsigned int>>
+            subtract_1(1);
+
+        GraphBLAS::apply(parent_list,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::NoAccumulate(),
+                         subtract_1,
+                         parent_list,
+                         true);
+    }
+
+    //************************************************************************
+    /**
+     * @brief Perform a single "parent" breadth first search (BFS) traversal
+     *        on the given graph.
      *
      * @param[in]  graph        N x N adjacency matrix of the graph on which to
      *                          perform a BFS. (NOT the transpose).  The value

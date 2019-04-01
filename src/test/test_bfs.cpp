@@ -40,7 +40,7 @@
 BOOST_AUTO_TEST_SUITE(BOOST_TEST_MODULE)
 
 //****************************************************************************
-    /// @todo Use a dense matrix type?
+/// @todo Use a dense matrix type?
 namespace
 {
     template <typename T>
@@ -134,6 +134,43 @@ namespace
     //    GraphBLAS::buildmatrix(temp, rows.begin(), cols.begin(), vals.begin(), rows.size());
     //    return temp;
     //}
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(bfs_test_basic_one_root_source_index)
+{
+    typedef double T;
+    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+
+    GraphBLAS::IndexType const NUM_NODES(9);
+    GraphBLAS::IndexType const START_INDEX(5);
+
+    GraphBLAS::IndexArrayType i = {0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
+                                   4, 4, 4, 5, 6, 6, 6, 8, 8};
+    GraphBLAS::IndexArrayType j = {3, 3, 6, 4, 5, 6, 8, 0, 1, 4, 6,
+                                   2, 3, 8, 2, 1, 2, 3, 2, 4};
+    std::vector<T> v(i.size(), 1);
+
+    GrBMatrix G_tn(NUM_NODES, NUM_NODES);
+    G_tn.build(i, j, v);
+
+    GraphBLAS::Vector<T> parent_list(NUM_NODES);
+    algorithms::bfs(G_tn, START_INDEX, parent_list);
+
+    T const INF(std::numeric_limits<T>::max());
+    auto G_tn_answer(get_tn_answer(INF));
+    for (GraphBLAS::IndexType ix = 0; ix < NUM_NODES; ++ix)
+    {
+        if (parent_list.hasElement(ix))
+        {
+            BOOST_CHECK_EQUAL(parent_list.extractElement(ix),
+                              G_tn_answer[START_INDEX][ix]);
+        }
+        else
+        {
+            BOOST_CHECK_EQUAL(INF, G_tn_answer[START_INDEX][ix]);
+        }
+    }
 }
 
 //****************************************************************************
