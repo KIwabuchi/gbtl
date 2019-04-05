@@ -150,7 +150,7 @@ namespace algorithms
         // assert source is in proper range
         // assert parent_list ScalarType is GraphBLAS::IndexType
 
-        // create index ramp for index-of() functionality
+        // create index ramp for index_of() functionality
         GraphBLAS::Vector<GraphBLAS::IndexType> index_ramp(N);
         {
             std::vector<GraphBLAS::IndexType> idx(N);
@@ -237,16 +237,45 @@ namespace algorithms
              ParentListVectorT      &parent_list)
     {
         using T = typename MatrixT::ScalarType;
+        GraphBLAS::IndexType const N(graph.nrows());
+
+        // assert parent_list is N-vector
+        // assert wavefront is N-vector
+        // assert parent_list ScalarType is GraphBLAS::IndexType
+
+        // create index ramp for index_of() functionality
+        GraphBLAS::Vector<GraphBLAS::IndexType> index_ramp(N);
+        {
+            std::vector<GraphBLAS::IndexType> idx(N);
+            std::vector<GraphBLAS::IndexType> idx1(N);
+            for (GraphBLAS::IndexType i = 0; i < N; ++i)
+            {
+                idx[i] = i;
+                idx1[i]= i + 1;  // off-by-one until structure only mask
+            }
+
+            index_ramp.build(idx.begin(), idx1.begin(), N);
+        }
 
         // Set the roots parents to themselves using one-based indices because
         // the mask is sensitive to stored zeros.
         parent_list = wavefront;
-        index_of_1based(parent_list);
+
+        // convert all stored values to their 1-based column index
+        // index_of_1based(parent_list);
+        GraphBLAS::eWiseMult(parent_list,
+                             GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
+                             GraphBLAS::First<GraphBLAS::IndexType>(),
+                             index_ramp, parent_list);
 
         while (wavefront.nvals() > 0)
         {
             // convert all stored values to their 1-based column index
-            index_of_1based(wavefront);
+            //index_of_1based(wavefront);
+            GraphBLAS::eWiseMult(wavefront,
+                                 GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
+                                 GraphBLAS::First<GraphBLAS::IndexType>(),
+                                 index_ramp, wavefront);
 
             // Select1st because we are left multiplying wavefront rows
             // Masking out the parent list ensures wavefront values do not
@@ -305,16 +334,42 @@ namespace algorithms
                    ParentListMatrixT      &parent_list)
     {
         using T = typename MatrixT::ScalarType;
+        GraphBLAS::IndexType const N(graph.nrows());
+
+        // assert parent_list is RxN
+        // assert wavefront is RxN
+        // assert parent_list ScalarType is GraphBLAS::IndexType
+
+        // create index ramp for index_of() functionality
+        GraphBLAS::Matrix<GraphBLAS::IndexType> index_ramp(N, N);
+        {
+            GraphBLAS::IndexArrayType idx, val;
+            for (GraphBLAS::IndexType i = 0; i < N; ++i)
+            {
+                idx.push_back(i);
+                val.push_back(i + 1);  // off-by-one until structure only mask
+            }
+
+            index_ramp.build(idx, idx, val);
+        }
 
         // Set the roots parents to themselves using one-based indices because
         // the mask is sensitive to stored zeros.
         parent_list = wavefronts;
-        col_index_of_1based(parent_list);
+        //col_index_of_1based(parent_list);
+        GraphBLAS::mxm(parent_list,
+                       GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
+                       GraphBLAS::MinSelect2ndSemiring<T>(),
+                       parent_list, index_ramp);
 
         while (wavefronts.nvals() > 0)
         {
             // convert all stored values to their 1-based column index
-            col_index_of_1based(wavefronts);
+            // col_index_of_1based(wavefronts);
+            GraphBLAS::mxm(wavefronts,
+                           GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
+                           GraphBLAS::MinSelect2ndSemiring<T>(),
+                           wavefronts, index_ramp);
 
             // Select1st because we are left multiplying wavefront rows
             // Masking out the parent list ensures wavefronts values do not
