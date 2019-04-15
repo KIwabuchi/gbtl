@@ -406,6 +406,55 @@ namespace algorithms
 
     //************************************************************************
     /**
+     * @brief Perform a single "level" breadth first search (BFS) traversal
+     *        on the given graph.
+     *
+     * @param[in]  graph        N x N adjacency matrix of the graph on which to
+     *                          perform a BFS. (NOT the transpose).  The value
+     *                          1 should indicate an edge.
+     * @param[in]  source       Index of the root vertex to use in the
+     *                          calculation.
+     * @param[out] parent_list  The list of parents for each traversal (row)
+     *                          specified in the roots array.
+     */
+    template <typename MatrixT,
+              typename LevelsVectorT>
+    void bfs_level(MatrixT const          &graph,
+                   GraphBLAS::IndexType    source,
+                   LevelsVectorT          &levels)
+    {
+        using T = typename MatrixT::ScalarType;
+        GraphBLAS::IndexType const N(graph.nrows());
+
+        /// @todo Assert graph is square
+
+        GraphBLAS::Vector<bool> wavefront(N);
+        wavefront.setElement(source, true);
+
+        GraphBLAS::IndexType depth(0);
+        while (wavefront.nvals() > 0)
+        {
+            // Increment the level
+            ++depth;
+
+            GraphBLAS::BinaryOp_Bind2nd<
+                GraphBLAS::IndexType, GraphBLAS::Times<GraphBLAS::IndexType> >
+                    apply_depth(depth);
+
+            // Apply the level to all newly visited nodes
+            GraphBLAS::apply(levels, GraphBLAS::NoMask(),
+                             GraphBLAS::Plus<GraphBLAS::IndexType>(),
+                             apply_depth, wavefront);
+
+            GraphBLAS::mxv(wavefront, complement(levels),
+                           GraphBLAS::NoAccumulate(),
+                           GraphBLAS::LogicalSemiring<bool>(),
+                           transpose(graph), wavefront, true);
+        }
+    }
+
+    //************************************************************************
+    /**
      * @brief Perform a breadth first search (BFS) on the given graph.
      *
      * @param[in]  graph        The graph to perform a BFS on.  NOT built from

@@ -394,6 +394,43 @@ BOOST_AUTO_TEST_CASE(bfs_batch_test_gilbert)
 }
 
 //****************************************************************************
+BOOST_AUTO_TEST_CASE(bfs_level_test_one_root_source)
+{
+    typedef bool T;
+    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+
+    GraphBLAS::IndexType const NUM_NODES(9);
+    GraphBLAS::IndexType const START_INDEX(5);
+
+    GraphBLAS::IndexArrayType i = {0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
+                                   4, 4, 4, 5, 6, 6, 6, 8, 8};
+    GraphBLAS::IndexArrayType j = {3, 3, 6, 4, 5, 6, 8, 0, 1, 4, 6,
+                                   2, 3, 8, 2, 1, 2, 3, 2, 4};
+    std::vector<T> v(i.size(), true);
+
+    GrBMatrix G_tn(NUM_NODES, NUM_NODES);
+    G_tn.build(i, j, v);
+
+    GraphBLAS::Vector<GraphBLAS::IndexType> levels(NUM_NODES);
+    algorithms::bfs_level(G_tn, START_INDEX, levels);
+
+    std::vector<GraphBLAS::IndexType> answer = {5, 4, 2, 4, 3, 1, 3, 0, 3};
+
+    for (GraphBLAS::IndexType ix = 0; ix < NUM_NODES; ++ix)
+    {
+        if (levels.hasElement(ix))
+        {
+            BOOST_CHECK_EQUAL(levels.extractElement(ix),
+                              answer[ix]);
+        }
+        else
+        {
+            BOOST_CHECK_EQUAL(0, answer[ix]);
+        }
+    }
+}
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_level_test_one_root)
 {
     typedef double T;
