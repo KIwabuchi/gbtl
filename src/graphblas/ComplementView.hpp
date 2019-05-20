@@ -148,7 +148,7 @@ namespace GraphBLAS
                  typename BMatrixT>
         friend inline void mxm(CMatrixT         &C,
                                MaskT      const &Mask,
-                               AccumT            accum,
+                               AccumT     const &accum,
                                SemiringT         op,
                                AMatrixT   const &A,
                                BMatrixT   const &B,
@@ -167,7 +167,7 @@ namespace GraphBLAS
         friend inline void eWiseMult(
             GraphBLAS::Matrix<CScalarT, CTagsT...> &C,
             MaskT                            const &Mask,
-            AccumT                                  accum,
+            AccumT                           const &accum,
             BinaryOpT                               op,
             AMatrixT                         const &A,
             BMatrixT                         const &B,
@@ -186,7 +186,7 @@ namespace GraphBLAS
         friend inline void eWiseAdd(
             GraphBLAS::Matrix<CScalarT, CTagsT...> &C,
             MaskT                            const &Mask,
-            AccumT                                  accum,
+            AccumT                           const &accum,
             BinaryOpT                               op,
             AMatrixT                         const &A,
             BMatrixT                         const &B,
@@ -205,7 +205,7 @@ namespace GraphBLAS
         friend inline void extract(
                 GraphBLAS::Matrix<CScalarT, CTags...>   &C,
                 MaskT               const   &Mask,
-                AccumT                       accum,
+                AccumT                const &accum,
                 AMatrixT            const   &A,
                 RowSequenceT        const   &row_indices,
                 ColSequenceT        const   &col_indices,
@@ -225,7 +225,7 @@ namespace GraphBLAS
                      int>::type>
         friend inline void assign(CMatrixT              &C,
                                   MaskT           const &Mask,
-                                  AccumT                 accum,
+                                  AccumT          const &accum,
                                   AMatrixT        const &A,
                                   RowSequenceT    const &row_indices,
                                   ColSequenceT    const &col_indices,
@@ -244,7 +244,7 @@ namespace GraphBLAS
                      int>::type>
         friend inline void assign(CMatrixT             &C,
                                   MaskT          const &Mask,
-                                  AccumT                accum,
+                                  AccumT         const &accum,
                                   ValueT                val,
                                   RowSequenceT   const &row_indices,
                                   ColSequenceT   const &col_indices,
@@ -262,7 +262,7 @@ namespace GraphBLAS
         friend inline void apply(
             GraphBLAS::Matrix<CScalarT, ATagsT...>           &C,
             MaskT                                     const  &Mask,
-            AccumT                                            accum,
+            AccumT                                     const &accum,
             UnaryFunctionT                                    op,
             AMatrixT                                  const  &A,
             bool                                              replace_flag);
@@ -276,7 +276,7 @@ namespace GraphBLAS
                  typename AMatrixT>
         friend inline void transpose(CMatrixT       &C,
                                      MaskT    const &Mask,
-                                     AccumT          accum,
+                                     AccumT   const &accum,
                                      AMatrixT const &A,
                                      bool            replace_flag);
 
@@ -390,7 +390,7 @@ namespace GraphBLAS
                  typename AMatrixT>
         friend inline void vxm(WVectorT         &w,
                                MaskT      const &mask,
-                               AccumT            accum,
+                               AccumT     const &accum,
                                SemiringT         op,
                                UVectorT   const &u,
                                AMatrixT   const &A,
@@ -404,7 +404,7 @@ namespace GraphBLAS
                  typename UVectorT>
         friend inline void mxv(WVectorT        &w,
                                MaskT     const &mask,
-                               AccumT           accum,
+                               AccumT    const &accum,
                                SemiringT        op,
                                AMatrixT  const &A,
                                UVectorT  const &u,
@@ -422,7 +422,7 @@ namespace GraphBLAS
         friend inline void eWiseMult(
             GraphBLAS::Vector<WScalarT, WTagsT...> &w,
             MaskT                            const &mask,
-            AccumT                                  accum,
+            AccumT                           const &accum,
             BinaryOpT                               op,
             UVectorT                         const &u,
             VVectorT                         const &v,
@@ -438,7 +438,7 @@ namespace GraphBLAS
         friend inline void eWiseAdd(
             GraphBLAS::Vector<WScalarT, WTagsT...> &w,
             MaskT                            const &mask,
-            AccumT                                  accum,
+            AccumT                           const &accum,
             BinaryOpT                               op,
             UVectorT                         const &u,
             VVectorT                         const &v,
@@ -454,7 +454,7 @@ namespace GraphBLAS
                  typename SequenceT>
         friend inline void extract(WVectorT             &w,
                                    MaskT          const &mask,
-                                   AccumT                accum,
+                                   AccumT         const &accum,
                                    UVectorT       const &u,
                                    SequenceT      const &indices,
                                    bool                  replace_flag);
@@ -469,7 +469,7 @@ namespace GraphBLAS
         friend inline void extract(
                 GraphBLAS::Vector<WScalarT, WTags...> &w,
                 MaskT          const &mask,
-                AccumT                accum,
+                AccumT         const &accum,
                 AMatrixT       const &A,
                 SequenceT      const &row_indices,
                 IndexType             col_index,
@@ -490,7 +490,7 @@ namespace GraphBLAS
                  typename ...WTags>
         friend inline void assign(Vector<WScalarT, WTags...>      &w,
                                   MaskT                     const &mask,
-                                  AccumT                           accum,
+                                  AccumT                    const &accum,
                                   UVectorT                  const &u,
                                   SequenceT                 const &indices,
                                   bool                             replace_flag);
@@ -504,7 +504,7 @@ namespace GraphBLAS
                  typename ...CTags>
         friend inline void assign(Matrix<CScalarT, CTags...>  &C,
                                   MaskT                 const &mask,  // a vector
-                                  AccumT                       accum,
+                                  AccumT                const &accum,
                                   UVectorT              const &u,
                                   SequenceT             const &row_indices,
                                   IndexType                    col_index,
@@ -519,7 +519,7 @@ namespace GraphBLAS
                  typename ...CTags>
         friend inline void assign(Matrix<CScalarT, CTags...>  &C,
                                   MaskT                 const &mask,  // a vector
-                                  AccumT                       accum,
+                                  AccumT                const &accum,
                                   UVectorT              const &u,
                                   IndexType                    row_index,
                                   SequenceT             const &col_indices,
@@ -535,12 +535,12 @@ namespace GraphBLAS
                      std::is_convertible<ValueT,
                                          typename WVectorT::ScalarType>::value,
                      int>::type>
-        friend inline void assign(WVectorT &w,
-                                  MaskT const &mask,
-                                  AccumT accum,
-                                  ValueT val,
+        friend inline void assign(WVectorT        &w,
+                                  MaskT     const &mask,
+                                  AccumT    const &accum,
+                                  ValueT           val,
                                   SequenceT const &indices,
-                                  bool replace_flag);
+                                  bool             replace_flag);
 
         //--------------------------------------------------------------------
         // 4.3.8.1:
@@ -552,7 +552,7 @@ namespace GraphBLAS
                  typename ...WTagsT>
         friend inline void apply(GraphBLAS::Vector<WScalarT, WTagsT...> &w,
                                  MaskT                            const &mask,
-                                 AccumT                                  accum,
+                                 AccumT                           const &accum,
                                  UnaryFunctionT                          op,
                                  UVectorT                         const &u,
                                  bool                                    replace_flag);
@@ -567,7 +567,7 @@ namespace GraphBLAS
                  typename AMatrixT>
         friend inline void reduce(WVectorT        &w,
                                   MaskT     const &mask,
-                                  AccumT           accum,
+                                  AccumT    const &accum,
                                   BinaryOpT        op,
                                   AMatrixT  const &A,
                                   bool             replace_flag);

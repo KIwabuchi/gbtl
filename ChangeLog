@@ -1,8 +1,13 @@
 2019-xx In progress
-	* Bug fix: correcting friend declaration signature of vector variant of assign 
+	* Bug fix: correcting friend declaration signature of vector variant of assign
 	* Bug fix: enabling mask complements in row/col variants of assign
 	* Bug fix: detect distance updates in current bin of delta stepping SSSP algorithm
-	* Added filtered Bellman-Ford SSSP algorithm
+	* Refactor: Changed how nsver is subtracted from result vector in BC algorithm (vertex_betweenness_centrality_batch_alt_trans_v2())
+	* Addition: Single-source parent BFS (with more efficient index-of() operation)
+	* Addition: Single-source level BFS algorithm (appendix B.2 of C API Spec. v1.2)
+	* Addition: Triangle counting algorithm: masked, that takes L and U matrices (no transpose).
+	* Addition: Filtered Bellman-Ford SSSP algorithm
+	* Addition: Start of optimized sequential (single-threaded) backend: more efficient code branches (24) for mxm, mxm timing tests
 
 2018-07 Scott McMillan <smcmillan@sei.cmu.edu>
 	* Version 2.0 Release (merged from spiral_graph branch to master).

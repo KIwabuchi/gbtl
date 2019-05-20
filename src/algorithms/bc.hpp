@@ -230,6 +230,7 @@ namespace algorithms
         GRB_BC_LOG("BC Updates " << BCu);
 
         GraphBLAS::Vector<float, GraphBLAS::SparseTag> result(n);
+#if 0
         GraphBLAS::assign(result,
                           GraphBLAS::NoMask(),
                           GraphBLAS::NoAccumulate(),
@@ -241,7 +242,25 @@ namespace algorithms
                           GraphBLAS::Plus<float>(),        // Op
                           GraphBLAS::transpose(BCu),       // A, transpose make col reduce
                           true);                           // replace
+#else
+        GraphBLAS::reduce(result,                          // W
+                          GraphBLAS::NoMask(),             // Mask
+                          GraphBLAS::NoAccumulate(),       // Accum
+                          GraphBLAS::Plus<float>(),        // Op
+                          GraphBLAS::transpose(BCu),       // A, transpose make col reduce
+                          true);                           // replace
 
+        // Replace following with apply with binary op and scalar
+        GraphBLAS::BinaryOp_Bind2nd<float, GraphBLAS::Minus<float>>
+            subtract_nsver(static_cast<float>(nsver));
+
+        GraphBLAS::apply(result,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::NoAccumulate(),
+                         subtract_nsver,
+                         result,
+                         true);
+#endif
         GRB_BC_LOG("RESULT: " << result);
 
         std::vector<float> betweenness_centrality(n, 0.f);
