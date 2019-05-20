@@ -1,20 +1,22 @@
-# GraphBLAS Template Library (GBTL), v. 2.0
+# GraphBLAS Template Library (GBTL), v. 2.1 [IN PROGRESS]
 
 ## Project Goals
 
 * Complete, mathematically equivalent implementation of the GraphBLAS C API
-specification in C++ (specification http://graphblas.org).
+specification in C++ Version 1.3 (specification http://graphblas.org).
 * Graph algorithm library containing commonly used graph algorithms
 implemented with the GraphBLAS primitive operations.
 
-This is Version 2.0 of the C++ implementation that is mathematically
-equivalent to the GraphBLAS C API.  Unlike the first version (which
-predates the GraphBLAS C API Specification), this only contains the
-'sequential' backend (in the platforms directory) written for a single
-CPU.  Support for GPUs that was in version 1.0 is currently not
-available but can be accessed using the git tag: 'Version1').
+This is Version 2.1 of the C++ implementation and is mathematically
+equivalent to Version 1.3 of the GraphBLAS C API.  Unlike the first
+version (which predates the GraphBLAS C API Specification), this only
+contains the 'sequential' backend (in the platforms directory) written
+for a single CPU and is intended as a reference implementation
+only. Other backends are currently under development.
 
-The API defined by GBTL v. 2.0 is not backward compatible with v. 1.0.
+Support for GPUs that was in version 1.0 is currently not available
+but can be accessed using the git tag: 'Version1'). The API defined by
+GBTL v. 2.0 and later is not backward compatible with v. 1.0.
 
 The implementation of the sequential backend is currently focused on
 correctness over performance.  The project also contains implementations of
