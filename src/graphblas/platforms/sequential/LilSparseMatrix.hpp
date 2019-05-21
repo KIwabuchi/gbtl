@@ -34,6 +34,7 @@
 #include <vector>
 #include <typeinfo>
 #include <stdexcept>
+#include <algorithm>
 
 #include <graphblas/graphblas.hpp>
 
@@ -49,6 +50,8 @@ namespace GraphBLAS
         {
         public:
             typedef ScalarT ScalarType;
+            typedef std::tuple<IndexType, ScalarT> ElementType;
+            typedef std::vector<ElementType>       RowType;
 
             // Constructor
             LilSparseMatrix(IndexType num_rows,
@@ -354,7 +357,25 @@ namespace GraphBLAS
                 }
             }
 
-            typedef std::vector<std::tuple<IndexType, ScalarT>> const & RowType;
+            void removeElement(IndexType irow, IndexType icol)
+            {
+                if (irow >= m_num_rows || icol >= m_num_cols)
+                {
+                    throw IndexOutOfBoundsException("setElement: index out of bounds");
+                }
+
+                /// @todo Replace with binary_search
+                auto it = std::find_if(
+                    m_data[irow].begin(), m_data[irow].end(),
+                    [&icol](ElementType const &elt) { return icol == std::get<0>(elt); });
+
+                if (it != m_data[irow].end())
+                {
+                    m_nvals = m_nvals - 1;
+                    m_data[irow].erase(it);
+                }
+            }
+
             RowType getRow(IndexType row_index) const
             {
                 return m_data[row_index];
@@ -600,8 +621,6 @@ namespace GraphBLAS
                         os << std::endl;
                     }
                 #else
-                    typedef std::vector<std::tuple<IndexType, ScalarT>> const & RowType;
-
                     IndexType num_rows = nrows();
                     IndexType num_cols = ncols();
 
@@ -672,7 +691,7 @@ namespace GraphBLAS
             IndexType m_nvals;
 
             // List-of-lists storage (LIL)
-            std::vector<std::vector<std::tuple<IndexType, ScalarT>>> m_data;
+            std::vector<RowType>                   m_data;
         };
 
     } // namespace backend

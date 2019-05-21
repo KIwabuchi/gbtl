@@ -208,10 +208,14 @@ namespace GraphBLAS
             return m_vec.hasElement(index);
         }
 
-        void setElement(IndexType      index,
-                        ScalarT const &new_val)
+        void setElement(IndexType index, ScalarT const &new_val)
         {
             m_vec.setElement(index, new_val);
+        }
+
+        void removeElement(IndexType index)
+        {
+            m_vec.removeElement(index);
         }
 
         /// @throw NoValueException if there is no value stored at (row,col)

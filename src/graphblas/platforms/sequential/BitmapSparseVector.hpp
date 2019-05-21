@@ -372,6 +372,20 @@ namespace GraphBLAS
                 }
             }
 
+            void removeElement(IndexType index)
+            {
+                if (index >= m_size)
+                {
+                    throw IndexOutOfBoundsException();
+                }
+
+                if (m_bitmap[index] == true)
+                {
+                    --m_nvals;
+                    m_bitmap[index] = false;
+                }
+            }
+
             template<typename RAIteratorIT,
                      typename RAIteratorVT>
             void extractTuples(RAIteratorIT        i_it,

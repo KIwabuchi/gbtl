@@ -229,10 +229,14 @@ namespace GraphBLAS
             return m_mat.hasElement(row, col);
         }
 
-        /// @todo I don't think this is a valid interface for sparse
         void setElement(IndexType row, IndexType col, ScalarT const &val)
         {
             m_mat.setElement(row, col, val);
+        }
+
+        void removeElement(IndexType row, IndexType col)
+        {
+            m_mat.removeElement(row, col);
         }
 
         /// @throw NoValueException if there is no value stored at (row,col)
