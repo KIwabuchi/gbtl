@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -25,11 +25,6 @@
  * Mellon University and The Trustees of Indiana. DM17-0037, DM-0002659
  *
  * DM18-0559
- */
-
-/**
- * Implementations of all GraphBLAS functions optimized for the sequential
- * (CPU) backend.
  */
 
 #ifndef GB_SEQUENTIAL_SPARSE_EWISEMULT_HPP
@@ -72,7 +67,7 @@ namespace GraphBLAS
             BinaryOpT                                        op,
             UVectorT                                  const &u,
             VVectorT                                  const &v,
-            bool                                             replace_flag = false)
+            OutputControlEnum                                outp)
         {
             // =================================================================
             // Do the basic ewise-and work: t = u .* v
@@ -93,8 +88,8 @@ namespace GraphBLAS
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask_1D(w, z_contents, mask, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask_1D(w, z_contents, mask, outp);
         }
 
         //**********************************************************************
@@ -113,7 +108,7 @@ namespace GraphBLAS
             BinaryOpT                                        op,
             AMatrixT                                  const &A,
             BMatrixT                                  const &B,
-            bool                                             replace_flag = false)
+            OutputControlEnum                                outp)
         {
             IndexType num_rows(A.nrows());
             IndexType num_cols(A.ncols());
@@ -169,8 +164,8 @@ namespace GraphBLAS
 //            GRB_LOG_E(Z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, Mask, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, Mask, outp);
 
 //            GRB_LOG_E(">>> C <<< ");
 //            GRB_LOG_E(C);

@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -242,7 +242,7 @@ namespace algorithms
             GraphBLAS::mxm(Tally,
                            Cf, GraphBLAS::NoAccumulate(),
                            GraphBLAS::ArithmeticSemiring<RealT>(),
-                           cluster_num_mat, Cf, true);
+                           cluster_num_mat, Cf, GraphBLAS::REPLACE);
             //GraphBLAS::print_matrix(std::cerr, Tally,
             //                        "Next cluster mat x clusternum");
             GraphBLAS::reduce(m,
@@ -261,7 +261,7 @@ namespace algorithms
             GraphBLAS::apply(Cf,
                              Cf, GraphBLAS::NoAccumulate(),
                              GraphBLAS::Identity<bool>(),
-                             Cf, true);
+                             Cf, GraphBLAS::REPLACE);
             //GraphBLAS::print_matrix(std::cerr, Cf, "Next cluster mat, masked");
 
             if (Cf == C)
@@ -409,7 +409,7 @@ namespace algorithms
             GraphBLAS::mxm(Tally,
                            Cf, GraphBLAS::NoAccumulate(),
                            GraphBLAS::ArithmeticSemiring<RealT>(),
-                           cluster_num_mat, Cf, true);
+                           cluster_num_mat, Cf, GraphBLAS::REPLACE);
 
             GraphBLAS::reduce(m,
                               GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
@@ -426,7 +426,7 @@ namespace algorithms
             GraphBLAS::apply(Cf,
                              Cf, GraphBLAS::NoAccumulate(),
                              GraphBLAS::Identity<bool>(),
-                             Cf, true);
+                             Cf, GraphBLAS::REPLACE);
 
             if (Cf == C)
             {
@@ -498,7 +498,7 @@ namespace algorithms
                 GraphBLAS::mxm(Apower,
                                Apower, GraphBLAS::NoAccumulate(),
                                GraphBLAS::ArithmeticSemiring<RealT>(),
-                               Apower, Anorm, true);
+                               Apower, Anorm, GraphBLAS::REPLACE);
             }
 
             //GraphBLAS::print_matrix(std::cout, Apower, "Apower = Anorm^e");
@@ -511,7 +511,7 @@ namespace algorithms
                                      Ainfl,
                                      GraphBLAS::NoAccumulate(),
                                      GraphBLAS::Times<RealT>(),
-                                     Ainfl, Apower, true);
+                                     Ainfl, Apower, GraphBLAS::REPLACE);
             }
             //GraphBLAS::print_matrix(std::cout, Ainfl, "Ainfl = Apower .^ r");
             GraphBLAS::normalize_cols(Ainfl);

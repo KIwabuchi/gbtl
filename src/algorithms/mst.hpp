@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -170,7 +170,7 @@ namespace algorithms
         GraphBLAS::assign(s,
                           GraphBLAS::complement(mask),
                           GraphBLAS::NoAccumulate(),
-                          0, GraphBLAS::AllIndices(), true);
+                          0, GraphBLAS::AllIndices(), GraphBLAS::REPLACE);
         //GraphBLAS::print_vector(std::cout, s, "Initial s");
 
         mst_parents.clear();
@@ -206,7 +206,7 @@ namespace algorithms
                              GraphBLAS::complement(mask),
                              GraphBLAS::NoAccumulate(),
                              GraphBLAS::Identity<T>(),
-                             s, true);
+                             s, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cout, s, "-------- Seen vector");
             auto idx_weight = d.extractElement(u);
             weight += idx_weight.second;

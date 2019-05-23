@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -260,7 +260,7 @@ namespace GraphBLAS
                                SemiringT         op,
                                UVectorT   const &u,
                                AMatrixT   const &A,
-                               bool              replace_flag);
+                               OutputControlEnum outp);
 
         // 4.3.3
         template<typename WVectorT,
@@ -269,13 +269,13 @@ namespace GraphBLAS
                  typename SemiringT,
                  typename AMatrixT,
                  typename UVectorT>
-        friend inline void mxv(WVectorT        &w,
-                               MaskT     const &mask,
-                               AccumT    const &accum,
-                               SemiringT        op,
-                               AMatrixT  const &A,
-                               UVectorT  const &u,
-                               bool             replace_flag);
+        friend inline void mxv(WVectorT          &w,
+                               MaskT       const &mask,
+                               AccumT      const &accum,
+                               SemiringT          op,
+                               AMatrixT    const &A,
+                               UVectorT    const &u,
+                               OutputControlEnum  outp);
 
         // 4.3.4.1
         template<typename WScalarT,
@@ -292,7 +292,7 @@ namespace GraphBLAS
             BinaryOpT                               op,
             UVectorT                         const &u,
             VVectorT                         const &v,
-            bool                                    replace_flag);
+            OutputControlEnum                       outp);
 
         // 4.3.5.1
         template<typename WScalarT,
@@ -309,7 +309,7 @@ namespace GraphBLAS
             BinaryOpT                               op,
             UVectorT                         const &u,
             VVectorT                         const &v,
-            bool                                    replace_flag);
+            OutputControlEnum                       outp);
 
         // 4.3.6.1
         template<typename WVectorT,
@@ -322,7 +322,7 @@ namespace GraphBLAS
                                    AccumT         const &accum,
                                    UVectorT       const &u,
                                    SequenceT      const &indices,
-                                   bool                  replace_flag);
+                                   OutputControlEnum     outp);
 
         // 4.3.6.3
         template<typename WScalarT,
@@ -338,7 +338,7 @@ namespace GraphBLAS
                 AMatrixT       const &A,
                 SequenceT      const &row_indices,
                 IndexType             col_index,
-                bool                  replace_flag);
+                OutputControlEnum     outp);
 
         // 4.3.7.1: assign - standard vector variant
         // template<typename WVectorT,
@@ -355,7 +355,7 @@ namespace GraphBLAS
         //                           AccumT       const &accum,
         //                           UVectorT     const &u,
         //                           SequenceT    const &indices,
-        //                           bool                replace_flag);
+        //                           OutputControlEnum   outp);
 
         template<typename WScalarT,
                  typename MaskT,
@@ -372,7 +372,7 @@ namespace GraphBLAS
                                   AccumT       const &accum,
                                   UVectorT     const &u,
                                   SequenceT    const &indices,
-                                  bool                replace_flag);
+                                  OutputControlEnum   outp);
 
         // 4.3.7.3:
         template<typename CScalarT,
@@ -387,7 +387,7 @@ namespace GraphBLAS
                                   UVectorT              const &u,
                                   SequenceT             const &row_indices,
                                   IndexType                    col_index,
-                                  bool                         replace_flag);
+                                  OutputControlEnum            outp);
 
         // 4.3.7.4:
         template<typename CScalarT,
@@ -402,7 +402,7 @@ namespace GraphBLAS
                                   UVectorT              const &u,
                                   IndexType                    row_index,
                                   SequenceT             const &col_indices,
-                                  bool                         replace_flag);
+                                  OutputControlEnum            outp);
 
         // 4.3.7.5:
         template<typename WVectorT,
@@ -414,12 +414,12 @@ namespace GraphBLAS
                      std::is_convertible<ValueT,
                                          typename WVectorT::ScalarType>::value,
                      int>::type>
-        friend inline void assign(WVectorT        &w,
-                                  MaskT     const &mask,
-                                  AccumT    const &accum,
-                                  ValueT           val,
-                                  SequenceT const &indices,
-                                  bool             replace_flag);
+        friend inline void assign(WVectorT          &w,
+                                  MaskT       const &mask,
+                                  AccumT      const &accum,
+                                  ValueT             val,
+                                  SequenceT   const &indices,
+                                  OutputControlEnum  outp);
 
         // 4.3.8.1:
         template<typename WScalarT,
@@ -434,7 +434,24 @@ namespace GraphBLAS
             AccumT                           const &accum,
             UnaryFunctionT                          op,
             UVectorT                         const &u,
-            bool                                    replace_flag);
+            OutputControlEnum                       outp);
+
+
+        // 4.3.8.3: vector binaryop bind2nd variant
+        template<typename WScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryFunctionT,
+                 typename UVectorT,
+                 typename ValueT,
+                 typename ...WTagsT>
+        friend inline void apply(Vector<WScalarT, WTagsT...> &w,
+                                 MaskT                 const &mask,
+                                 AccumT                const &accum,
+                                 BinaryFunctionT              op,
+                                 UVectorT              const &u,
+                                 ValueT                       val,
+                                 OutputControlEnum            outp);
 
         // 4.3.9.1
         template<typename WVectorT,
@@ -442,12 +459,12 @@ namespace GraphBLAS
                  typename AccumT,
                  typename BinaryOpT,  // monoid or binary op only
                  typename AMatrixT>
-        friend inline void reduce(WVectorT        &u,
-                                  MaskT     const &mask,
-                                  AccumT    const &accum,
-                                  BinaryOpT        op,
-                                  AMatrixT  const &A,
-                                  bool             replace_flag);
+        friend inline void reduce(WVectorT         &u,
+                                  MaskT      const &mask,
+                                  AccumT     const &accum,
+                                  BinaryOpT         op,
+                                  AMatrixT   const &A,
+                                  OutputControlEnum outp);
         // 4.3.9.2
         template<typename ValueT,
                  typename AccumT,

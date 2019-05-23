@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,10 +27,6 @@
  * DM18-0559
  */
 
-/**
- * @brief Some basic typedefs.
- */
-
 #ifndef GB_TYPES_HPP
 #define GB_TYPES_HPP
 
@@ -44,6 +40,16 @@ namespace GraphBLAS
     typedef uint64_t IndexType;
     typedef std::vector<IndexType> IndexArrayType;
 
+    // When an operation uses a mask this controls what happens to non-masked
+    // elements in the resulting container:
+    //    MERGE   -> leave as is,
+    //    REPLACE -> clear (annihilate) element.
+    enum OutputControlEnum
+    {
+        MERGE = 0,
+        REPLACE = 1
+    };
+
     //**************************************************************************
     struct NoAccumulate
     {
@@ -51,6 +57,9 @@ namespace GraphBLAS
         typedef bool result_type;
         inline bool operator()(bool lhs, bool rhs) { return true; }
     };
+
+
+    /// @todo move NoMask here if possible?
 
 
     //**************************************************************************

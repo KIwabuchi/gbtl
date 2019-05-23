@@ -1,5 +1,5 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
  * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B, true);
+                   A, B, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B, true);
+                   A, B, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := C + A+.*B : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B, true);
+                   A, B, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := A+.*B    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B, true);
+                   A, B, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := C + A+.*B: " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B, true);
+                   GraphBLAS::transpose(A), B, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B, true);
+                   GraphBLAS::transpose(A), B, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := C + A'+.*B : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -242,7 +242,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B, true);
+                   GraphBLAS::transpose(A), B, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := A'+.*B    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B, true);
+                   GraphBLAS::transpose(A), B, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := C + A'+.*B: " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B), true);
+                   A, GraphBLAS::transpose(B), GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := A+.*B'     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B), true);
+                   A, GraphBLAS::transpose(B), GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := C + A+.*B' : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -317,7 +317,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B), true);
+                   A, GraphBLAS::transpose(B), GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := A+.*B'    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -331,7 +331,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B), true);
+                   A, GraphBLAS::transpose(B), GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := C + A+.*B': " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -364,7 +364,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), true);
+                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := A+.*B'     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -378,7 +378,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), true);
+                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := C + A+.*B' : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), true);
+                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := A+.*B'    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -406,7 +406,7 @@ int main(int argc, char **argv)
     my_timer.start();
     GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), true);
+                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := C + A+.*B': " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -454,7 +454,7 @@ int main(int argc, char **argv)
         C.m_mat,
         M.m_mat, GraphBLAS::NoAccumulate(),
         GraphBLAS::ArithmeticSemiring<double>(),
-        A.m_mat, B.m_mat, true);
+        A.m_mat, B.m_mat, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -472,7 +472,7 @@ int main(int argc, char **argv)
         C.m_mat,
         M.m_mat, GraphBLAS::Plus<double>(),
         GraphBLAS::ArithmeticSemiring<double>(),
-        A.m_mat, B.m_mat, true);
+        A.m_mat, B.m_mat, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -492,7 +492,7 @@ int main(int argc, char **argv)
         GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
         GraphBLAS::NoAccumulate(),
         GraphBLAS::ArithmeticSemiring<double>(),
-        A.m_mat, B.m_mat, true);
+        A.m_mat, B.m_mat, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := A+.*B    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -512,7 +512,7 @@ int main(int argc, char **argv)
         GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
         GraphBLAS::Plus<double>(),
         GraphBLAS::ArithmeticSemiring<double>(),
-        A.m_mat, B.m_mat, true);
+        A.m_mat, B.m_mat, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := C + A+.*B: " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -560,7 +560,7 @@ int main(int argc, char **argv)
         GraphBLAS::ArithmeticSemiring<double>(),
         A.m_mat,
         GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
-        true);
+        GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := A+.*B'    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -582,7 +582,7 @@ int main(int argc, char **argv)
         GraphBLAS::ArithmeticSemiring<double>(),
         A.m_mat,
         GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
-        true);
+        GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := C + A+.*B': " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -606,7 +606,7 @@ int main(int argc, char **argv)
         GraphBLAS::ArithmeticSemiring<double>(),
         A.m_mat,
         GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
-        true);
+        GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := A+.*B'   : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
@@ -631,7 +631,7 @@ int main(int argc, char **argv)
         GraphBLAS::ArithmeticSemiring<double>(),
         A.m_mat,
         GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
-        true);
+        GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<!M,replace> := C + A+.*B':" << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 #endif

@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -276,7 +276,7 @@ namespace algorithms
                            GraphBLAS::complement(parent_list),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::MinSelect1stSemiring<GraphBLAS::IndexType,T,GraphBLAS::IndexType>(),
-                           wavefront, graph, true);
+                           wavefront, graph, GraphBLAS::REPLACE);
 
             GraphBLAS::apply(parent_list,
                              GraphBLAS::NoMask(),
@@ -360,7 +360,7 @@ namespace algorithms
             // F := F + GM
             GraphBLAS::eWiseAdd(F, GraphBLAS::NoMask(),
                                 GraphBLAS::NoAccumulate(),
-                                GraphBLAS::Plus<T>(), F, GM, true);
+                                GraphBLAS::Plus<T>(), F, GM, GraphBLAS::REPLACE);
             //GraphBLAS::print_matrix(std::cerr, GM, "gamma(M - M')");
             //GraphBLAS::print_matrix(std::cerr, F, "F = F + gamma(M - M')");
 
@@ -372,10 +372,10 @@ namespace algorithms
                              GraphBLAS::AdditiveInverse<T>(), F);
             // R := graph + (-F)
             GraphBLAS::eWiseAdd(R, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                                GraphBLAS::Plus<T>(), graph, mF, true);
+                                GraphBLAS::Plus<T>(), graph, mF, GraphBLAS::REPLACE);
             // Clear the zero's
             GraphBLAS::apply(R, R, GraphBLAS::NoAccumulate(),
-                             GraphBLAS::Identity<T>(), R, true);
+                             GraphBLAS::Identity<T>(), R, GraphBLAS::REPLACE);
             //GraphBLAS::print_matrix(std::cerr, R, "R = graph - F");
         }
 
@@ -437,7 +437,7 @@ namespace algorithms
             // F += gamma*M
             GraphBLAS::eWiseAdd(F, GraphBLAS::NoMask(),
                                 GraphBLAS::NoAccumulate(),
-                                GraphBLAS::Plus<T>(), F, GM, true);
+                                GraphBLAS::Plus<T>(), F, GM, GraphBLAS::REPLACE);
             //GraphBLAS::print_matrix(std::cerr, F, "F += gamma*M");
 
             // R += (-gamma*M)
@@ -447,7 +447,7 @@ namespace algorithms
 
             // Clear the zero's
             GraphBLAS::apply(R, R, GraphBLAS::NoAccumulate(),
-                             GraphBLAS::Identity<T>(), R, true);
+                             GraphBLAS::Identity<T>(), R, GraphBLAS::REPLACE);
             //GraphBLAS::print_matrix(std::cerr, R, "R<R> = R (annihilate zeros)");
         }
 

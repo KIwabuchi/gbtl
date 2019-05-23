@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -155,13 +155,13 @@ namespace algorithms
         GraphBLAS::assign(candidates,
                           degrees,
                           GraphBLAS::NoAccumulate(),
-                          true, GraphBLAS::AllIndices(), true);
+                          true, GraphBLAS::AllIndices(), GraphBLAS::REPLACE);
 
         // Courtesy of Tim Davis: singletons are not candidates.  Add to iset
         GraphBLAS::assign(independent_set,
                           GraphBLAS::complement(degrees),
                           GraphBLAS::NoAccumulate(),
-                          true, GraphBLAS::AllIndices(), true);
+                          true, GraphBLAS::AllIndices(), GraphBLAS::REPLACE);
 
         while (candidates.nvals() > 0)
         {
@@ -182,7 +182,7 @@ namespace algorithms
             GraphBLAS::mxv(neighbor_max,
                            candidates, GraphBLAS::NoAccumulate(),
                            GraphBLAS::MaxSelect2ndSemiring<RealT>(),
-                           graph, prob, true);
+                           graph, prob, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cout, neighbor_max, "neighbor_max");
 
             // Select source node if its probability is > neighbor_max
@@ -196,7 +196,7 @@ namespace algorithms
             GraphBLAS::apply(new_members,
                              new_members, GraphBLAS::NoAccumulate(),
                              GraphBLAS::Identity<bool>(),
-                             new_members, true);
+                             new_members, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cout, new_members, "new_members");
 
             // Add new members to independent set.
@@ -212,7 +212,7 @@ namespace algorithms
                                  GraphBLAS::complement(new_members),
                                  GraphBLAS::NoAccumulate(),
                                  GraphBLAS::LogicalAnd<bool>(),
-                                 candidates, candidates, true);
+                                 candidates, candidates, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cout, candidates,
             //                        "candidates (sans new_members)");
 
@@ -234,7 +234,7 @@ namespace algorithms
                                  GraphBLAS::complement(new_neighbors),
                                  GraphBLAS::NoAccumulate(),
                                  GraphBLAS::LogicalAnd<bool>(),
-                                 candidates, candidates, true);
+                                 candidates, candidates, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cout, candidates,
             //                        "candidates (sans new_members' neighbors)");
         }

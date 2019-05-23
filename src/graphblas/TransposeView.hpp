@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -153,7 +153,7 @@ namespace GraphBLAS
                                SemiringT         op,
                                AMatrixT   const &A,
                                BMatrixT   const &B,
-                               bool              replace_flag);
+                               OutputControlEnum outp);
 
         //--------------------------------------------------------------------
 
@@ -169,7 +169,7 @@ namespace GraphBLAS
                                SemiringT         op,
                                UVectorT   const &u,
                                AMatrixT   const &A,
-                               bool              replace_flag);
+                               OutputControlEnum outp);
 
         //--------------------------------------------------------------------
 
@@ -179,13 +179,13 @@ namespace GraphBLAS
                  typename SemiringT,
                  typename AMatrixT,
                  typename UVectorT>
-        friend inline void mxv(WVectorT        &w,
-                               MaskT     const &mask,
-                               AccumT    const &accum,
-                               SemiringT        op,
-                               AMatrixT  const &A,
-                               UVectorT  const &u,
-                               bool             replace_flag);
+        friend inline void mxv(WVectorT          &w,
+                               MaskT       const &mask,
+                               AccumT      const &accum,
+                               SemiringT         op,
+                               AMatrixT    const &A,
+                               UVectorT    const &u,
+                               OutputControlEnum  outp);
 
         //--------------------------------------------------------------------
 
@@ -203,7 +203,7 @@ namespace GraphBLAS
             BinaryOpT                               op,
             AMatrixT                         const &A,
             BMatrixT                         const &B,
-            bool                                    replace_flag);
+            OutputControlEnum                       outp);
 
         template<typename CScalarT,
                  typename MaskT,
@@ -219,73 +219,42 @@ namespace GraphBLAS
             BinaryOpT                               op,
             AMatrixT                         const &A,
             BMatrixT                         const &B,
-            bool                                    replace_flag);
+            OutputControlEnum                       outp);
 
 
         //--------------------------------------------------------------------
         // 4.3.6.2
-//        template<typename CMatrixT,
-//                typename MaskT,
-//                typename AccumT,
-//                typename AMatrixT,
-//                typename RowSequenceT,
-//                typename ColSequenceT>
-//        friend inline void extract(CMatrixT             &C,
-//                                   MaskT          const &Mask,
-//                                   AccumT         const &accum,
-//                                   AMatrixT       const &A,
-//                                   RowSequenceT      const   &row_indices,
-//                                   ColSequenceT      const   &col_indices,
-//                                   bool                  replace_flag);
-
-        template<
-                typename CScalarT,
-                typename MaskT,
-                typename AccumT,
-                typename AMatrixT,
-                typename RowSequenceT,
-                typename ColSequenceT,
-                typename ...CTags
-        >
+        template<typename CScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename AMatrixT,
+                 typename RowSequenceT,
+                 typename ColSequenceT,
+                 typename ...CTags>
         friend inline void extract(
-                GraphBLAS::Matrix<CScalarT, CTags...>   &C,
-                MaskT          const &Mask,
-                AccumT         const &accum,
-                AMatrixT       const &A,
-                RowSequenceT      const   &row_indices,
-                ColSequenceT      const   &col_indices,
-                bool                  replace_flag);
+                GraphBLAS::Matrix<CScalarT, CTags...>  &C,
+                MaskT                            const &Mask,
+                AccumT                           const &accum,
+                AMatrixT                         const &A,
+                RowSequenceT                     const &row_indices,
+                ColSequenceT                     const &col_indices,
+                OutputControlEnum                       outp);
 
         // 4.3.6.3
-//        template<typename WVectorT,
-//                typename MaskT,
-//                typename AccumT,
-//                typename AMatrixT,
-//                typename SequenceT>
-//        friend inline void extract(WVectorT             &w,
-//                                   MaskT          const &mask,
-//                                   AccumT         const &accum,
-//                                   AMatrixT       const &A,
-//                                   SequenceT      const &row_indices,
-//                                   IndexType             col_index,
-//                                   bool                  replace_flag);
-
-        template<
-                typename WScalarT,
-                typename MaskT,
-                typename AccumT,
-                typename AMatrixT,
-                typename SequenceT,
-                typename ...WTags
-        >
+        template<typename WScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename AMatrixT,
+                 typename SequenceT,
+                 typename ...WTags>
         friend inline void extract(
                 GraphBLAS::Vector<WScalarT, WTags...> &w,
-                MaskT          const &mask,
-                AccumT         const &accum,
-                AMatrixT       const &A,
-                SequenceT      const &row_indices,
-                IndexType             col_index,
-                bool                  replace_flag);
+                MaskT                           const &mask,
+                AccumT                          const &accum,
+                AMatrixT                        const &A,
+                SequenceT                       const &row_indices,
+                IndexType                              col_index,
+                OutputControlEnum                      outp);
 
         //--------------------------------------------------------------------
         // 4.3.7.2: assign - standard matrix variant
@@ -305,7 +274,7 @@ namespace GraphBLAS
                                   AMatrixT        const &A,
                                   RowSequenceT    const &row_indices,
                                   ColSequenceT    const &col_indices,
-                                  bool                   replace_flag);
+                                  OutputControlEnum      outp);
 
         //--------------------------------------------------------------------
         // 4.3.8.2: matrix variant
@@ -320,7 +289,23 @@ namespace GraphBLAS
                                  AccumT                const &accum,
                                  UnaryFunctionT               op,
                                  AMatrixT              const &A,
-                                 bool                         replace_flag);
+                                 OutputControlEnum            outp);
+
+        // 4.3.8.4: matrix binaryop bind2nd variant
+        template<typename CScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryFunctionT,
+                 typename AMatrixT,
+                 typename ValueT,
+                 typename ...ATagsT>
+        friend inline void apply(Matrix<CScalarT, ATagsT...> &C,
+                                 MaskT                 const &Mask,
+                                 AccumT                const &accum,
+                                 BinaryFunctionT              op,
+                                 AMatrixT              const &A,
+                                 ValueT                       val,
+                                 OutputControlEnum            outp);
 
         //--------------------------------------------------------------------
 
@@ -329,23 +314,23 @@ namespace GraphBLAS
                  typename AccumT,
                  typename BinaryOpT,  // monoid or binary op only
                  typename AMatrixT>
-        friend inline void reduce(WVectorT        &w,
-                                  MaskT     const &mask,
-                                  AccumT    const &accum,
-                                  BinaryOpT        op,
-                                  AMatrixT  const &A,
-                                  bool             replace_flag);
+        friend inline void reduce(WVectorT          &w,
+                                  MaskT       const &mask,
+                                  AccumT      const &accum,
+                                  BinaryOpT          op,
+                                  AMatrixT    const &A,
+                                  OutputControlEnum  outp);
 
         // 4.3.10: transpose
         template<typename CMatrixT,
                  typename MaskT,
                  typename AccumT,
                  typename AMatrixT>
-        friend inline void transpose(CMatrixT       &C,
-                                     MaskT    const &Mask,
-                                     AccumT   const &accum,
-                                     AMatrixT const &A,
-                                     bool            replace_flag);
+        friend inline void transpose(CMatrixT          &C,
+                                     MaskT       const &Mask,
+                                     AccumT      const &accum,
+                                     AMatrixT    const &A,
+                                     OutputControlEnum  outp);
     };
 
 } // end namespace GraphBLAS

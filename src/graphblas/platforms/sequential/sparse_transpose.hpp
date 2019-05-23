@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -60,11 +60,11 @@ namespace GraphBLAS
                  typename MaskT,
                  typename AccumT,
                  typename AMatrixT>
-        inline void transpose(CMatrixT       &C,
-                              MaskT    const &mask,
-                              AccumT          accum,
-                              AMatrixT const &A,
-                              bool            replace_flag = false)
+        inline void transpose(CMatrixT          &C,
+                              MaskT       const &mask,
+                              AccumT             accum,
+                              AMatrixT    const &A,
+                              OutputControlEnum  outp)
         {
             typedef typename AMatrixT::ScalarType                   AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
@@ -111,8 +111,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("Z: " << Z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, mask, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, mask, outp);
         }
     }
 }

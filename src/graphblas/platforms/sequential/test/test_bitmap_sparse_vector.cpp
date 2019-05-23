@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(test_mxv_sparse_nomask_noaccum)
                             GraphBLAS::backend::NoMask(),
                             GraphBLAS::Second<double>(),
                             GraphBLAS::ArithmeticSemiring<double>(),
-                            m1, v1, true);
+                            m1, v1, REPLACE);
 
     std::vector<double> answer = { 0, 16,  0, 12,  0,  4,  0,  8,
                                   36, 44, 36, 44, 36, 44, 36, 44};

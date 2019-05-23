@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -469,7 +469,7 @@ namespace algorithms
         MatrixT C(rows, cols);
         GraphBLAS::eWiseMult(C, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                              GraphBLAS::Times<T>(),
-                             L, B, true);
+                             L, B, GraphBLAS::REPLACE);
 
         GraphBLAS::reduce(sum, GraphBLAS::NoAccumulate(),
                           GraphBLAS::PlusMonoid<T>(), C);
@@ -483,7 +483,7 @@ namespace algorithms
 
         GraphBLAS::eWiseMult(C, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                              GraphBLAS::Times<T>(),
-                             U, B, true);
+                             U, B, GraphBLAS::REPLACE);
 
         GraphBLAS::reduce(sum, GraphBLAS::Plus<T>(),
                           GraphBLAS::PlusMonoid<T>(), C);
@@ -551,7 +551,7 @@ namespace algorithms
             GraphBLAS::eWiseMult(tmp1,
                                  GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                                  GraphBLAS::Times<T>(),
-                                 tmp1, a01, true);
+                                 tmp1, a01, GraphBLAS::REPLACE);
             GraphBLAS::reduce(delta, GraphBLAS::Plus<T>(),
                               GraphBLAS::PlusMonoid<T>(), tmp1);
 
@@ -613,19 +613,19 @@ namespace algorithms
             col_indices.erase(col_indices.begin());
 
             GraphBLAS::extract(A02, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                               graph, row_indices, col_indices, true);
+                               graph, row_indices, col_indices, GraphBLAS::REPLACE);
             GraphBLAS::extract(a01, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                               graph, row_indices, idx, true);
+                               graph, row_indices, idx, GraphBLAS::REPLACE);
             GraphBLAS::extract(a12, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                               GraphBLAS::transpose(graph), col_indices, idx, true);
+                               GraphBLAS::transpose(graph), col_indices, idx, GraphBLAS::REPLACE);
 
             GraphBLAS::mxv(tmp1, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                            GraphBLAS::ArithmeticSemiring<T>(),
-                           A02, a12, true);
+                           A02, a12, GraphBLAS::REPLACE);
 
             GraphBLAS::eWiseMult(tmp1, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                                  GraphBLAS::Times<T>(),
-                                 tmp1, a01, true);
+                                 tmp1, a01, GraphBLAS::REPLACE);
             GraphBLAS::reduce(delta, GraphBLAS::Plus<T>(),
                               GraphBLAS::PlusMonoid<T>(), tmp1);
 
@@ -685,31 +685,31 @@ namespace algorithms
             // extract the whole column
             GraphBLAS::extract(a,
                                GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                               graph, all_indices, idx, true);
+                               graph, all_indices, idx, GraphBLAS::REPLACE);
 
             // extract portions of row using mask.
             /// @todo try apply
             GraphBLAS::extract(a10,
                                mask, GraphBLAS::NoAccumulate(),
-                               a, all_indices, true);
+                               a, all_indices, GraphBLAS::REPLACE);
 
             mask.setElement(idx, true);
             GraphBLAS::extract(a12,
                                GraphBLAS::complement(mask),
                                GraphBLAS::NoAccumulate(),
-                               a, all_indices, true);
+                               a, all_indices, GraphBLAS::REPLACE);
 
             GraphBLAS::mxv(tmp,
                            GraphBLAS::NoMask(),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::ArithmeticSemiring<T>(),
-                           graph, a12, true);
+                           graph, a12, GraphBLAS::REPLACE);
 
             GraphBLAS::eWiseMult(tmp,
                                  GraphBLAS::NoMask(),
                                  GraphBLAS::NoAccumulate(),
                                  GraphBLAS::Times<T>(),
-                                 tmp, a10, true);
+                                 tmp, a10, GraphBLAS::REPLACE);
 
             GraphBLAS::reduce(delta, GraphBLAS::Plus<T>(),
                               GraphBLAS::PlusMonoid<T>(), tmp);
@@ -803,14 +803,14 @@ namespace algorithms
 
             //
             GraphBLAS::extract(A01, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                               graph, zero2begin, begin2end, true);
+                               graph, zero2begin, begin2end, GraphBLAS::REPLACE);
             GraphBLAS::extract(A11, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                               graph, begin2end, begin2end, true);
+                               graph, begin2end, begin2end, GraphBLAS::REPLACE);
             GraphBLAS::extract(A02, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                               graph, zero2begin, end2rows, true);
+                               graph, zero2begin, end2rows, GraphBLAS::REPLACE);
 
             GraphBLAS::extract(A12, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                               graph, begin2end, end2rows, true);
+                               graph, begin2end, end2rows, GraphBLAS::REPLACE);
 
             // ***************************************************************
             // STEP 1: tris += trace(A12' * A01' * A02) = trace(A02' * A01 * A12);
@@ -822,11 +822,11 @@ namespace algorithms
 
                 GraphBLAS::mxm(Tmp0, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                                GraphBLAS::ArithmeticSemiring<T>(),
-                               A01, A12, true);
+                               A01, A12, GraphBLAS::REPLACE);
                 // Compute just the diagonal elements
                 GraphBLAS::mxm(Tmp1, DiagonalMask, GraphBLAS::NoAccumulate(),
                                GraphBLAS::ArithmeticSemiring<T>(),
-                               GraphBLAS::transpose(A02), Tmp0, true);
+                               GraphBLAS::transpose(A02), Tmp0, GraphBLAS::REPLACE);
                 GraphBLAS::reduce(num_triangles, GraphBLAS::Plus<T>(),
                                   GraphBLAS::PlusMonoid<T>(), Tmp1);
             }
@@ -837,11 +837,11 @@ namespace algorithms
 
             GraphBLAS::mxm(Tmp2, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                            GraphBLAS::ArithmeticSemiring<T>(),
-                           A11, A12, true);
+                           A11, A12, GraphBLAS::REPLACE);
             // Compute just the diagonal elements
             GraphBLAS::mxm(Tmp1, DiagonalMask, GraphBLAS::NoAccumulate(),
                            GraphBLAS::ArithmeticSemiring<T>(),
-                           GraphBLAS::transpose(A12), Tmp2, true);
+                           GraphBLAS::transpose(A12), Tmp2, GraphBLAS::REPLACE);
             GraphBLAS::reduce(num_triangles, GraphBLAS::Plus<T>(),
                               GraphBLAS::PlusMonoid<T>(), Tmp1);
 
@@ -859,11 +859,11 @@ namespace algorithms
 
                 GraphBLAS::mxm(Tmp3, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                                GraphBLAS::ArithmeticSemiring<T>(),
-                               A11, GraphBLAS::transpose(A01), true);
+                               A11, GraphBLAS::transpose(A01), GraphBLAS::REPLACE);
                 // Compute just the diagonal elements
                 GraphBLAS::mxm(Tmp4, DiagonalMask2, GraphBLAS::NoAccumulate(),
                                GraphBLAS::ArithmeticSemiring<T>(),
-                               A01, Tmp3, true);
+                               A01, Tmp3, GraphBLAS::REPLACE);
                 GraphBLAS::reduce(num_triangles, GraphBLAS::Plus<T>(),
                                   GraphBLAS::PlusMonoid<T>(), Tmp4);
             }

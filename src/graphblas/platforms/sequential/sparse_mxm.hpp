@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -25,10 +25,6 @@
  * Mellon University and The Trustees of Indiana. DM17-0037, DM-0002659
  *
  * DM18-0559
- */
-
-/**
- * Implementation of sparse mxm for the sequential (CPU) backend.
  */
 
 #ifndef GB_SEQUENTIAL_SPARSE_MXM_HPP
@@ -71,7 +67,7 @@ namespace GraphBLAS
                         SemiringT            op,
                         AMatrixT    const   &A,
                         BMatrixT    const   &B,
-                        bool                 replace_flag = false)
+                        OutputControlEnum    outp)
         {
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
@@ -139,8 +135,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("Z: " << Z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, M, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, M, outp);
 
         } // mxm
     } // backend

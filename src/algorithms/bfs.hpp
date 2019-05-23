@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -66,7 +66,7 @@ namespace
         GraphBLAS::mxm(mat,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                        GraphBLAS::MinSelect2ndSemiring<T>(),
-                       mat, identity_ramp, true);
+                       mat, identity_ramp, GraphBLAS::REPLACE);
     }
 
     //************************************************************************
@@ -91,7 +91,7 @@ namespace
         GraphBLAS::vxm(vec,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                        GraphBLAS::MinSelect2ndSemiring<T>(),
-                       vec, identity_ramp, true);
+                       vec, identity_ramp, GraphBLAS::REPLACE);
     }
 
     //************************************************************************
@@ -116,7 +116,7 @@ namespace
         GraphBLAS::vxm(vec,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                        GraphBLAS::MinSelect2ndSemiring<T>(),
-                       vec, identity_ramp, true);
+                       vec, identity_ramp, GraphBLAS::REPLACE);
     }
 
 }
@@ -187,7 +187,7 @@ namespace algorithms
                            GraphBLAS::complement(parent_list),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::MinSelect1stSemiring<GraphBLAS::IndexType>(),
-                           wavefront, graph, true);
+                           wavefront, graph, GraphBLAS::REPLACE);
 
             // We don't need to mask here since we did it in mxm.
             // Merges new parents in current wavefront with existing parents
@@ -197,7 +197,7 @@ namespace algorithms
                              GraphBLAS::Plus<GraphBLAS::IndexType>(),
                              GraphBLAS::Identity<GraphBLAS::IndexType>(),
                              wavefront,
-                             false);
+                             GraphBLAS::MERGE);
         }
 
         // REMOVE THE FOLLOWING SUBTRACTION WHEN STRUCTURE ONLY MASKS IMPL'ED
@@ -211,7 +211,7 @@ namespace algorithms
                          GraphBLAS::NoAccumulate(),
                          subtract_1,
                          parent_list,
-                         true);
+                         GraphBLAS::REPLACE);
     }
 
     //************************************************************************
@@ -284,7 +284,7 @@ namespace algorithms
                            GraphBLAS::complement(parent_list),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::MinSelect1stSemiring<T>(),
-                           wavefront, graph, true);
+                           wavefront, graph, GraphBLAS::REPLACE);
 
             // We don't need to mask here since we did it in mxm.
             // Merges new parents in current wavefront with existing parents
@@ -294,7 +294,7 @@ namespace algorithms
                              GraphBLAS::Plus<T>(),
                              GraphBLAS::Identity<T>(),
                              wavefront,
-                             false);
+                             GraphBLAS::MERGE);
         }
 
         // Restore zero-based indices by subtracting 1 from all stored values
@@ -307,7 +307,7 @@ namespace algorithms
                          GraphBLAS::NoAccumulate(),
                          subtract_1,
                          parent_list,
-                         true);
+                         GraphBLAS::REPLACE);
     }
 
     //************************************************************************
@@ -378,7 +378,7 @@ namespace algorithms
                            GraphBLAS::complement(parent_list),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::MinSelect1stSemiring<T>(),
-                           wavefronts, graph, true);
+                           wavefronts, graph, GraphBLAS::REPLACE);
 
             // We don't need to mask here since we did it in mxm.
             // Merges new parents in current wavefront with existing parents
@@ -388,7 +388,7 @@ namespace algorithms
                              GraphBLAS::Plus<T>(),
                              GraphBLAS::Identity<T>(),
                              wavefronts,
-                             false);
+                             GraphBLAS::MERGE);
         }
 
         // Restore zero-based indices by subtracting 1 from all stored values
@@ -401,7 +401,7 @@ namespace algorithms
                          GraphBLAS::NoAccumulate(),
                          subtract_1,
                          parent_list,
-                         true);
+                         GraphBLAS::REPLACE);
     }
 
     //************************************************************************
@@ -449,7 +449,7 @@ namespace algorithms
             GraphBLAS::mxv(wavefront, complement(levels),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::LogicalSemiring<bool>(),
-                           transpose(graph), wavefront, true);
+                           transpose(graph), wavefront, GraphBLAS::REPLACE);
         }
     }
 
@@ -497,14 +497,14 @@ namespace algorithms
                              GraphBLAS::Plus<unsigned int>(),
                              apply_depth,
                              wavefront,
-                             true);
+                             GraphBLAS::REPLACE);
 
             GraphBLAS::mxm(wavefront,
                            GraphBLAS::NoMask(),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::LogicalSemiring<unsigned int>(),
                            wavefront, graph,
-                           true);
+                           GraphBLAS::REPLACE);
 
             // Cull previously visited nodes from the wavefront
             // Replace these lines with the negate(levels) mask
@@ -518,7 +518,7 @@ namespace algorithms
                 GraphBLAS::NoAccumulate(),
                 GraphBLAS::Identity<typename WavefrontMatrixT::ScalarType>(),
                 wavefront,
-                true);
+                GraphBLAS::REPLACE);
         }
     }
 
@@ -574,7 +574,7 @@ namespace algorithms
                              GraphBLAS::Plus<unsigned int>(),
                              apply_depth,
                              wavefront,
-                             true);
+                             GraphBLAS::REPLACE);
 
             // Advance the wavefront and mask out nodes already assigned levels
             GraphBLAS::vxm(
@@ -583,7 +583,7 @@ namespace algorithms
                 GraphBLAS::NoAccumulate(),
                 GraphBLAS::LogicalSemiring<GraphBLAS::IndexType>(),
                 wavefront, graph,
-                true);
+                GraphBLAS::REPLACE);
         }
     }
 
@@ -640,7 +640,7 @@ namespace algorithms
                              GraphBLAS::Plus<unsigned int>(),
                              apply_depth,
                              wavefronts,
-                             true);
+                             GraphBLAS::REPLACE);
 
             // Advance the wavefronts and mask out nodes already assigned levels
             GraphBLAS::mxm(
@@ -649,7 +649,7 @@ namespace algorithms
                 GraphBLAS::NoAccumulate(),
                 GraphBLAS::LogicalSemiring<GraphBLAS::IndexType>(),
                 wavefronts, graph,
-                true);
+                GraphBLAS::REPLACE);
         }
     }
 
@@ -701,7 +701,7 @@ namespace algorithms
                               GraphBLAS::NoAccumulate(),
                               depth,
                               GraphBLAS::AllIndices(),
-                              false);
+                              GraphBLAS::MERGE);
 
             // Advance the wavefront and mask out nodes already assigned levels
             GraphBLAS::vxm(
@@ -710,7 +710,7 @@ namespace algorithms
                 GraphBLAS::NoAccumulate(),
                 GraphBLAS::LogicalSemiring<GraphBLAS::IndexType>(),
                 wavefront, graph,
-                true);
+                GraphBLAS::REPLACE);
         }
     }
 

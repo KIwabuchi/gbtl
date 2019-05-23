@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -38,7 +38,7 @@
 using namespace GraphBLAS;
 
 #define BOOST_TEST_MAIN
-#define BOOST_TEST_MODULE apply_test_suite
+#define BOOST_TEST_MODULE apply_binop_test_suite
 
 #include <boost/test/included/unit_test.hpp>
 
@@ -69,8 +69,9 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_bad_dimension)
             (apply(C,
                    NoMask(),
                    NoAccumulate(),
-                   MultiplicativeInverse<double>(),
-                   A)),
+                   Times<double>(),
+                   A,
+                   2.0)),
             DimensionException);
     }
     {
@@ -79,8 +80,9 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_bad_dimension)
             (apply(C,
                    NoMask(),
                    NoAccumulate(),
-                   MultiplicativeInverse<double>(),
-                   A)),
+                   Times<double>(),
+                   A,
+                   2.0)),
             DimensionException);
     }
 
@@ -91,8 +93,9 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_bad_dimension)
             (apply(C,
                    M,
                    NoAccumulate(),
-                   MultiplicativeInverse<double>(),
-                   A)),
+                   Times<double>(),
+                   A,
+                   2.0)),
             DimensionException);
     }
     {
@@ -102,8 +105,9 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_bad_dimension)
             (apply(C,
                    M,
                    NoAccumulate(),
-                   MultiplicativeInverse<double>(),
-                   A)),
+                   Times<double>(),
+                   A,
+                   2.0)),
             DimensionException);
     }
 }
@@ -131,8 +135,9 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_nomask_noaccum)
     GraphBLAS::apply(mC,
                      GraphBLAS::NoMask(),
                      GraphBLAS::NoAccumulate(),
-                     GraphBLAS::AdditiveInverse<double>(),
-                     mA);
+                     GraphBLAS::Times<double>(),
+                     mA,
+                     -1.0);
 
     BOOST_CHECK_EQUAL(mC, answer);
 }
@@ -164,8 +169,9 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_mask_merge_noaccum)
     GraphBLAS::apply(mC,
                      mask,
                      GraphBLAS::NoAccumulate(),
-                     GraphBLAS::AdditiveInverse<double>(),
-                     mA);
+                     GraphBLAS::Times<double>(),
+                     mA,
+                     -1.0);
 
     BOOST_CHECK_EQUAL(mC, answer);
 }
@@ -197,9 +203,10 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_mask_replace_noaccum)
     GraphBLAS::apply(mC,
                      mask,
                      GraphBLAS::NoAccumulate(),
-                     GraphBLAS::AdditiveInverse<double>(),
+                     GraphBLAS::Times<double>(),
                      mA,
-                     REPLACE);
+                     -1.0,
+                     GraphBLAS::REPLACE);
 
     BOOST_CHECK_EQUAL(mC, answer);
 }
@@ -227,82 +234,87 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_noaccum)
     Matrix<uint8_t> M(mask, 0);
 
     {
-        std::vector<std::vector<double>> ans = {{1, 1,    0,    0},
-                                                {1, 1./2, 1./2, 0},
-                                                {0, 1./2, 1./3, 1./3}};
+        std::vector<std::vector<double>> ans = {{1.5, 1.5,   0,   0},
+                                                {1.5, 2.5, 2.5,   0},
+                                                {  0, 2.5, 3.5, 3.5}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(3, 4);
         apply(C,
               NoMask(),
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
-              A);
+              Plus<double>(),
+              A,
+              0.5);
         BOOST_CHECK_EQUAL(C, answer);
     }
 
     // Mask, replace
     {
-        std::vector<std::vector<double>> ans = {{1, 1,    0,    0},
-                                                {0, 1./2, 1./2, 0},
-                                                {0, 0,    1./3, 1./3}};
+        std::vector<std::vector<double>> ans = {{1.5, 1.5,   0,   0},
+                                                {  0, 2.5, 2.5,   0},
+                                                {  0,   0, 3.5, 3.5}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(Ctmp, 0);
         apply(C,
               M,
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
+              Plus<double>(),
               A,
+              0.5,
               REPLACE);
         BOOST_CHECK_EQUAL(C, answer);
     }
     // Mask, merge
     {
-        std::vector<std::vector<double>> ans = {{1, 1,    0,    0},
-                                                {9, 1./2, 1./2, 0},
-                                                {9, 9,    1./3, 1./3}};
+        std::vector<std::vector<double>> ans = {{1.5, 1.5,   0,   0},
+                                                {  9, 2.5, 2.5,   0},
+                                                {  9,   9, 3.5, 3.5}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(Ctmp, 0);
         apply(C,
               M,
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
+              Plus<double>(),
               A,
+              0.5,
               MERGE);
         BOOST_CHECK_EQUAL(C, answer);
     }
 
     // complement(Mask), replace
     {
-        std::vector<std::vector<double>> ans = {{0, 0,    0, 0},
-                                                {1, 0,    0, 0},
-                                                {0, 1./2, 0, 0}};
+        std::vector<std::vector<double>> ans = {{  0,   0,   0,   0},
+                                                {1.5,   0,   0,   0},
+                                                {  0, 2.5,   0,   0}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(Ctmp, 0);
         apply(C,
               complement(M),
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
+              Plus<double>(),
               A,
+              0.5,
               REPLACE);
         BOOST_CHECK_EQUAL(C, answer);
     }
     // complement(Mask), merge
     {
-        std::vector<std::vector<double>> ans = {{9, 9,    9, 9},
-                                                {1, 9,    9, 9},
-                                                {0, 1./2, 9, 9}};
+        std::vector<std::vector<double>> ans = {{  9,   9,   9,   9},
+                                                {1.5,   9,   9,   9},
+                                                {  0, 2.5,   9,   9}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(Ctmp, 0);
         apply(C,
               complement(M),
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
+              Plus<double>(),
               A,
+              0.5,
               MERGE);
         BOOST_CHECK_EQUAL(C, answer);
     }
@@ -330,8 +342,9 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_nomask_plus_accum)
     GraphBLAS::apply(mC,
                      GraphBLAS::NoMask(),
                      GraphBLAS::Plus<double>(),
-                     GraphBLAS::AdditiveInverse<double>(),
-                     mA);
+                     GraphBLAS::Times<double>(),
+                     mA,
+                     -1.0);
 
     BOOST_CHECK_EQUAL(mC, answer);
 }
@@ -359,82 +372,87 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_plus_accum)
     Matrix<uint8_t> M(mask, 0);
 
     {
-        std::vector<std::vector<double>> ans = {{10, 10,    9,    0},
-                                                {10, 19./2, 1./2, 0},
-                                                {9,  1./2,  1./3, 1./3}};
+        std::vector<std::vector<double>> ans = {{9.5,  9.5,    9,   0},
+                                                {9.5, 10.0,  1.0,   0},
+                                                {  9,  1.0,  1.5, 1.5}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(Ctmp, 0.);
         apply(C,
               NoMask(),
               Plus<double>(),
-              MultiplicativeInverse<double>(),
-              A);
+              Times<double>(),
+              A,
+              0.5);
         BOOST_CHECK_EQUAL(C, answer);
     }
 
     // Mask, replace
     {
-        std::vector<std::vector<double>> ans = {{10,  10,    9,    0},
-                                                { 0,  19./2, 1./2, 0},
-                                                { 0,  0,     1./3, 1./3}};
+        std::vector<std::vector<double>> ans = {{9.5,  9.5,    9,   0},
+                                                {  0, 10.0,  1.0,   0},
+                                                {  0,    0,  1.5, 1.5}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(Ctmp, 0);
         apply(C,
               M,
               Plus<double>(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               A,
+              0.5,
               REPLACE);
         BOOST_CHECK_EQUAL(C, answer);
     }
     // Mask, merge
     {
-        std::vector<std::vector<double>> ans = {{10, 10,    9,    0},
-                                                {9,  19./2, 1./2, 0},
-                                                {9,  0,     1./3, 1./3}};
+        std::vector<std::vector<double>> ans = {{9.5,  9.5,    9,   0},
+                                                {  9, 10.0,  1.0,   0},
+                                                {  9,    0,  1.5, 1.5}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(Ctmp, 0);
         apply(C,
               M,
               Plus<double>(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               A,
+              0.5,
               MERGE);
         BOOST_CHECK_EQUAL(C, answer);
     }
 
     // complement(Mask), replace
     {
-        std::vector<std::vector<double>> ans = {{0,  0,    0, 0},
-                                                {10, 0,    0, 0},
-                                                {9,  1./2, 0, 0}};
+        std::vector<std::vector<double>> ans = {{  0,    0,    0,   0},
+                                                {9.5,    0,    0,   0},
+                                                {  9,  1.0,    0,   0}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(Ctmp, 0);
         apply(C,
               complement(M),
               Plus<double>(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               A,
+              0.5,
               REPLACE);
         BOOST_CHECK_EQUAL(C, answer);
     }
     // complement(Mask), merge
     {
-        std::vector<std::vector<double>> ans = {{ 9, 9,    9, 0},
-                                                {10, 9,    0, 0},
-                                                { 9, 1./2, 0, 0}};
+        std::vector<std::vector<double>> ans = {{  9,    9,    9,   0},
+                                                {9.5,    9,    0,   0},
+                                                {  9,  1.0,    0,   0}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(Ctmp, 0);
         apply(C,
               complement(M),
               Plus<double>(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               A,
+              0.5,
               MERGE);
         BOOST_CHECK_EQUAL(C, answer);
     }
@@ -443,7 +461,12 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_plus_accum)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(apply_stdmat_test_second_accum)
 {
-    // Build some matrices.
+    // Build input matrix
+    // | 1 1 - - |
+    // | 1 2 2 - |
+    // | - 2 3 3 |
+    // | - - 3 4 |
+
     IndexArrayType i = {0, 0, 1, 1, 1, 2, 2, 2, 3, 3};
     IndexArrayType j = {0, 1, 0, 1, 2, 1, 2, 3, 2, 3};
     std::vector<double> v = {1, 1, 1, 2, 2, 2, 3, 3, 3, 4};
@@ -451,8 +474,8 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_second_accum)
     A.build(i, j, v);
     Matrix<double, DirectedMatrixTag> C(4, 4);
 
-    std::vector<double> v_answer = {1, 1, 1, 1./2, 1./2,
-                                    1./2, 1./3, 1./3, 1./3, 1./4};
+    std::vector<double> v_answer = {0.5, 0.5, 0.5, 1.0, 1.0,
+                                    1.0, 1.5, 1.5, 1.5, 2.0};
 
     Matrix<double, DirectedMatrixTag> answer(4, 4);
     answer.build(i, j, v_answer);
@@ -460,8 +483,9 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_second_accum)
     apply(C,
           NoMask(),
           Second<double>(),
-          MultiplicativeInverse<double>(),
-          A);
+          Times<double>(),
+          A,
+          0.5);
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -489,17 +513,18 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_noaccum_transpose)
     Matrix<uint8_t> M(mask, 0);
 
     {
-        std::vector<std::vector<double>> ans = {{1, 1,    0,    0},
-                                                {1, 1./2, 1./2, 0},
-                                                {0, 1./2, 1./3, 1./3}};
+        std::vector<std::vector<double>> ans = {{0.5, 0.5,   0,   0},
+                                                {0.5, 1.0, 1.0,   0},
+                                                {0,   1.0, 1.5, 1.5}};
         Matrix<double, DirectedMatrixTag> answer(ans, 0.);
 
         Matrix<double, DirectedMatrixTag> C(3, 4);
         apply(C,
               NoMask(),
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
-              transpose(A));
+              Times<double>(),
+              transpose(A),
+              0.5);
         BOOST_CHECK_EQUAL(C, answer);
     }
 }
@@ -523,8 +548,9 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_bad_dimension)
             (apply(w,
                    NoMask(),
                    NoAccumulate(),
-                   MultiplicativeInverse<double>(),
-                   u)),
+                   Times<double>(),
+                   u,
+                   0.5)),
             DimensionException);
     }
 
@@ -535,8 +561,9 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_bad_dimension)
             (apply(w,
                    m,
                    NoAccumulate(),
-                   MultiplicativeInverse<double>(),
-                   u)),
+                   Times<double>(),
+                   u,
+                   0.5)),
             DimensionException);
     }
 }
@@ -557,8 +584,9 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_nomask_noaccum)
     GraphBLAS::apply(vC,
                      GraphBLAS::NoMask(),
                      GraphBLAS::NoAccumulate(),
-                     GraphBLAS::AdditiveInverse<double>(),
-                     vA);
+                     GraphBLAS::Times<double>(),
+                     vA,
+                     -1.0);
 
     BOOST_CHECK_EQUAL(vC, answer);
 }
@@ -573,15 +601,15 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_nomask_noaccum_bool)
     std::vector<bool> vecC = {true, true, false, false};
     GraphBLAS::Vector<bool> vC(vecC, false);
 
-    std::vector<bool> vecAnswer = {false, true, false, true};
-    GraphBLAS::Vector<bool> answer(vecAnswer, true);
+    std::vector<bool> vecAnswer = {true, false, true, false};
+    GraphBLAS::Vector<bool> answer(vecAnswer, false);
 
     GraphBLAS::apply(vC,
                      GraphBLAS::NoMask(),
                      GraphBLAS::NoAccumulate(),
-                     GraphBLAS::LogicalNot<bool>(),
+                     GraphBLAS::LogicalXor<bool>(),
                      vA,
-                     GraphBLAS::REPLACE);
+                     false);
 
     BOOST_CHECK_EQUAL(vC, answer);
 }
@@ -596,15 +624,15 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_nomask_noaccum_int)
     std::vector<int> vecC = {1, 1, 0, 0};
     GraphBLAS::Vector<int> vC(vecC, 0);
 
-    std::vector<int> vecAnswer = {-1, 0, -1, 0};
+    std::vector<int> vecAnswer = {2, 0, 2, 0};
     GraphBLAS::Vector<int> answer(vecAnswer, 0);
 
     GraphBLAS::apply(vC,
                      GraphBLAS::NoMask(),
                      GraphBLAS::NoAccumulate(),
-                     GraphBLAS::AdditiveInverse<int>(),
+                     GraphBLAS::Plus<int>(),
                      vA,
-                     GraphBLAS::MERGE);
+                     1);
 
     BOOST_CHECK_EQUAL(vC, answer);
 }
@@ -627,8 +655,9 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_mask_merge_noaccum)
     GraphBLAS::apply(vC,
                      mask,
                      GraphBLAS::NoAccumulate(),
-                     GraphBLAS::AdditiveInverse<double>(),
-                     vA);
+                     GraphBLAS::Times<double>(),
+                     vA,
+                     -1.0);
 
     BOOST_CHECK_EQUAL(vC, answer);
 }
@@ -651,8 +680,9 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_mask_replace_noaccum)
     GraphBLAS::apply(vC,
                      mask,
                      GraphBLAS::NoAccumulate(),
-                     GraphBLAS::AdditiveInverse<double>(),
+                     GraphBLAS::Times<double>(),
                      vA,
+                     -1.0,
                      REPLACE);
 
     BOOST_CHECK_EQUAL(vC, answer);
@@ -672,72 +702,77 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_noaccum)
     Vector<uint8_t> m(mask, 0);
 
     {
-        std::vector<double> ans = {1/4., 1/5., 1/2., 1/3.,   0,   0};
+        std::vector<double> ans = {-4., -5., -2., -3.,   0,   0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(6);
         apply(w,
               NoMask(),
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
-              u);
+              Times<double>(),
+              u,
+              -1.);
         BOOST_CHECK_EQUAL(w, answer);
     }
 
     // Mask, replace
     {
-        std::vector<double> ans = {0, 0, 1/2., 1/3.,   0,   0};
+        std::vector<double> ans = {0, 0, -2., -3.,   0,   0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(wtmp, 0);
         apply(w,
               m,
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               u,
+              -1.,
               REPLACE);
         BOOST_CHECK_EQUAL(w, answer);
     }
     // Mask, merge
     {
-        std::vector<double> ans = {9, 0, 1/2., 1/3., 0, 0};
+        std::vector<double> ans = {9, 0, -2., -3., 0, 0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(wtmp, 0);
         apply(w,
               m,
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               u,
+              -1.,
               MERGE);
         BOOST_CHECK_EQUAL(w, answer);
     }
 
     // complement(Mask), replace
     {
-        std::vector<double> ans = {1/4., 1/5., 0, 0,   0,   0};
+        std::vector<double> ans = {-4., -5., 0, 0,   0,   0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(wtmp, 0);
         apply(w,
               complement(m),
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               u,
+              -1.,
               REPLACE);
         BOOST_CHECK_EQUAL(w, answer);
     }
     // complement(Mask), merge
     {
-        std::vector<double> ans = {1/4., 1/5., 9, 0, 9,  0};
+        std::vector<double> ans = {-4., -5., 9, 0, 9,  0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(wtmp, 0);
         apply(w,
               complement(m),
               NoAccumulate(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               u,
+              -1.,
               MERGE);
         BOOST_CHECK_EQUAL(w, answer);
     }
@@ -760,8 +795,9 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_accum)
     GraphBLAS::apply(vC,
                      GraphBLAS::NoMask(),
                      GraphBLAS::Plus<double>(),
-                     GraphBLAS::AdditiveInverse<double>(),
-                     vA);
+                     GraphBLAS::Times<double>(),
+                     vA,
+                     -1.);
 
     BOOST_CHECK_EQUAL(vC, answer);
 }
@@ -780,72 +816,77 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_plus_accum)
     Vector<uint8_t> m(mask, 0);
 
     {
-        std::vector<double> ans = {37/4., 1/5., 19/2., 1/3.,   9,   0};
+        std::vector<double> ans = {5., -5., 7., -3.,  9.,   0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(wtmp, 0);
         apply(w,
               NoMask(),
               Plus<double>(),
-              MultiplicativeInverse<double>(),
-              u);
+              Times<double>(),
+              u,
+              -1.);
         BOOST_CHECK_EQUAL(w, answer);
     }
 
     // Mask, replace
     {
-        std::vector<double> ans = {0, 0, 19/2., 1/3.,   9,   0};
+        std::vector<double> ans = {0, 0, 7., -3.,  9.,   0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(wtmp, 0);
         apply(w,
               m,
               Plus<double>(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               u,
+              -1.,
               REPLACE);
         BOOST_CHECK_EQUAL(w, answer);
     }
     // Mask, merge
     {
-        std::vector<double> ans = {9, 0, 19/2., 1/3., 9, 0};
+        std::vector<double> ans = {9, 0, 7., -3., 9, 0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(wtmp, 0);
         apply(w,
               m,
               Plus<double>(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               u,
+              -1.,
               MERGE);
         BOOST_CHECK_EQUAL(w, answer);
     }
 
     // complement(Mask), replace
     {
-        std::vector<double> ans = {37/4., 1/5., 0, 0,   0,   0};
+        std::vector<double> ans = {5., -5., 0, 0,   0,   0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(wtmp, 0);
         apply(w,
               complement(m),
               Plus<double>(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               u,
+              -1.,
               REPLACE);
         BOOST_CHECK_EQUAL(w, answer);
     }
     // complement(Mask), merge
     {
-        std::vector<double> ans = {37/4., 1/5., 9, 0, 9,  0};
+        std::vector<double> ans = {5., -5., 9, 0, 9,  0};
         Vector<double> answer(ans, 0.);
 
         Vector<double> w(wtmp, 0);
         apply(w,
               complement(m),
               Plus<double>(),
-              MultiplicativeInverse<double>(),
+              Times<double>(),
               u,
+              -1.,
               MERGE);
         BOOST_CHECK_EQUAL(w, answer);
     }

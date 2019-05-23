@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -158,7 +158,7 @@ namespace algorithms
                            GraphBLAS::ArithmeticSemiring<int32_t>(),
                            Frontier,
                            A,
-                           true);
+                           GraphBLAS::REPLACE);
             GRB_BC_LOG("New frontier " << Frontier);
 
             ++d;
@@ -197,7 +197,7 @@ namespace algorithms
                                  GraphBLAS::NoAccumulate(),
                                  GraphBLAS::Times<float>(),
                                  NspInv, BCu,
-                                 true);
+                                 GraphBLAS::REPLACE);
             GRB_BC_LOG("W<Sigma[i]> = (1 ./ P) .* U " << W);
 
             // W<Sigma[i-1]> = A +.* W
@@ -207,7 +207,7 @@ namespace algorithms
                            GraphBLAS::ArithmeticSemiring<float>(),
                            W,
                            GraphBLAS::transpose(A),
-                           true);
+                           GraphBLAS::REPLACE);
             GRB_BC_LOG("W<Sigma[i-1]> = A +.* W " << W);
 
             // U += W .* P
@@ -241,14 +241,14 @@ namespace algorithms
                           GraphBLAS::Plus<float>(),        // Accum
                           GraphBLAS::Plus<float>(),        // Op
                           GraphBLAS::transpose(BCu),       // A, transpose make col reduce
-                          true);                           // replace
+                          GraphBLAS::REPLACE);                           // replace
 #else
         GraphBLAS::reduce(result,                          // W
                           GraphBLAS::NoMask(),             // Mask
                           GraphBLAS::NoAccumulate(),       // Accum
                           GraphBLAS::Plus<float>(),        // Op
                           GraphBLAS::transpose(BCu),       // A, transpose make col reduce
-                          true);                           // replace
+                          GraphBLAS::REPLACE);                           // replace
 
         // Replace following with apply with binary op and scalar
         GraphBLAS::BinaryOp_Bind2nd<float, GraphBLAS::Minus<float>>
@@ -259,7 +259,7 @@ namespace algorithms
                          GraphBLAS::NoAccumulate(),
                          subtract_nsver,
                          result,
-                         true);
+                         GraphBLAS::REPLACE);
 #endif
         GRB_BC_LOG("RESULT: " << result);
 
@@ -366,7 +366,7 @@ namespace algorithms
                            GraphBLAS::complement(NumSP),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::ArithmeticSemiring<int32_t>(),
-                           Frontier, A, true);
+                           Frontier, A, GraphBLAS::REPLACE);
 
             ++d;
         }
@@ -379,7 +379,7 @@ namespace algorithms
                          GraphBLAS::NoAccumulate(),
                          GraphBLAS::MultiplicativeInverse<float>(),
                          NumSP,
-                         true);
+                         GraphBLAS::REPLACE);
 
         GraphBLAS::Matrix<float> BCu(nsver, n);
 //        GraphBLAS::assign_constant(BCu,
@@ -400,14 +400,14 @@ namespace algorithms
                                  *Sigmas[i], GraphBLAS::NoAccumulate(),
                                  GraphBLAS::Times<float>(),
                                  NspInv, BCu,
-                                 true);
+                                 GraphBLAS::REPLACE);
 
             // W<Sigma[i-1]> = A +.* W
             GraphBLAS::mxm(W,
                            *Sigmas[i-1], GraphBLAS::NoAccumulate(),
                            GraphBLAS::ArithmeticSemiring<float>(),
                            W, GraphBLAS::transpose(A),
-                           true);
+                           GraphBLAS::REPLACE);
 
             // U += W .* P
             GraphBLAS::eWiseMult(BCu,
@@ -541,7 +541,7 @@ namespace algorithms
                            GraphBLAS::ArithmeticSemiring<int32_t>(),
                            GraphBLAS::transpose(A),
                            Frontier,
-                           true); // Replace?
+                           GraphBLAS::REPLACE); // Replace?
 
             ++d;
         }
@@ -554,7 +554,7 @@ namespace algorithms
                          GraphBLAS::NoAccumulate(),
                          GraphBLAS::MultiplicativeInverse<float>(),
                          NumSP,
-                         true);
+                         GraphBLAS::REPLACE);
 
         GraphBLAS::Matrix<float> BCu(n, nsver);
 //        GraphBLAS::assign_constant(BCu,
@@ -564,7 +564,7 @@ namespace algorithms
                                    1.0f,
                                    GraphBLAS::AllIndices(),
                                    GraphBLAS::AllIndices(),
-                                   true);
+                                   GraphBLAS::REPLACE);
 
         GraphBLAS::Matrix<float> W(n, nsver);
 
@@ -578,14 +578,14 @@ namespace algorithms
                                  GraphBLAS::Times<float>(),
                                  NspInv,
                                  BCu,
-                                 true);
+                                 GraphBLAS::REPLACE);
 
             // W<Sigma[i-1]> = A +.* W
             GraphBLAS::mxm(W,
                            *Sigmas[i-1], GraphBLAS::NoAccumulate(),
                            GraphBLAS::ArithmeticSemiring<float>(),
                            A, W,
-                           true);
+                           GraphBLAS::REPLACE);
 
             // U += W .* P
             GraphBLAS::eWiseMult(BCu,
@@ -702,7 +702,7 @@ namespace algorithms
                            GraphBLAS::ArithmeticSemiring<int32_t>(),
                            GraphBLAS::transpose(A),
                            Frontier,
-                           true);
+                           GraphBLAS::REPLACE);
 
             // Sigma[d] = (bool)F
             Sigmas.push_back(new GraphBLAS::Matrix<bool>(n, nsver));
@@ -729,7 +729,7 @@ namespace algorithms
                          GraphBLAS::NoAccumulate(),
                          GraphBLAS::MultiplicativeInverse<float>(),
                          NumSP,
-                         true);
+                         GraphBLAS::REPLACE);
 
         GraphBLAS::Matrix<float> BCu(n, nsver);
 //        GraphBLAS::assign_constant(BCu,
@@ -739,7 +739,7 @@ namespace algorithms
                                    1.0f,
                                    GraphBLAS::AllIndices(),
                                    GraphBLAS::AllIndices(),
-                                   true);
+                                   GraphBLAS::REPLACE);
 
         GraphBLAS::Matrix<float> W(n, nsver);
 
@@ -753,7 +753,7 @@ namespace algorithms
                                  GraphBLAS::Times<float>(),
                                  NspInv,
                                  BCu,
-                                 true);
+                                 GraphBLAS::REPLACE);
 
             // W<Sigma[i-1]> = A +.* W
             GraphBLAS::mxm(W,
@@ -762,7 +762,7 @@ namespace algorithms
                            GraphBLAS::ArithmeticSemiring<float>(),
                            A,
                            W,
-                           true);
+                           GraphBLAS::REPLACE);
 
             // U += W .* P
             GraphBLAS::eWiseMult(BCu,
@@ -902,7 +902,7 @@ namespace algorithms
                            GraphBLAS::ArithmeticSemiring<int32_t>(), // op
                            F,                                    // A
                            graph,                                // B
-                           true);                                // replace
+                           GraphBLAS::REPLACE);                                // replace
             ++d;
         }
 
@@ -928,7 +928,7 @@ namespace algorithms
                                  GraphBLAS::Div<double>(),     // op
                                  U,                            // A
                                  P,                            // B
-                                 true);                        // replace
+                                 GraphBLAS::REPLACE);                        // replace
 
             // W = (A +.* W')' = W +.* A'
             GraphBLAS::mxm(W,                                        // C
@@ -937,7 +937,7 @@ namespace algorithms
                            GraphBLAS::ArithmeticSemiring<double>(),  // op
                            W,                                        // A
                            GraphBLAS::transpose(graph),              // B
-                           true);                                    // replace
+                           GraphBLAS::REPLACE);                                    // replace
 
             // W<Sigma[d-2]> = W .* P
             GraphBLAS::eWiseMult(W,                            // C
@@ -946,7 +946,7 @@ namespace algorithms
                                  GraphBLAS::Times<double>(),   // op
                                  W,                            // A
                                  P,                            // B
-                                 true);                        // replace
+                                 GraphBLAS::REPLACE);                        // replace
 
             // U = U + W
             GraphBLAS::eWiseAdd(U,                            // C
@@ -955,7 +955,7 @@ namespace algorithms
                                 GraphBLAS::Plus<double>(),    // op
                                 U,                            // A
                                 W,                            // B
-                                true);                        // replace
+                                GraphBLAS::REPLACE);                        // replace
 
             --d;
         }
@@ -979,7 +979,7 @@ namespace algorithms
                           GraphBLAS::Plus<double>(),       // Accum
                           GraphBLAS::Plus<double>(),       // Op
                           GraphBLAS::transpose(U),         // A, transpose make col reduce
-                          true);                           // replace
+                          GraphBLAS::REPLACE);                           // replace
 
         std::vector<double> betweenness_centrality(N, 0.);
         for (GraphBLAS::IndexType k = 0; k < N;k++)
@@ -1039,7 +1039,7 @@ namespace algorithms
                                // AOM - This might be wrong. Maybe, it should be col indices
                                GraphBLAS::AllIndices(),
                                i,
-                               true);
+                               GraphBLAS::REPLACE);
 
             VectorT n_shortest_paths(num_nodes);
             n_shortest_paths.setElement(i, static_cast<T>(1));
@@ -1068,7 +1068,7 @@ namespace algorithms
                                GraphBLAS::ArithmeticSemiring<T>(),
                                frontier,
                                graph,
-                               true);
+                               GraphBLAS::REPLACE);
 
                 ++depth;
             }
@@ -1098,7 +1098,7 @@ namespace algorithms
                                      GraphBLAS::Times<T>(),
                                      n_shortest_paths_inv,
                                      update,
-                                     true);
+                                     GraphBLAS::REPLACE);
 
                 GraphBLAS::mxv(weights,
                                *(search[idx - 1]),
@@ -1106,7 +1106,7 @@ namespace algorithms
                                GraphBLAS::ArithmeticSemiring<T>(),
                                graph,
                                weights,
-                               true);
+                               GraphBLAS::REPLACE);
 
                 GraphBLAS::eWiseMult(update,
                                      GraphBLAS::NoMask(),
@@ -1114,7 +1114,7 @@ namespace algorithms
                                      GraphBLAS::Times<T>(),
                                      weights,
                                      n_shortest_paths,
-                                     true);
+                                     GraphBLAS::REPLACE);
             }
 
             for (auto it = search.begin(); it != search.end(); ++it)
@@ -1143,7 +1143,7 @@ namespace algorithms
                             GraphBLAS::Minus<T>(),
                             bc_vec,
                             bias,
-                            true);
+                            GraphBLAS::REPLACE);
 
         std::vector <typename MatrixT::ScalarType> betweenness_centrality(num_nodes, 0);
         for (GraphBLAS::IndexType k = 0; k<num_nodes;k++)
@@ -1228,7 +1228,7 @@ namespace algorithms
                                     GraphBLAS::Plus<T>(),
                                     n_shortest_paths,
                                     frontier,
-                                    true);
+                                    GraphBLAS::REPLACE);
 
                 // frontier<!n_shortest_paths>{z} = frontier *.+ graph
                 GraphBLAS::vxm(frontier,
@@ -1237,7 +1237,7 @@ namespace algorithms
                                GraphBLAS::ArithmeticSemiring<T>(),
                                frontier,
                                graph,
-                               true);
+                               GraphBLAS::REPLACE);
             }
 
             while (depth >= 1)
@@ -1276,7 +1276,7 @@ namespace algorithms
                                  *search[depth-1],
                                  GraphBLAS::NoAccumulate(),
                                  GraphBLAS::Identity<T>(),
-                                 n_shortest_paths, true);
+                                 n_shortest_paths, GraphBLAS::REPLACE);
 
                 {
                     // update = diag(weights) *.+ update

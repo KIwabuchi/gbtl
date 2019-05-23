@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(cluster_test_markov)
     GraphBLAS::apply(cluster_matrix,
                      mask, GraphBLAS::NoAccumulate(),
                      GraphBLAS::Identity<double>(),
-                     cluster_matrix, true);
+                     cluster_matrix, GraphBLAS::REPLACE);
     GraphBLAS::print_matrix(std::cout, cluster_matrix,
                             "Cluster matrix (after threshold)");
 

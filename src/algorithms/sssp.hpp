@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -258,7 +258,7 @@ namespace algorithms
                                 new_dist,
                                 GraphBLAS::NoAccumulate(),
                                 GraphBLAS::LessThan<T>(),
-                                new_dist, dist, true);
+                                new_dist, dist, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cout, new_dist_flags,
             //                        "new dist flags");
 
@@ -266,7 +266,7 @@ namespace algorithms
             GraphBLAS::apply(new_dist,
                              new_dist_flags,
                              GraphBLAS::NoAccumulate(),
-                             GraphBLAS::Identity<T>(), new_dist, true);
+                             GraphBLAS::Identity<T>(), new_dist, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cout, new_dist,
             //                        "new dist (cleared)");
 
@@ -346,7 +346,7 @@ namespace algorithms
         GraphBLAS::apply(AL, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                          leq_delta, graph);
         GraphBLAS::apply(AL, AL, GraphBLAS::NoAccumulate(),
-                         GraphBLAS::Identity<T>(), graph, true);
+                         GraphBLAS::Identity<T>(), graph, GraphBLAS::REPLACE);
         //GraphBLAS::print_matrix(std::cerr, AL, "AL = A(<=delta)");
 
         // AH = A .* (A > delta)
@@ -358,7 +358,7 @@ namespace algorithms
         GraphBLAS::apply(AH, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                          gt_delta, graph);
         GraphBLAS::apply(AH, AH, GraphBLAS::NoAccumulate(),
-                         GraphBLAS::Identity<T>(), graph, true);
+                         GraphBLAS::Identity<T>(), graph, GraphBLAS::REPLACE);
         //GraphBLAS::print_matrix(std::cerr, AH, "AH = A(>delta)");
 
         // i = 0
@@ -387,13 +387,13 @@ namespace algorithms
             GraphBLAS::apply(tBi, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                              in_range, t);
             GraphBLAS::apply(tBi, tBi, GraphBLAS::NoAccumulate(),
-                             GraphBLAS::Identity<T>(), tBi, true);
+                             GraphBLAS::Identity<T>(), tBi, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cerr, tBi,
             //                        "tBi<tless> = tReq([i*d, (i+1)*d))");
 
             // tm<tBi> = t
             GraphBLAS::apply(tmasked, tBi, GraphBLAS::NoAccumulate(),
-                             GraphBLAS::Identity<T>(), t, true);
+                             GraphBLAS::Identity<T>(), t, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cerr, tmasked, "tm = t<tBi>");
 
             while (tmasked.nvals() > 0)
@@ -423,16 +423,16 @@ namespace algorithms
                                     tReq,
                                     GraphBLAS::NoAccumulate(),
                                     GraphBLAS::LessThan<T>(),
-                                    tReq, t, true);
+                                    tReq, t, GraphBLAS::REPLACE);
                 //GraphBLAS::print_vector(std::cerr, tless, "tless<tReq> = tReq .< t");
 
                 // tBi<tless> = i*delta <= tReq < (i+1)*delta
                 GraphBLAS::apply(tBi,
                                  tless,
                                  GraphBLAS::NoAccumulate(),
-                                 in_range, tReq, true);
+                                 in_range, tReq, GraphBLAS::REPLACE);
                 //GraphBLAS::apply(tnew, tnew, GraphBLAS::NoAccumulate(),
-                //                 GraphBLAS::Identity<bool>(), tnew, true);
+                //                 GraphBLAS::Identity<bool>(), tnew, GraphBLAS::REPLACE);
                 //GraphBLAS::print_vector(std::cerr, tBi,
                 //                        "tBi<tless> = tReq([i*d, (i+1)*d))");
 
@@ -446,14 +446,14 @@ namespace algorithms
 
                 // tm<tBi> = t
                 GraphBLAS::apply(tmasked, tBi, GraphBLAS::NoAccumulate(),
-                                 GraphBLAS::Identity<T>(), t, true);
+                                 GraphBLAS::Identity<T>(), t, GraphBLAS::REPLACE);
                 //GraphBLAS::print_vector(std::cerr, tmasked, "tm = t<tBi>");
             }
             //std::cerr << "******************** end inner loop *****************\n";
 
             // (t .* s)
             GraphBLAS::apply(tmasked, s, GraphBLAS::NoAccumulate(),
-                             GraphBLAS::Identity<T>(), t, true);
+                             GraphBLAS::Identity<T>(), t, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cerr, tmasked, "tm = t<s>");
 
             // tReq = AH'(t .* s)
@@ -481,7 +481,7 @@ namespace algorithms
                              GraphBLAS::NoAccumulate(),
                              geq_idelta, t);
             GraphBLAS::apply(tcomp, tcomp, GraphBLAS::NoAccumulate(),
-                             GraphBLAS::Identity<bool>(), tcomp, true);
+                             GraphBLAS::Identity<bool>(), tcomp, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cerr, tcomp, "tcomp = t(>=i*delta)");
         }
 

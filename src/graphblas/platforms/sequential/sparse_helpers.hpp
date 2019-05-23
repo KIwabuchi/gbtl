@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -819,11 +819,11 @@ namespace GraphBLAS
          * This merges the values of C and Z into the result vector based on the
          * values of the mask.
          *
-         * If replace:
+         * If outp == REPLACE:
          *
          * L(C) = \f[ {(i,j,Zij):(i,j) \in (ind(Z) \cap ind(M))} \f]
          *
-         * If NOT replace:
+         * If outp == MERGE:
          *
          * L(C) = {(i,j,Zij):(i,j) \in (ind(C) \cap int(\not M))} \cup
          *        {(i,j,Zij):(i,j) \in (ind(Z) \cap int(\not M))}
@@ -832,21 +832,22 @@ namespace GraphBLAS
          * @tparam ZScalarT The scalar type of the Z vector input.
          * @tparam MScalarT The scalar type of the mask vector.
          *
-         * @param result Result vector.  We clear this first.
-         * @param c_vec The original c values that may be carried through.
-         * @param z_vec The new values to insert/overlay.
+         * @param result   Result vector.  We clear this first.
+         * @param c_vec    The original c values that may be carried through.
+         * @param z_vec    The new values to insert/overlay.
          * @param mask_vec The mask which specifies which values to use.
-         * @param replace If true, we should always clear the values specified
-         *                by the mask regardless if they are overlayed.
+         * @param outp     If REPLACE, we should always clear the values specified
+         *                 by the mask regardless if they are overlayed.
          */
         template < typename CScalarT,
                    typename ZScalarT,
                    typename MScalarT>
-        void apply_with_mask(std::vector<std::tuple<IndexType, CScalarT> >          &result,
-                             std::vector<std::tuple<IndexType, CScalarT> > const    &c_vec,
-                             std::vector<std::tuple<IndexType, ZScalarT> > const    &z_vec,
-                             std::vector<std::tuple<IndexType, MScalarT> > const    &mask_vec,
-                             bool                                                    replace)
+        void apply_with_mask(
+            std::vector<std::tuple<IndexType, CScalarT> >          &result,
+            std::vector<std::tuple<IndexType, CScalarT> > const    &c_vec,
+            std::vector<std::tuple<IndexType, ZScalarT> > const    &z_vec,
+            std::vector<std::tuple<IndexType, MScalarT> > const    &mask_vec,
+            OutputControlEnum                                       outp)
         {
             auto c_it = c_vec.begin();
             auto z_it = z_vec.begin();
@@ -857,7 +858,7 @@ namespace GraphBLAS
             MScalarT mask_val;
             GraphBLAS::IndexType c_idx, z_idx, mask_idx;
 
-            //std::cerr << "Executing apply_with_mask with mask and replace: " << replace << std::endl;
+            //std::cerr << "Executing apply_with_mask with mask and outp = " << outp << std::endl;
             //print_vec(std::cerr, "c_vec", c_vec);
             //print_vec(std::cerr, "z_vec", z_vec);
             //print_vec(std::cerr, "m_vec", mask_vec);
@@ -880,13 +881,13 @@ namespace GraphBLAS
                 // Get the mask values
                 std::tie(mask_idx, mask_val) = *mask_it;
 
-                // If replace then we don't consider original C values.
-                // If not replace, then we want to keep C values outide the mask
+                // If outp==REPLACE then we don't consider original C values.
+                // If outp==MERGE, then we want to keep C values outside the mask
                 // Any values in C "outside" the mask should now be applied
                 // So, we catch "c" up to the mask.  This is the intersection
                 // of C and !M.
 
-                if (!replace)
+                if (outp == MERGE)
                 {
                     // This is the part of (ind(C) \cap int(\not M)
                     increment_and_add_while_below(c_it, c_vec.end(), mask_idx,
@@ -902,7 +903,9 @@ namespace GraphBLAS
                     std::tie(z_idx, z_val) = *z_it;
                     if (z_idx == mask_idx)
                     {
-                        result.push_back(std::make_tuple(mask_idx, static_cast<CScalarT>(z_val)));
+                        result.push_back(
+                            std::make_tuple(mask_idx,
+                                            static_cast<CScalarT>(z_val)));
                         //std::cerr << "Copying v1. val: " << std::to_string(z_val) << std::endl;
                     }
                 }
@@ -920,7 +923,7 @@ namespace GraphBLAS
             } // while mask_it != end
 
             // Now, we need to add the remaining C values beyond the mask
-            if (!replace)
+            if (outp == MERGE)
             {
                 // This is the part of (ind(C) \cap int(\not M)
                 while (c_it != c_vec.end())
@@ -946,7 +949,7 @@ namespace GraphBLAS
         void write_with_opt_mask(CMatrixT           &C,
                                  ZMatrixT   const   &Z,
                                  MMatrixT   const   &mask,
-                                 bool               replace)
+                                 OutputControlEnum   outp)
         {
             typedef typename CMatrixT::ScalarType CScalarType;
             typedef typename ZMatrixT::ScalarType ZScalarType;
@@ -961,7 +964,7 @@ namespace GraphBLAS
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
                 apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
-                                mask.getRow(row_idx), replace);
+                                mask.getRow(row_idx), outp);
 
                 // Now, set the new one.  Yes, we can optimize this later
                 C.setRow(row_idx, tmp_row);
@@ -976,7 +979,7 @@ namespace GraphBLAS
         void write_with_opt_mask(CMatrixT                   &C,
                                  ZMatrixT           const   &Z,
                                  backend::NoMask    const   &foo,
-                                 bool                       replace)
+                                 OutputControlEnum           outp)
         {
             sparse_copy(C, Z);
         }
@@ -991,13 +994,13 @@ namespace GraphBLAS
             WVectorT                                           &w,
             std::vector<std::tuple<IndexType, ZScalarT>> const &z,
             MaskT const                                        &mask,
-            bool                                                replace)
+            OutputControlEnum                                   outp)
         {
             typedef typename WVectorT::ScalarType WScalarType;
             std::vector<std::tuple<IndexType, WScalarType> > tmp_row;
 
             apply_with_mask(tmp_row, w.getContents(), z,
-                            mask.getContents(), replace);
+                            mask.getContents(), outp);
 
             // Now, set the new one.  Yes, we can optimize this later
             w.setContents(tmp_row);
@@ -1012,7 +1015,7 @@ namespace GraphBLAS
             WVectorT                                           &w,
             std::vector<std::tuple<IndexType, ZScalarT>> const &z,
             backend::NoMask const                              &foo,
-            bool                                                replace)
+            OutputControlEnum                                   outp)
         {
             //sparse_copy(w, z);
             w.setContents(z);

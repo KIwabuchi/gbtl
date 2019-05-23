@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -60,13 +60,13 @@ namespace GraphBLAS
                  typename SemiringT,
                  typename AMatrixT,
                  typename UVectorT>
-        inline void vxm(WVectorT        &w,
-                        MaskT     const &mask,
-                        AccumT           accum,
-                        SemiringT        op,
-                        UVectorT  const &u,
-                        AMatrixT  const &A,
-                        bool             replace_flag = false)
+        inline void vxm(WVectorT          &w,
+                        MaskT       const &mask,
+                        AccumT             accum,
+                        SemiringT          op,
+                        UVectorT    const &u,
+                        AMatrixT    const &A,
+                        OutputControlEnum  outp)
         {
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
@@ -104,8 +104,8 @@ namespace GraphBLAS
             ewise_or_opt_accum_1D(z, w, t, accum);
 
             // =================================================================
-            // Copy Z into the final output, w, considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
         }
 
     } // backend

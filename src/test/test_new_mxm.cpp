@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -144,50 +144,50 @@ BOOST_AUTO_TEST_CASE(mxm_test_template_specialization_compilation)
     // A*B
     mxm(C, NoMask(),      NoAccumulate(), sr, A, B);
     mxm(C, NoMask(),      accum,          sr, A, B);
-    mxm(C, M,             NoAccumulate(), sr, A, B, true);
-    mxm(C, M,             NoAccumulate(), sr, A, B, false);
-    mxm(C, complement(M), NoAccumulate(), sr, A, B, true);
-    mxm(C, complement(M), NoAccumulate(), sr, A, B, false);
-    mxm(C, M,             accum,          sr, A, B, true);
-    mxm(C, M,             accum,          sr, A, B, false);
-    mxm(C, complement(M), accum,          sr, A, B, true);
-    mxm(C, complement(M), accum,          sr, A, B, false);
+    mxm(C, M,             NoAccumulate(), sr, A, B, REPLACE);
+    mxm(C, M,             NoAccumulate(), sr, A, B, MERGE);
+    mxm(C, complement(M), NoAccumulate(), sr, A, B, REPLACE);
+    mxm(C, complement(M), NoAccumulate(), sr, A, B, MERGE);
+    mxm(C, M,             accum,          sr, A, B, REPLACE);
+    mxm(C, M,             accum,          sr, A, B, MERGE);
+    mxm(C, complement(M), accum,          sr, A, B, REPLACE);
+    mxm(C, complement(M), accum,          sr, A, B, MERGE);
 
     // A*B'
     mxm(C, NoMask(),      NoAccumulate(), sr, A, transpose(B));
     mxm(C, NoMask(),      accum,          sr, A, transpose(B));
-    mxm(C, M,             NoAccumulate(), sr, A, transpose(B), true);
-    mxm(C, M,             NoAccumulate(), sr, A, transpose(B), false);
-    mxm(C, complement(M), NoAccumulate(), sr, A, transpose(B), true);
-    mxm(C, complement(M), NoAccumulate(), sr, A, transpose(B), false);
-    mxm(C, M,             accum,          sr, A, transpose(B), true);
-    mxm(C, M,             accum,          sr, A, transpose(B), false);
-    mxm(C, complement(M), accum,          sr, A, transpose(B), true);
-    mxm(C, complement(M), accum,          sr, A, transpose(B), false);
+    mxm(C, M,             NoAccumulate(), sr, A, transpose(B), REPLACE);
+    mxm(C, M,             NoAccumulate(), sr, A, transpose(B), MERGE);
+    mxm(C, complement(M), NoAccumulate(), sr, A, transpose(B), REPLACE);
+    mxm(C, complement(M), NoAccumulate(), sr, A, transpose(B), MERGE);
+    mxm(C, M,             accum,          sr, A, transpose(B), REPLACE);
+    mxm(C, M,             accum,          sr, A, transpose(B), MERGE);
+    mxm(C, complement(M), accum,          sr, A, transpose(B), REPLACE);
+    mxm(C, complement(M), accum,          sr, A, transpose(B), MERGE);
 
     // A'B
     mxm(C, NoMask(),      NoAccumulate(), sr, transpose(A), B);
     mxm(C, NoMask(),      accum,          sr, transpose(A), B);
-    mxm(C, M,             NoAccumulate(), sr, transpose(A), B, true);
-    mxm(C, M,             NoAccumulate(), sr, transpose(A), B, false);
-    mxm(C, complement(M), NoAccumulate(), sr, transpose(A), B, true);
-    mxm(C, complement(M), NoAccumulate(), sr, transpose(A), B, false);
-    mxm(C, M,             accum,          sr, transpose(A), B, true);
-    mxm(C, M,             accum,          sr, transpose(A), B, false);
-    mxm(C, complement(M), accum,          sr, transpose(A), B, true);
-    mxm(C, complement(M), accum,          sr, transpose(A), B, false);
+    mxm(C, M,             NoAccumulate(), sr, transpose(A), B, REPLACE);
+    mxm(C, M,             NoAccumulate(), sr, transpose(A), B, MERGE);
+    mxm(C, complement(M), NoAccumulate(), sr, transpose(A), B, REPLACE);
+    mxm(C, complement(M), NoAccumulate(), sr, transpose(A), B, MERGE);
+    mxm(C, M,             accum,          sr, transpose(A), B, REPLACE);
+    mxm(C, M,             accum,          sr, transpose(A), B, MERGE);
+    mxm(C, complement(M), accum,          sr, transpose(A), B, REPLACE);
+    mxm(C, complement(M), accum,          sr, transpose(A), B, MERGE);
 
     // A'B'
     mxm(C, NoMask(),      NoAccumulate(), sr, transpose(A), transpose(B));
     mxm(C, NoMask(),      accum,          sr, transpose(A), transpose(B));
-    mxm(C, M,             NoAccumulate(), sr, transpose(A), transpose(B), true);
-    mxm(C, M,             NoAccumulate(), sr, transpose(A), transpose(B), false);
-    mxm(C, complement(M), NoAccumulate(), sr, transpose(A), transpose(B), true);
-    mxm(C, complement(M), NoAccumulate(), sr, transpose(A), transpose(B), false);
-    mxm(C, M,             accum,          sr, transpose(A), transpose(B), true);
-    mxm(C, M,             accum,          sr, transpose(A), transpose(B), false);
-    mxm(C, complement(M), accum,          sr, transpose(A), transpose(B), true);
-    mxm(C, complement(M), accum,          sr, transpose(A), transpose(B), false);
+    mxm(C, M,             NoAccumulate(), sr, transpose(A), transpose(B), REPLACE);
+    mxm(C, M,             NoAccumulate(), sr, transpose(A), transpose(B), MERGE);
+    mxm(C, complement(M), NoAccumulate(), sr, transpose(A), transpose(B), REPLACE);
+    mxm(C, complement(M), NoAccumulate(), sr, transpose(A), transpose(B), MERGE);
+    mxm(C, M,             accum,          sr, transpose(A), transpose(B), REPLACE);
+    mxm(C, M,             accum,          sr, transpose(A), transpose(B), MERGE);
+    mxm(C, complement(M), accum,          sr, transpose(A), transpose(B), REPLACE);
+    mxm(C, complement(M), accum,          sr, transpose(A), transpose(B), MERGE);
 }
 
 //****************************************************************************

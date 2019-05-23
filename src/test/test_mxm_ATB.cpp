@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -630,25 +630,25 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_NoAccum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    Empty, NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(A), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(A), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    Ones, NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(A), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(A), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, AT);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    MLower, NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, MLower);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    MNotLower, NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, MNotLower);
 }
 
@@ -687,19 +687,19 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_NoAccum_ATBM_empty)
     C = Ones;
     GraphBLAS::mxm(C,
                    M, NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Empty), Ones, true);
+                   ArithmeticSemiring<double>(), transpose(Empty), Ones, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    M, NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Empty, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Empty, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    Empty, NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Empty, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Empty, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
 }
@@ -792,7 +792,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_NoAccum_ATB_emptyRowA_emptyColB)
     GraphBLAS::mxm(C,
                    Lower,
                    GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -836,7 +836,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_NoAccum_ATB_emptyColA_emptyRowB)
     GraphBLAS::mxm(C,
                    Lower,
                    GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -880,7 +880,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_NoAccum_ATB_emptyRowM)
     GraphBLAS::mxm(C,
                    NotLower,
                    GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -933,7 +933,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_NoAccum_ATB_ABdup)
                    Lower,
                    GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -974,7 +974,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_NoAccum_ATB_ACdup)
                    Lower,
                    GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(C), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -1024,7 +1024,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_NoAccum_ATB_BCdup)
                    Lower,
                    GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), C,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -1064,7 +1064,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_NoAccum_ATB_MCdup)
                    C,
                    GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -1145,7 +1145,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    Empty, Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(A), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(A), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     //---
@@ -1157,7 +1157,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    Ones, Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(A), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(A), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(ans4, 0.));
 
     //---
@@ -1169,7 +1169,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    MLower, Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(ans5, 0.));
 
     //---
@@ -1181,7 +1181,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    MNotLower, Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(ans6, 0.));
 }
 
@@ -1219,19 +1219,19 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATBMempty)
     C = Ones;
     GraphBLAS::mxm(C,
                    M, Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Empty), Ones, true);
+                   ArithmeticSemiring<double>(), transpose(Empty), Ones, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(Lower_3x3, 0.));
 
     C = Ones;
     GraphBLAS::mxm(C,
                    M, Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Empty, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Empty, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(Lower_3x3, 0.));
 
     C = Ones;
     GraphBLAS::mxm(C,
                    Empty, Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Empty, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Empty, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 }
 
@@ -1262,7 +1262,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_emptyRowA_emptyColB)
     GraphBLAS::mxm(C,
                    Lower,
                    GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -1305,7 +1305,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_emptyColA_emptyRowB)
     GraphBLAS::mxm(C,
                    Lower,
                    GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -1349,7 +1349,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_emptyRowM)
     GraphBLAS::mxm(C,
                    NotLower,
                    GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -1402,7 +1402,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_ABdup)
                    Lower,
                    GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -1444,7 +1444,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_ACdup)
                    Lower,
                    GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(C), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -1494,7 +1494,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_BCdup)
                    Lower,
                    GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), C,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -1534,7 +1534,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_MCdup)
                    C,
                    GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -1558,7 +1558,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_Replace_lower_mask_result_ones)
                    M,
                    GraphBLAS::Second<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(result.nvals(), 6);
     BOOST_CHECK_EQUAL(result, answer);
@@ -1583,7 +1583,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_Replace_bool_masked_result_ones)
                    M,
                    GraphBLAS::Second<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(result.nvals(), 6);
     BOOST_CHECK_EQUAL(result, answer);
@@ -1609,7 +1609,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_Mask_Accum_ATB_Replace_mask_stored_zero_result_one
                    M,
                    GraphBLAS::Second<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B,
-                   true);
+                   REPLACE);
     BOOST_CHECK_EQUAL(result.nvals(), 6);
     BOOST_CHECK_EQUAL(result, answer);
 }
@@ -1710,25 +1710,25 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_NoAccum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(Ones), NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(A), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(A), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(Empty), NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(A), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(A), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, AT);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(MNotLower), NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, MLower);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(MLower), NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, MNotLower);
 }
 
@@ -1774,25 +1774,25 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_NoAccum_ATB_empty)
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(mUpper), NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Empty), Ones, true);
+                   ArithmeticSemiring<double>(), transpose(Empty), Ones, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(mUpper), NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Empty, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Empty, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(Ones), NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Empty, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Empty, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Empty;
     GraphBLAS::mxm(C,
                    complement(Empty), NoAccumulate(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Ones);
 }
 
@@ -1847,7 +1847,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_NoAccum_ATB_emptyRowA_emptyColB)
     GraphBLAS::mxm(C,
                    complement(NotLower),
                    GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -1891,7 +1891,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_NoAccum_ATB_emptyColA_emptyRowB)
     GraphBLAS::mxm(C,
                    complement(NotLower),
                    GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -1935,7 +1935,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_NoAccum_ATB_emptyRowM)
     GraphBLAS::mxm(C,
                    complement(Lower),
                    GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -1988,7 +1988,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_NoAccum_ATB_ABdup)
                    complement(NotLower),
                    GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -2029,7 +2029,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_NoAccum_ATB_ACdup)
                    complement(NotLower),
                    GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(C), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -2079,7 +2079,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_NoAccum_ATB_BCdup)
                    complement(NotLower),
                    GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), C,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -2103,7 +2103,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_NoAccum_ATB_Replace_ABdup)
                    GraphBLAS::complement(M),
                    GraphBLAS::NoAccumulate(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(result, answer);
 }
@@ -2189,7 +2189,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(Ones), Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(A), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(A), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     //---
@@ -2201,7 +2201,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(Empty), Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(A), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(A), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(ans4, 0.));
 
     //---
@@ -2213,7 +2213,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(MNotLower), Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(ans5, 0.));
 
     //---
@@ -2225,7 +2225,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB)
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(MLower), Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Identity, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Identity, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(ans6, 0.));
 }
 
@@ -2263,19 +2263,19 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATBM_empty)
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(MNotLower), Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Empty), Ones, true);
+                   ArithmeticSemiring<double>(), transpose(Empty), Ones, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(Lower_3x3, 0.));
 
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(MNotLower), Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Empty, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Empty, REPLACE);
     BOOST_CHECK_EQUAL(C, Matrix<double>(Lower_3x3, 0.));
 
     C = Ones;
     GraphBLAS::mxm(C,
                    complement(Ones), Plus<double>(),
-                   ArithmeticSemiring<double>(), transpose(Ones), Empty, true);
+                   ArithmeticSemiring<double>(), transpose(Ones), Empty, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 }
 
@@ -2306,7 +2306,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB_emptyRowA_emptyColB)
     GraphBLAS::mxm(C,
                    complement(MNotLower),
                    GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -2350,7 +2350,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB_emptyColA_emptyRowB)
     GraphBLAS::mxm(C,
                    complement(NotLower),
                    GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, true);
+                   GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
@@ -2403,7 +2403,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB_ABdup)
                    complement(NotLower),
                    GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -2445,7 +2445,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB_ACdup)
                    complement(NotLower),
                    GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(C), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -2495,7 +2495,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB_BCdup)
                    complement(NotLower),
                    GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), C,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -2535,7 +2535,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB_MCdup)
                    complement(C),
                    GraphBLAS::Plus<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(mat), mat,
-                   true);
+                   REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer2);
 }
@@ -2559,7 +2559,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB_Replace_Cones_Mnlower)
                    GraphBLAS::complement(M),
                    GraphBLAS::Second<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B,
-                   true);
+                   REPLACE);
     BOOST_CHECK_EQUAL(result.nvals(), 6);
     BOOST_CHECK_EQUAL(result, answer);
 }
@@ -2585,7 +2585,7 @@ BOOST_AUTO_TEST_CASE(test_mxm_CompMask_Accum_ATB_Replace_Mstored_zero)
                    GraphBLAS::complement(M),
                    GraphBLAS::Second<double>(),
                    GraphBLAS::ArithmeticSemiring<double>(), transpose(A), B,
-                   true);
+                   REPLACE);
     BOOST_CHECK_EQUAL(result.nvals(), 6);
     BOOST_CHECK_EQUAL(result, answer);
 }

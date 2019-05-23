@@ -28,14 +28,14 @@
         #define GRB_LOG_VERBOSE(x) do { std::cout << "GRB --- " << x << std::endl; } while(0)
         #define GRB_LOG_VERBOSE_ACCUM(x) do { std::cout << "GRB --- accum: TBD" << std::endl; } while(0)
         #define GRB_LOG_VERBOSE_OP(x) do { std::cout << "GRB --- op: TBD" << std::endl; } while(0)
-        #define GRB_LOG_VERBOSE_REPLACE(x) do { std::cout << "GRB --- replace: " << std::boolalpha << x << std::endl; } while(0)
+#define GRB_LOG_VERBOSE_OUTP(x) do { std::cout << "GRB --- outp: " << ((x == GraphBLAS::MERGE) ? "MERGE" : "REPLACE") << std::endl; } while(0)
 
     #else
 
         #define GRB_LOG_VERBOSE(x)
         #define GRB_LOG_VERBOSE_ACCUM(x)
         #define GRB_LOG_VERBOSE_OP(x)
-        #define GRB_LOG_VERBOSE_REPLACE(x)
+        #define GRB_LOG_VERBOSE_OUTP(x)
 
     #endif
 
@@ -48,7 +48,7 @@
     #define GRB_LOG_VERBOSE(x)
     #define GRB_LOG_VERBOSE_ACCUM(x)
     #define GRB_LOG_VERBOSE_OP(x)
-    #define GRB_LOG_VERBOSE_REPLACE(x)
+    #define GRB_LOG_VERBOSE_OUTP(x)
 
 #endif
 

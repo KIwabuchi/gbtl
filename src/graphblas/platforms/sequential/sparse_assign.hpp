@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -309,7 +309,7 @@ namespace GraphBLAS
                            AccumT              accum,
                            UVectorT     const &u,
                            SequenceT    const &indices,
-                           bool                replace_flag)
+                           OutputControlEnum   outp)
         {
             GRB_LOG_VERBOSE("reference backend - 4.3.7.1");
 
@@ -343,8 +343,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("z: " << z);
 
             // =================================================================
-            // Copy z into the final output considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy z into the final output considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
         }
 
         //=====================================================================
@@ -363,7 +363,7 @@ namespace GraphBLAS
                            AMatrixT         const &A,
                            RowSequenceT     const &row_indices,
                            ColSequenceT     const &col_indices,
-                           bool                    replace = false)
+                           OutputControlEnum       outp)
         {
             typedef typename CMatrixT::ScalarType  CScalarType;
             typedef typename AMatrixT::ScalarType  AScalarType;
@@ -398,8 +398,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("Z:  " << Z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, mask, replace);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, mask, outp);
         }
 
         //=====================================================================
@@ -417,7 +417,7 @@ namespace GraphBLAS
                            UVectorT         const &u,
                            SequenceT        const &row_indices,
                            IndexType               col_index,
-                           bool                    replace = false)
+                           OutputControlEnum       outp)
         {
             // IMPLEMENTATION NOTE: This function does not directly follow our
             // standard implementation method.  We leverage a different assign
@@ -437,7 +437,7 @@ namespace GraphBLAS
             }
 
             // ----------- standard vector variant 4.3.7.1 -----------
-            assign(c_vec, mask, accum, u, row_indices, replace);
+            assign(c_vec, mask, accum, u, row_indices, outp);
             // ----------- standard vector variant 4.3.7.1 -----------
 
             // REPLACE the column of C matrix
@@ -470,7 +470,7 @@ namespace GraphBLAS
                            UVectorT         const &u,
                            IndexType               row_index,
                            SequenceT        const &col_indices,
-                           bool                    replace = false)
+                           OutputControlEnum       outp)
         {
             // IMPLEMENTATION NOTE: This function does not directly follow our
             // standard implementation method.  We leverage a different assign
@@ -490,7 +490,7 @@ namespace GraphBLAS
             }
 
             // ----------- standard vector variant 4.3.7.1 -----------
-            assign(c_vec, mask, accum, u, col_indices, replace);
+            assign(c_vec, mask, accum, u, col_indices, outp);
             // ----------- standard vector variant 4.3.7.1 -----------
 
             // REPLACE the row of C matrix
@@ -522,7 +522,7 @@ namespace GraphBLAS
                                     AccumT                accum,
                                     ValueT                val,
                                     SequenceT      const &indices,
-                                    bool                  replace_flag = false)
+                                    OutputControlEnum     outp)
         {
             // execution error checks
             check_index_array_content(indices, w.size(),
@@ -553,8 +553,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("z: " << z);
 
             // =================================================================
-            // Copy Z into the final output, w, considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
         }
 
         //======================================================================
@@ -571,9 +571,9 @@ namespace GraphBLAS
                                     MaskT          const &Mask,
                                     AccumT                accum,
                                     ValueT                val,
-                                    RowIndicesT  const &row_indices,
-                                    ColIndicesT  const &col_indices,
-                                    bool                  replace_flag = false)
+                                    RowIndicesT    const &row_indices,
+                                    ColIndicesT    const &col_indices,
+                                    OutputControlEnum     outp)
         {
             typedef typename CMatrixT::ScalarType CScalarType;
 
@@ -607,8 +607,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("Z: " << Z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, Mask, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, Mask, outp);
         }
     }
 }
