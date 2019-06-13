@@ -44,6 +44,20 @@
 
 namespace GraphBLAS
 {
+#if 0
+    //**************************************************************************
+    // GrB_NULL mask: (should be GrB_FULL?)
+    class NoMask
+    {
+    public:
+        typedef bool ScalarType; // not necessary?
+        typedef backend::NoMask BackendType; // not necessary?
+
+        backend::NoMask m_mat;  // can be const?
+        backend::NoMask m_vec;
+    };
+#endif
+
     // We need to declare class so we can include later.
     template<typename ScalarT, typename... TagsT>
     class Vector;
@@ -564,24 +578,6 @@ namespace GraphBLAS
     private:
         BackendType m_mat;
     };
-
-    //**************************************************************************
-    // GrB_NULL mask: should be GrB_FULL
-    class NoMask
-    {
-    public:
-        typedef bool ScalarType; // not necessary?
-        typedef backend::NoMask BackendType; // not necessary?
-
-        backend::NoMask m_mat;  // can be const?
-        backend::NoMask m_vec;
-    };
-
-    //**************************************************************************
-    // Currently these won't work because of include order.
-    /// @todo move all these to backend::sparse_helpers
-
-
 
     // ================================================
 

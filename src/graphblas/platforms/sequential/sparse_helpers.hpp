@@ -1014,7 +1014,7 @@ namespace GraphBLAS
         void write_with_opt_mask_1D(
             WVectorT                                           &w,
             std::vector<std::tuple<IndexType, ZScalarT>> const &z,
-            backend::NoMask const                              &foo,
+            backend::NoMask                              const &foo,
             OutputControlEnum                                   outp)
         {
             //sparse_copy(w, z);

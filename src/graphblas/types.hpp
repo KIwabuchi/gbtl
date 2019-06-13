@@ -59,8 +59,31 @@ namespace GraphBLAS
     };
 
 
-    /// @todo move NoMask here if possible?
+    //**************************************************************************
+    // All backends need to support this marker class
+    namespace backend
+    {
+        class NoMask
+        {
+        public:
+            friend std::ostream &operator<<(std::ostream             &os,
+                                            NoMask          const    &mask)
+            {
+                os << "No mask";
+                return os;
+            }
+        };
+    }
 
+    class NoMask
+    {
+    public:
+        //typedef bool ScalarType;             // arbitrary type; not necessary
+        //typedef backend::NoMask BackendType; // not necessary
+
+        backend::NoMask m_mat;  // can be const?
+        backend::NoMask m_vec;
+    };
 
     //**************************************************************************
 

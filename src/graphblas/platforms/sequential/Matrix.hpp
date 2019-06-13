@@ -38,24 +38,7 @@ namespace GraphBLAS
 {
     namespace backend
     {
-        // A marker class for when we should have no mask
-        // @todo: Find somewhere else to put this
-        class NoMask
-        {
-        public:
-            NoMask() {}
-
-            friend std::ostream &operator<<(std::ostream             &os,
-                                            NoMask          const    &mask)
-            {
-                os << "No mask";
-                return os;
-            }
-        };
-
         //********************************************************************
-
-
         template<typename ScalarT, typename... TagsT>
         class Matrix : public LilSparseMatrix<ScalarT>
         {
