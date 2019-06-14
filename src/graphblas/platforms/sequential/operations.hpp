@@ -57,7 +57,7 @@
 #include <graphblas/platforms/sequential/sparse_apply.hpp>
 #include <graphblas/platforms/sequential/sparse_reduce.hpp>
 #include <graphblas/platforms/sequential/sparse_transpose.hpp>
-
+#include <graphblas/platforms/sequential/sparse_kronecker.hpp>
 
 namespace GraphBLAS
 {

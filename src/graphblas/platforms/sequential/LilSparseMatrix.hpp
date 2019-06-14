@@ -376,7 +376,12 @@ namespace GraphBLAS
                 }
             }
 
-            RowType getRow(IndexType row_index) const
+            RowType const &operator[](IndexType row_index) const
+            {
+                return m_data[row_index];
+            }
+
+            RowType const &getRow(IndexType row_index) const
             {
                 return m_data[row_index];
             }

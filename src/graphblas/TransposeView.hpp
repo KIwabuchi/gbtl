@@ -331,6 +331,24 @@ namespace GraphBLAS
                                      AccumT      const &accum,
                                      AMatrixT    const &A,
                                      OutputControlEnum  outp);
+
+        //--------------------------------------------------------------------
+
+        // 4.3.11: Kronecker product
+        template<typename CMatrixT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryOpT,
+                 typename AMatrixT,
+                 typename BMatrixT>
+        friend inline void kronecker(CMatrixT          &C,
+                                     MaskT       const &Mask,
+                                     AccumT      const &accum,
+                                     BinaryOpT          op,
+                                     AMatrixT    const &A,
+                                     BMatrixT    const &B,
+                                     OutputControlEnum  outp);
+
     };
 
 } // end namespace GraphBLAS

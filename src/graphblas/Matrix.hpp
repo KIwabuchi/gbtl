@@ -556,6 +556,23 @@ namespace GraphBLAS
 
         //--------------------------------------------------------------------
 
+        // 4.3.11: Kronecker product
+        template<typename CMatrixT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryOpT,
+                 typename AMatrixT,
+                 typename BMatrixT>
+        friend inline void kronecker(CMatrixT          &C,
+                                     MaskT       const &Mask,
+                                     AccumT      const &accum,
+                                     BinaryOpT          op,
+                                     AMatrixT    const &A,
+                                     BMatrixT    const &B,
+                                     OutputControlEnum  outp);
+
+        //--------------------------------------------------------------------
+
         template<typename MatrixT>
         friend inline GraphBLAS::TransposeView<MatrixT> transpose(MatrixT const &A);
 

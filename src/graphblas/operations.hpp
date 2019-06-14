@@ -688,13 +688,13 @@ namespace GraphBLAS
     template<typename WScalarT,
              typename MaskT,
              typename AccumT,
-             typename UnaryFunctionT,
+             typename UnaryOpT,
              typename UVectorT,
              typename ...WTagsT>
     inline void apply(Vector<WScalarT, WTagsT...> &w,
                       MaskT                 const &mask,
                       AccumT                const &accum,
-                      UnaryFunctionT               op,
+                      UnaryOpT                     op,
                       UVectorT              const &u,
                       OutputControlEnum            outp = MERGE)
     {
@@ -719,13 +719,13 @@ namespace GraphBLAS
     template<typename CScalarT,
              typename MaskT,
              typename AccumT,
-             typename UnaryFunctionT,
+             typename UnaryOpT,
              typename AMatrixT,
              typename ...ATagsT>
     inline void apply(Matrix<CScalarT, ATagsT...> &C,
                       MaskT                 const &Mask,
                       AccumT                const &accum,
-                      UnaryFunctionT               op,
+                      UnaryOpT                     op,
                       AMatrixT              const &A,
                       OutputControlEnum            outp = MERGE)
     {
@@ -753,14 +753,14 @@ namespace GraphBLAS
     template<typename WScalarT,
              typename MaskT,
              typename AccumT,
-             typename BinaryFunctionT,
+             typename BinaryOpT,
              typename UVectorT,
              typename ValueT,
              typename ...WTagsT>
     inline void apply(Vector<WScalarT, WTagsT...> &w,
                       MaskT                 const &mask,
                       AccumT                const &accum,
-                      BinaryFunctionT              op,
+                      BinaryOpT                    op,
                       UVectorT              const &u,
                       ValueT                       val,
                       OutputControlEnum            outp = MERGE)
@@ -787,14 +787,14 @@ namespace GraphBLAS
     template<typename CScalarT,
              typename MaskT,
              typename AccumT,
-             typename BinaryFunctionT,
+             typename BinaryOpT,
              typename AMatrixT,
              typename ValueT,
              typename ...ATagsT>
     inline void apply(Matrix<CScalarT, ATagsT...> &C,
                       MaskT                 const &Mask,
                       AccumT                const &accum,
-                      BinaryFunctionT              op,
+                      BinaryOpT                    op,
                       AMatrixT              const &A,
                       ValueT                       val,
                       OutputControlEnum            outp = MERGE)
@@ -936,6 +936,48 @@ namespace GraphBLAS
 
         GRB_LOG_VERBOSE("C out: " << C.m_mat);
         GRB_LOG_FN_END("transpose - 4.3.10");
+    }
+
+    //************************************************************************
+    // Kronecker product
+    //************************************************************************
+
+    // 4.3.11: Kronecker product
+    template<typename CMatrixT,
+             typename MaskT,
+             typename AccumT,
+             typename BinaryOpT,
+             typename AMatrixT,
+             typename BMatrixT>
+    inline void kronecker(CMatrixT          &C,
+                          MaskT       const &Mask,
+                          AccumT      const &accum,
+                          BinaryOpT          op,
+                          AMatrixT    const &A,
+                          BMatrixT    const &B,
+                          OutputControlEnum  outp = MERGE)
+    {
+        GRB_LOG_FN_BEGIN("kronecker - 4.3.11");
+        GRB_LOG_VERBOSE("C in: " << C.m_mat);
+        GRB_LOG_VERBOSE("Mask in: " << Mask.m_mat);
+        GRB_LOG_VERBOSE_ACCUM(accum);
+        GRB_LOG_VERBOSE_OP(op);
+        GRB_LOG_VERBOSE("A in: " << A.m_mat);
+        GRB_LOG_VERBOSE("B in: " << B.m_mat);
+        GRB_LOG_VERBOSE_OUTP(outp);
+
+        check_nrows_nrows(C, Mask, "kronecker: C.nrows != Mask.nrows");
+        check_ncols_ncols(C, Mask, "kronecker: C.ncols != Mask.ncols");
+        check_ncols_ncolsxncols(C, A, B,
+                                "kronecker: C.ncols != A.ncols*B.ncols");
+        check_nrows_nrowsxnrows(C, A, B,
+                                "kronecker: C.nrows != A.nrows*B.nrows");
+
+        backend::kronecker(C.m_mat, Mask.m_mat, accum, op,
+                           A.m_mat, B.m_mat, outp);
+
+        GRB_LOG_VERBOSE("C out: " << C.m_mat);
+        GRB_LOG_FN_END("kronecker - 4.3.11");
     }
 
     //************************************************************************
