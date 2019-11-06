@@ -36,6 +36,9 @@
  * readable error code conversion.</p>
  */
 
+#ifndef ALGORITHMS_BFS_HPP
+#define ALGORITHMS_BFS_HPP
+
 #include <limits>
 #include <tuple>
 
@@ -414,8 +417,8 @@ namespace algorithms
      *                          1 should indicate an edge.
      * @param[in]  source       Index of the root vertex to use in the
      *                          calculation.
-     * @param[out] parent_list  The list of parents for each traversal (row)
-     *                          specified in the roots array.
+     * @param[out] levels       The level (distance in unweighted graphs) from
+     *                          the source (root) of the BFS.
      */
     template <typename MatrixT,
               typename LevelsVectorT>
@@ -715,3 +718,5 @@ namespace algorithms
     }
 
 }
+
+#endif
