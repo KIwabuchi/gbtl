@@ -35,7 +35,6 @@
 
 #include <graphblas/graphblas.hpp>
 #include <algorithms/triangle_count.hpp>
-#include "Timer.hpp"
 
 //****************************************************************************
 int main(int argc, char **argv)
@@ -51,13 +50,10 @@ int main(int argc, char **argv)
     std::ifstream infile(pathname);
     GraphBLAS::IndexArrayType iL, iU, iA;
     GraphBLAS::IndexArrayType jL, jU, jA;
-    int64_t num_rows = 0;
-    int64_t max_id = 0;
+    uint64_t num_rows = 0;
+    uint64_t max_id = 0;
     uint64_t src, dst;
-//    for (std::string row; getline(infile, row, '\n');)
-//    {
-//        std::cout << "Row: " << row << std::endl;
-//        sscanf(row.c_str(), "%ld\t%ld", &src, &dst);
+
     while (infile)
     {
         infile >> src >> dst;
@@ -106,32 +102,34 @@ int main(int argc, char **argv)
     std::cout << "Running algorithm(s)..." << std::endl;
     T count(0);
 
-    Timer<std::chrono::steady_clock> my_timer;
+    auto start = std::chrono::steady_clock::now();
 
     // Perform triangle counting with three different algorithms
-    //===================
-    my_timer.start();
     count = algorithms::triangle_count_newGBTL(L, U);
-    my_timer.stop();
 
-    std::cout << "# triangles (newGBTL) = " << count << std::endl;
-    std::cout << "Elapsed time: " << my_timer.elapsed() << " msec." << std::endl;
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>
+        (std::chrono::steady_clock::now() - start);
 
-    //===================
-    my_timer.start();
-    count = algorithms::triangle_count_masked(L, U);
-    my_timer.stop();
+    std::cout << "# triangles = " << count << std::endl;
+    std::cout << "Elapsed time: " << duration.count() << " msec." << std::endl;
 
-    std::cout << "# triangles (LU) = " << count << std::endl;
-    std::cout << "Elapsed time: " << my_timer.elapsed() << " msec." << std::endl;
+    start = std::chrono::steady_clock::now();
 
-    //===================
-    my_timer.start();
     count = algorithms::triangle_count_masked(L);
-    my_timer.stop();
 
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>
+        (std::chrono::steady_clock::now() - start);
     std::cout << "# triangles (masked) = " << count << std::endl;
-    std::cout << "Elapsed time: " << my_timer.elapsed() << " msec." << std::endl;
+    std::cout << "Elapsed time: " << duration.count() << " msec." << std::endl;
+
+    start = std::chrono::steady_clock::now();
+
+    count = algorithms::triangle_count_masked_noT(L);
+
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>
+        (std::chrono::steady_clock::now() - start);
+    std::cout << "# triangles (masked, no T) = " << count << std::endl;
+    std::cout << "Elapsed time: " << duration.count() << " msec." << std::endl;
 
     //count = algorithms::triangle_count_flame1_newGBTL(U);
     //std::cout << "# triangles = " << count << std::endl;

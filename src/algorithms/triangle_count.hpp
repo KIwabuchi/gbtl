@@ -100,29 +100,6 @@ namespace algorithms
 
     //************************************************************************
     template<typename MatrixT>
-    typename MatrixT::ScalarType triangle_count_masked(MatrixT const &L,
-                                                       MatrixT const &U)
-    {
-        using T = typename MatrixT::ScalarType;
-        GraphBLAS::IndexType rows(L.nrows());
-        GraphBLAS::IndexType cols(L.ncols());
-
-        MatrixT B(rows, cols);
-        GraphBLAS::mxm(B,
-                       L, GraphBLAS::NoAccumulate(),
-                       GraphBLAS::ArithmeticSemiring<T>(),
-                       L, U);
-
-        T sum = 0;
-        GraphBLAS::reduce(sum,
-                          GraphBLAS::NoAccumulate(),
-                          GraphBLAS::PlusMonoid<T>(),
-                          B);
-        return sum;
-    }
-
-    //************************************************************************
-    template<typename MatrixT>
     typename MatrixT::ScalarType triangle_count_masked(MatrixT const &L)
     {
         using T = typename MatrixT::ScalarType;
@@ -134,6 +111,28 @@ namespace algorithms
                        L, GraphBLAS::NoAccumulate(),
                        GraphBLAS::ArithmeticSemiring<T>(),
                        L, GraphBLAS::transpose(L));
+
+        T sum = 0;
+        GraphBLAS::reduce(sum,
+                          GraphBLAS::NoAccumulate(),
+                          GraphBLAS::PlusMonoid<T>(),
+                          B);
+        return sum;
+    }
+
+    //************************************************************************
+    template<typename MatrixT>
+    typename MatrixT::ScalarType triangle_count_masked_noT(MatrixT const &L)
+    {
+        using T = typename MatrixT::ScalarType;
+        GraphBLAS::IndexType rows(L.nrows());
+        GraphBLAS::IndexType cols(L.ncols());
+
+        MatrixT B(rows, cols);
+        GraphBLAS::mxm(B,
+                       L, GraphBLAS::NoAccumulate(),
+                       GraphBLAS::ArithmeticSemiring<T>(),
+                       L, L);
 
         T sum = 0;
         GraphBLAS::reduce(sum,
@@ -742,9 +741,7 @@ namespace algorithms
         T  num_triangles = 0;
 
         GraphBLAS::IndexType rows(graph.nrows());
-        GraphBLAS::IndexType cols(graph.ncols());
-
-        // assert(rows == cols);
+        // @todo assert graph matrix is square
 
         // A graph less than three vertices cannot have any triangles
         if (rows < 3)
