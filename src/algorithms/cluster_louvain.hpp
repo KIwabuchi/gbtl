@@ -104,10 +104,11 @@ namespace algorithms
     /**
      * @brief Compute the clusters in the given graph using louvain clustering.
      *
-     * @param[in]     graph  The graph to compute the clusters on.  Can be a
-     *                       weighted graph.
-     * @param[in]  max_iters The maximum number of iterations to run if
-     *                       convergence doesn't occur first (oscillation uncommon)
+     * @param[in]  graph    The graph to compute the clusters on.  Can be a
+     *                         weighted graph.
+     * @param[in]  random_seed The seed for the RNG for tie breaking
+     * @param[in]  max_iters   The maximum number of iterations to run if
+     *                         convergence doesn't occur first (uncommon)
      *
      * @return A matrix whose columns correspond to the vertices, and vertices
      *         with the same (max) value in a given row belong to the
@@ -115,11 +116,13 @@ namespace algorithms
      */
     template<typename MatrixT, typename RealT=double>
     GraphBLAS::Matrix<bool> louvain_cluster(
-        MatrixT const            &graph,
-        unsigned int  max_iters = std::numeric_limits<unsigned int>::max())
+        MatrixT const &graph,
+        double         random_seed = 11.0, // arbitrary
+        unsigned int   max_iters = std::numeric_limits<unsigned int>::max())
     {
         using T = typename MatrixT::ScalarType;
         using RealMatrixT = GraphBLAS::Matrix<RealT>;
+        unsigned int iters = 0;
 
         GraphBLAS::IndexType rows(graph.nrows());
         GraphBLAS::IndexType cols(graph.ncols());
@@ -132,35 +135,33 @@ namespace algorithms
 
         // precompute A + A'
         GraphBLAS::Matrix<T> ApAT(graph);
-        GraphBLAS::transpose(ApAT, GraphBLAS::NoMask(), GraphBLAS::Plus<T>(),
-                             graph, GraphBLAS::MERGE);
+        GraphBLAS::transpose(ApAT, GraphBLAS::NoMask(),
+                             GraphBLAS::Plus<T>(), graph);
 
         GraphBLAS::print_matrix(std::cout, ApAT, "*** A+A' ***");
 
         // k = A * vec(1)  (arithmetric row reduce of adj. matrix)
-        GraphBLAS::Vector<T> k(rows);
+        GraphBLAS::Vector<RealT> k(rows);
         GraphBLAS::reduce(k, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                          GraphBLAS::Plus<T>(), graph, GraphBLAS::REPLACE);
+                          GraphBLAS::Plus<RealT>(), graph);
 
         // m = 0.5*k'*vec(1) (reduce k to scalar)
-        T m(0);
+        RealT m(0);
         GraphBLAS::reduce(m, GraphBLAS::NoAccumulate(),
-                          GraphBLAS::PlusMonoid<T>(), k);
+                          GraphBLAS::PlusMonoid<RealT>(), k);
         m = m/2.0;
 
         // Initialize S to identity?
         auto S(GraphBLAS::scaled_identity<GraphBLAS::Matrix<bool>>(rows));
-        // HOT FIX
-        //GraphBLAS::Matrix<bool> S_row(rows, rows);
+
         GraphBLAS::Vector<bool> S_row(rows);
-        //END HOT FIX
 
-        // create a dense mask vector of all ones (a lame way)
+        // create a dense mask vector of all trues
         GraphBLAS::Vector<bool> mask(rows);
-        GraphBLAS::reduce(mask, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                          GraphBLAS::LogicalOr<bool>(), S, GraphBLAS::REPLACE);
+        GraphBLAS::assign(mask, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
+                          true, GraphBLAS::AllIndices());
 
-        SetRandom<RealT> set_random(11);
+        SetRandom<RealT> set_random(random_seed);
         bool vertices_changed(true);
 
         // repeat while modularity is increasing
@@ -175,69 +176,47 @@ namespace algorithms
                 {
                     std::cout << "===Start of vertex " << i << std::endl;
 
-                    // Replace the following with apply with binary op and scalar
-                    GraphBLAS::BinaryOp_Bind2nd<RealT, GraphBLAS::Times<T>>
-                        neg_scale_k(static_cast<RealT>(-k.extractElement(i)/m));
-
-                    // v' = e_i' * (A + A') == extract row i of (A + A')
-                    GraphBLAS::Vector<RealT> v(rows);
-                    GraphBLAS::extract(v, GraphBLAS::NoMask(),
+                    // s_i = S[i,:]
+                    GraphBLAS::extract(S_row, GraphBLAS::NoMask(),
                                        GraphBLAS::NoAccumulate(),
-                                       ApAT,
-                                       GraphBLAS::AllIndices(), i,
-                                       GraphBLAS::REPLACE);
-
-                    // v' += (-k_i/m)*k'
-                    GraphBLAS::apply(v, GraphBLAS::NoMask(),
-                                     GraphBLAS::Plus<RealT>(),
-                                     neg_scale_k, k, GraphBLAS::MERGE);
-
+                                       GraphBLAS::transpose(S),
+                                       GraphBLAS::AllIndices(), i);
 
                     // S := (I - e_i*e_i')S means clear i-th row of S (using a mask)
                     GraphBLAS::Matrix<bool> Mask(rows, rows);
                     GraphBLAS::assign(Mask, GraphBLAS::NoMask(),
                                       GraphBLAS::NoAccumulate(),
-                                      mask, i, GraphBLAS::AllIndices(),
-                                      GraphBLAS::REPLACE);
-                    // HOT FIX
-                    //GraphBLAS::apply(S_row, Mask, GraphBLAS::NoAccumulate(),
-                    //                 GraphBLAS::Identity<bool>(),
-                    //                 S, GraphBLAS::REPLACE);
-                    GraphBLAS::extract(S_row, GraphBLAS::NoMask(),
-                                       GraphBLAS::NoAccumulate(),
-                                       GraphBLAS::transpose(S),
-                                       GraphBLAS::AllIndices(), i,
-                                       GraphBLAS::REPLACE);
-                    //END HOT FIX
+                                      mask, i, GraphBLAS::AllIndices());
 
                     GraphBLAS::apply(S, GraphBLAS::complement(Mask),
                                      GraphBLAS::NoAccumulate(),
                                      GraphBLAS::Identity<bool>(),
                                      S, GraphBLAS::REPLACE);
 
-                    // q' = v' * S
+                    // v' = e_i' * (A + A') == extract row i of (A + A')
+                    GraphBLAS::Vector<RealT> v(rows);
+                    GraphBLAS::extract(v, GraphBLAS::NoMask(),
+                                       GraphBLAS::NoAccumulate(),
+                                       ApAT,
+                                       GraphBLAS::AllIndices(), i);
+
+                    // v' += (-k_i/m)*k'
+                    // TODO: Replace the following with apply with binary op and scalar
+                    GraphBLAS::BinaryOp_Bind2nd<RealT, GraphBLAS::Times<RealT>>
+                        scalar_multiply(static_cast<RealT>(-k.extractElement(i)/m));
+
+                    GraphBLAS::apply(v, GraphBLAS::NoMask(),
+                                     GraphBLAS::Plus<RealT>(),
+                                     scalar_multiply, k);
+
+
+                    // q' = v' * S = [e_i' * (A + A') + (-k_i/m)*k'] * S
                     GraphBLAS::Vector<RealT> q(rows);
                     GraphBLAS::vxm(q, GraphBLAS::NoMask(),
                                    GraphBLAS::NoAccumulate(),
                                    GraphBLAS::ArithmeticSemiring<RealT>(),
-                                   v, S, GraphBLAS::REPLACE);
+                                   v, S);
                     GraphBLAS::print_vector(std::cout, q, "modularity change");
-
-
-                    //HOT FIX
-                    //extract row i of S to find which original community
-                    //GraphBLAS::Vector<RealT> qMask(rows);
-                    //GraphBLAS::Vector<bool> qBool(rows);
-                    //GraphBLAS::extract(qMask, GraphBLAS::NoMask(),
-                    //                   GraphBLAS::NoAccumulate(),
-                    //                   GraphBLAS::transpose(S_row),
-                    //                   GraphBLAS::AllIndices(), i,
-                    //                   GraphBLAS::REPLACE);
-                    //GraphBLAS::apply(qBool, qMask, GraphBLAS::NoAccumulate(),
-                    //                 GraphBLAS::Identity<bool>(),
-                    //                 q, GraphBLAS::REPLACE);
-                    //END HOT FIX
-
 
                     // kappa = max(q)
                     RealT kappa(0);
@@ -252,7 +231,8 @@ namespace algorithms
                     GraphBLAS::Vector<bool> t(rows);
                     GraphBLAS::apply(t, GraphBLAS::NoMask(),
                                      GraphBLAS::NoAccumulate(),
-                                     equal_kappa, q, GraphBLAS::REPLACE);
+                                     equal_kappa, q);
+                    // remove all stored falses (TODO: Replace with GxB_select?)
                     GraphBLAS::apply(t, t, GraphBLAS::NoAccumulate(),
                                      GraphBLAS::Identity<T>(), t, GraphBLAS::REPLACE);
 
@@ -265,7 +245,7 @@ namespace algorithms
                         GraphBLAS::Vector<RealT> p(rows);
                         GraphBLAS::apply(p, GraphBLAS::NoMask(),
                                          GraphBLAS::NoAccumulate(),
-                                         set_random, t, GraphBLAS::REPLACE);
+                                         set_random, t);
                         // max_p = max(p)
                         RealT max_p(0);
                         GraphBLAS::reduce(max_p, GraphBLAS::NoAccumulate(),
@@ -278,7 +258,8 @@ namespace algorithms
 
                         GraphBLAS::apply(t, GraphBLAS::NoMask(),
                                          GraphBLAS::NoAccumulate(),
-                                         equal_max_p, p, GraphBLAS::REPLACE);
+                                         equal_max_p, p);
+                        // remove all stored falses (TODO: Replace with GxB_select?)
                         GraphBLAS::apply(t, t, GraphBLAS::NoAccumulate(),
                                          GraphBLAS::Identity<T>(), t,
                                          GraphBLAS::REPLACE);
@@ -287,10 +268,9 @@ namespace algorithms
                     // Replace row i of S with t
                     GraphBLAS::assign(S, GraphBLAS::NoMask(),
                                       GraphBLAS::NoAccumulate(),
-                                      t, i, GraphBLAS::AllIndices(),
-                                      GraphBLAS::MERGE);
+                                      t, i, GraphBLAS::AllIndices());
 
-                    //HOT FIX - compare new community w/ previous community to see if it has changed
+                    // Compare new community w/ previous community to see if it has changed
                     if (t != S_row) // vertex changed communities
                     {
                         vertices_changed = true;
@@ -300,12 +280,15 @@ namespace algorithms
                     {
                         std::cout<< "No change. "<< std::endl;
                     }
-                    //END HOT FIX
                 }
                 std::cout << "===End   of vertex " << i << std::endl;
             }
 
-        } while (vertices_changed);
+            ++iters;
+        } while (vertices_changed && iters < max_iters);
+
+        if (vertices_changed)
+            throw iters;
 
         return S;
     }
