@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.0
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -69,6 +69,55 @@ BOOST_AUTO_TEST_CASE(cluster_test_louvain)
     m1.build(i_m1, j_m1, v_m1);
 
     auto ans = algorithms::louvain_cluster(m1);
+
+    auto cluster_assignments = get_louvain_cluster_assignments(ans);
+    GraphBLAS::print_vector(std::cout, cluster_assignments, "CLUSTER ASSIGNMENTS");
+
+    BOOST_CHECK_EQUAL(cluster_assignments.extractElement(0),
+                      cluster_assignments.extractElement(2));
+    BOOST_CHECK_EQUAL(cluster_assignments.extractElement(0),
+                      cluster_assignments.extractElement(4));
+    BOOST_CHECK_EQUAL(cluster_assignments.extractElement(0),
+                      cluster_assignments.extractElement(6));
+
+    BOOST_CHECK_EQUAL(cluster_assignments.extractElement(1),
+                      cluster_assignments.extractElement(3));
+    BOOST_CHECK_EQUAL(cluster_assignments.extractElement(1),
+                      cluster_assignments.extractElement(5));
+    BOOST_CHECK_EQUAL(cluster_assignments.extractElement(1),
+                      cluster_assignments.extractElement(7));
+
+    BOOST_CHECK(cluster_assignments.extractElement(0) !=
+                cluster_assignments.extractElement(1));
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(cluster_test_louvain_masked)
+{
+    std::cout << "============== Louvain ================" << std::endl;
+    GraphBLAS::IndexArrayType i_m1 = {0, 0, 0, 0,
+                                      1, 1, 1, 1,
+                                      2, 2, 2, 2,
+                                      3, 3, 3, 3,
+                                      4, 4, 4, 4,
+                                      5, 5, 5, 5, 5,
+                                      6, 6, 6,
+                                      7, 7, 7, 7};
+    GraphBLAS::IndexArrayType j_m1 = {0, 2, 3, 6,
+                                      1, 2, 3, 7,
+                                      0, 2, 4, 6,
+                                      0, 1, 3, 5,
+                                      0, 2, 4, 6,
+                                      1, 3, 5, 6, 7,
+                                      0, 4, 6,
+                                      1, 3, 5, 7};
+    std::vector<double>       v_m1 = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Matrix<double> m1(8, 8);
+    m1.build(i_m1, j_m1, v_m1);
+
+    auto ans = algorithms::louvain_cluster_masked(m1);
 
     auto cluster_assignments = get_louvain_cluster_assignments(ans);
     GraphBLAS::print_vector(std::cout, cluster_assignments, "CLUSTER ASSIGNMENTS");
