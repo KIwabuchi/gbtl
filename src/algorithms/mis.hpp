@@ -39,16 +39,13 @@
 namespace
 {
     //************************************************************************
-    std::default_random_engine             generator;
-    std::uniform_real_distribution<double> distribution;
-
     // Return a random value that is scaled by the inverse of the degree.
     template <typename T=float>
-    class SetRandom
+    class SetInvDegreeRandom
     {
     public:
         typedef T result_type;
-        SetRandom() {}
+        SetInvDegreeRandom(double seed = 0.) { m_generator.seed(seed); }
 
         template <typename DegreeT>
         __device__ __host__ inline result_type operator()(
@@ -56,8 +53,12 @@ namespace
             DegreeT degree)
         {
             return static_cast<T>(0.0001 +
-                                  distribution(generator)/(1. + 2.*degree));
+                                  m_distribution(m_generator)/(1. + 2.*degree));
         }
+
+    private:
+        std::default_random_engine             m_generator;
+        std::uniform_real_distribution<double> m_distribution;
     };
 }
 
@@ -130,8 +131,6 @@ namespace algorithms
 
         //GraphBLAS::print_matrix(std::cout, graph, "Graph");
 
-        generator.seed(seed);
-
         using T = typename MatrixT::ScalarType;
         using RealT = float;
         typedef GraphBLAS::Vector<RealT> RealVector;
@@ -163,6 +162,8 @@ namespace algorithms
                           GraphBLAS::NoAccumulate(),
                           true, GraphBLAS::AllIndices(), GraphBLAS::REPLACE);
 
+        SetInvDegreeRandom<RealT> set_random(seed);
+
         while (candidates.nvals() > 0)
         {
             //std::cout << "************* ITERATION ************* nnz = "
@@ -174,8 +175,7 @@ namespace algorithms
             // be broken.
             GraphBLAS::eWiseMult(prob,
                                  GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                                 SetRandom<RealT>(),
-                                 candidates, degrees);
+                                 set_random, candidates, degrees);
             //GraphBLAS::print_vector(std::cout, prob, "prob");
 
             // find the neighbor of each source node with the max random number
