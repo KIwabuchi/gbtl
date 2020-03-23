@@ -49,6 +49,18 @@ namespace
      {0,  2,  0},
      {3,  0,  4}};
 
+    static std::vector<std::vector<double> > AA_sparse_9x9 =
+    {{1,  0,  0,   0,  0,  0,   0,  0,  0},
+     {0,  2,  0,   0,  0,  0,   0,  0,  0},
+     {3,  0,  4,   0,  0,  0,   0,  0,  0},
+     {0,  0,  0,   2,  0,  0,   0,  0,  0},
+     {0,  0,  0,   0,  4,  0,   0,  0,  0},
+     {0,  0,  0,   6,  0,  8,   0,  0,  0},
+     {3,  0,  0,   0,  0,  0,   4,  0,  0},
+     {0,  6,  0,   0,  0,  0,   0,  8,  0},
+     {9,  0, 12,   0,  0,  0,  12,  0, 16}
+    };
+
     static std::vector<std::vector<double> > Ar_sparse_3x3 =
     {{1,  0,  0},
      {0,  2,  0},
@@ -111,6 +123,62 @@ namespace
      {3, 3, 0, 0,  0, 0, 0, 0,  4, 4, 0, 0},
      {0, 6, 6, 0,  0, 0, 0, 0,  0, 8, 8, 0},
      {9, 0, 0, 9,  0, 0, 0, 0, 12, 0, 0,12}
+    };
+
+    static std::vector<std::vector<double> > Answer_sparse_9x12_Lower =
+    {{1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {0, 2, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {3, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+
+     {0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {0, 0, 0, 0,  6, 0, 0, 0,  0, 0, 0, 0},
+
+     {3, 3, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {0, 6, 6, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {9, 0, 0, 9,  0, 0, 0, 0, 12, 0, 0, 0}
+    };
+
+    static std::vector<std::vector<double> > Answer_sparse_9x12_Lower_Ones =
+    {{1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1},
+     {0, 2, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1},
+     {3, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1},
+
+     {0, 0, 0, 0,  1, 1, 1, 1,  1, 1, 1, 1},
+     {0, 0, 0, 0,  0, 1, 1, 1,  1, 1, 1, 1},
+     {0, 0, 0, 0,  6, 0, 1, 1,  1, 1, 1, 1},
+
+     {3, 3, 0, 0,  0, 0, 0, 1,  1, 1, 1, 1},
+     {0, 6, 6, 0,  0, 0, 0, 0,  1, 1, 1, 1},
+     {9, 0, 0, 9,  0, 0, 0, 0, 12, 1, 1, 1}
+    };
+
+    static std::vector<std::vector<double> > Answer_sparse_9x12_NotLower
+    {{0, 1, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {0, 0, 2, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {0, 0, 0, 3,  0, 0, 0, 0,  0, 0, 0, 0},
+
+     {0, 0, 0, 0,  2, 2, 0, 0,  0, 0, 0, 0},
+     {0, 0, 0, 0,  0, 4, 4, 0,  0, 0, 0, 0},
+     {0, 0, 0, 0,  0, 0, 0, 6,  0, 0, 0, 0},
+
+     {0, 0, 0, 0,  0, 0, 0, 0,  4, 4, 0, 0},
+     {0, 0, 0, 0,  0, 0, 0, 0,  0, 8, 8, 0},
+     {0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0,12}
+    };
+
+    static std::vector<std::vector<double> > Answer_sparse_9x12_NotLower_Ones
+    {{1, 1, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {1, 1, 2, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {1, 1, 1, 3,  0, 0, 0, 0,  0, 0, 0, 0},
+
+     {1, 1, 1, 1,  2, 2, 0, 0,  0, 0, 0, 0},
+     {1, 1, 1, 1,  1, 4, 4, 0,  0, 0, 0, 0},
+     {1, 1, 1, 1,  1, 1, 0, 6,  0, 0, 0, 0},
+
+     {1, 1, 1, 1,  1, 1, 1, 0,  4, 4, 0, 0},
+     {1, 1, 1, 1,  1, 1, 1, 1,  0, 8, 8, 0},
+     {1, 1, 1, 1,  1, 1, 1, 1,  1, 0, 0,12}
     };
 
     static std::vector<std::vector<double> > Answer_rc_sparse_9x12 =
@@ -235,6 +303,28 @@ namespace
     {{false,  true, true},
      {false, false, true},
      {false, false, false}};
+
+    static std::vector<std::vector<double> > Lower_9x12 =
+    {{1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {1, 1, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {1, 1, 1, 0,  0, 0, 0, 0,  0, 0, 0, 0},
+     {1, 1, 1, 1,  0, 0, 0, 0,  0, 0, 0, 0},
+     {1, 1, 1, 1,  1, 0, 0, 0,  0, 0, 0, 0},
+     {1, 1, 1, 1,  1, 1, 0, 0,  0, 0, 0, 0},
+     {1, 1, 1, 1,  1, 1, 1, 0,  0, 0, 0, 0},
+     {1, 1, 1, 1,  1, 1, 1, 1,  0, 0, 0, 0},
+     {1, 1, 1, 1,  1, 1, 1, 1,  1, 0, 0, 0}};
+
+    static std::vector<std::vector<double> > NotLower_9x12 =
+    {{0, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1},
+     {0, 0, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1},
+     {0, 0, 0, 1,  1, 1, 1, 1,  1, 1, 1, 1},
+     {0, 0, 0, 0,  1, 1, 1, 1,  1, 1, 1, 1},
+     {0, 0, 0, 0,  0, 1, 1, 1,  1, 1, 1, 1},
+     {0, 0, 0, 0,  0, 0, 1, 1,  1, 1, 1, 1},
+     {0, 0, 0, 0,  0, 0, 0, 1,  1, 1, 1, 1},
+     {0, 0, 0, 0,  0, 0, 0, 0,  1, 1, 1, 1},
+     {0, 0, 0, 0,  0, 0, 0, 0,  0, 1, 1, 1}};
 
     static std::vector<std::vector<double> > M_9x9 =
         {{1, 0, 0, 1, 0, 0, 1, 0, 0},
@@ -396,18 +486,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB)
     kronecker(C, NoMask(), NoAccumulate(),
               Times<double>(), A, B);
 
-    for (IndexType ix = 0; ix < answer.nrows(); ++ix)
-    {
-        for (IndexType iy = 0; iy < answer.ncols(); ++iy)
-        {
-            BOOST_CHECK_EQUAL(C.hasElement(ix, iy), answer.hasElement(ix, iy));
-            if (C.hasElement(ix, iy))
-            {
-                BOOST_CHECK_CLOSE(C.extractElement(ix,iy),
-                                  answer.extractElement(ix,iy), 0.0001);
-            }
-        }
-    }
+    BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
@@ -480,20 +559,17 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_emptyColA_emptyRowB)
               Times<double>(), A, B);
     BOOST_CHECK_EQUAL(result, answer);
 }
-#if 0
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_ABdup)
 {
     // Build some matrices.
-    Matrix<double, DirectedMatrixTag> mat(Symmetric_4x4, 0.);
-    Matrix<double, DirectedMatrixTag> m3(4, 4);
-    Matrix<double, DirectedMatrixTag> answer(Symmetric2_4x4, 0.);
+    Matrix<double, DirectedMatrixTag> mat(A_sparse_3x3, 0.);
+    Matrix<double, DirectedMatrixTag> m3(9, 9);
+    Matrix<double, DirectedMatrixTag> answer(AA_sparse_9x9, 0.);
 
-    kronecker(m3,
-        NoMask(), NoAccumulate(),
-        Times<double>(),
-        mat, mat);
+    kronecker(m3, NoMask(), NoAccumulate(),
+              Times<double>(), mat, mat);
 
     BOOST_CHECK_EQUAL(m3, answer);
 }
@@ -502,14 +578,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_ABdup)
 BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_ACdup)
 {
     Matrix<double> C(A_sparse_3x3, 0.);
-    Matrix<double> B(A_sparse_3x3, 0.);
+    Matrix<double> B(1, 1);
+    B.setElement(0, 0, 1.0);
 
-    Matrix<double> answer(AA_answer_sparse, 0.);
+    Matrix<double> answer(A_sparse_3x3, 0.);
 
-    kronecker(C,
-                   NoMask(),
-                   NoAccumulate(),
-                   Times<double>(), C, B);
+    kronecker(C, NoMask(), NoAccumulate(),
+              Times<double>(), C, B);
 
     BOOST_CHECK_EQUAL(C, answer);
 }
@@ -517,18 +592,18 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_ACdup)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_BCdup)
 {
-    Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> C(B_sparse_3x4, 0.);
+    Matrix<double> A(1, 1);
+    Matrix<double> C(A_sparse_3x3, 0.);
+    A.setElement(0, 0, 1.0);
 
-    Matrix<double> answer(Answer_sparse, 0.);
+    Matrix<double> answer(A_sparse_3x3, 0.);
 
-    kronecker(C,
-                   NoMask(),
-                   NoAccumulate(),
+    kronecker(C, NoMask(), NoAccumulate(),
                    Times<double>(), A, C);
 
     BOOST_CHECK_EQUAL(C, answer);
 }
+
 
 //****************************************************************************
 // NoMask_Accum
@@ -537,16 +612,18 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_BCdup)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB)
 {
-    Matrix<double> A(A_dense_3x3, 0.); // 3x3
-    Matrix<double> B(B_dense_3x4, 0.); // 3x4
-    Matrix<double> result(3, 4);
-    Matrix<double> answer(Answer_dense, 0.);
+    Matrix<double> C(Ones_9x12, 0.);
+    Matrix<double> A(A_sparse_3x3, 0.); // 3x3
+    Matrix<double> B(B_sparse_3x4, 0.); // 3x4
 
-    kronecker(result,
-                   NoMask(),
-                   Second<double>(),
-                   Times<double>(), A, B);
-    BOOST_CHECK_EQUAL(result, answer);
+    Matrix<double> answer(Answer_sparse_9x12, 0.);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, C);
+
+    kronecker(C,
+              NoMask(),
+              Plus<double>(),
+              Times<double>(), A, B);
+    BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
@@ -554,115 +631,74 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_empty)
 {
     Matrix<double> Zero(3, 3);
     Matrix<double> Ones(Ones_3x3, 0.);
-    Matrix<double> C(Ones_3x3, 0.);
-    Matrix<double> mD(Ones_3x3, 0.);
+    Matrix<double> C(Ones_9x9, 0.);
+    Matrix<double> mD(Ones_9x9, 0.);
+    Matrix<double> answer(Ones_9x9, 0.);
 
-    kronecker(C,
-                   NoMask(), Plus<double>(),
-                   Times<double>(), Zero, Ones);
-    BOOST_CHECK_EQUAL(C, Ones);
+    kronecker(C, NoMask(), Plus<double>(), Times<double>(), Zero, Ones);
+    BOOST_CHECK_EQUAL(C, answer);
 
-    kronecker(mD,
-                   NoMask(), Plus<double>(),
-                   Times<double>(), Ones, Zero);
-    BOOST_CHECK_EQUAL(mD, Ones);
+    kronecker(mD, NoMask(), Plus<double>(), Times<double>(), Ones, Zero);
+    BOOST_CHECK_EQUAL(mD, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_stored_zero_result)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_dense)
 {
-    // Build some matrices.
-    std::vector<std::vector<int> > B_mat = {{ 1,-2, 0,  0},
-                                            {-1, 1, 0,  0},
-                                            { 0, 0, 3, -4},
-                                            { 0, 0,-3,  3}};
-    Matrix<double> A(Symmetric_4x4, 0);
-    Matrix<int> B(B_mat, 0);
-    Matrix<int> result(4, 4);
+    Matrix<double> Ones3x3(Ones_3x3, 0.);
+    Matrix<double> Ones3x4(Ones_3x4, 0.);
+    Matrix<double> Ones9x12(Ones_9x12, 0.);
+    Matrix<double> result(Ones_9x12, 0.);
+    Matrix<double> answer(9, 12);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
+             Ones9x12, Ones9x12);
 
-    // use a different sentinel value so that stored zeros are preserved.
-    int const NIL(666);
-    std::vector<std::vector<int> > ans = {{  0,  -1, NIL, NIL},
-                                          { -1,   0,   6,  -8},
-                                          { -2,   2,   0,  -3},
-                                          {NIL, NIL,  -3,   0}};
-    Matrix<int> answer(ans, NIL);
+    kronecker(result, NoMask(), Plus<double>(),
+              Times<double>(), Ones3x3, Ones3x4);
 
-    kronecker(result,
-                   NoMask(),
-                   Second<int>(),
-                   Times<int>(), A, B);
     BOOST_CHECK_EQUAL(result, answer);
-    BOOST_CHECK_EQUAL(result.nvals(), 12);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_ABdup_Cempty)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_empty_rows)
 {
-    // Build some matrices.
-    Matrix<double> mat(Symmetric_4x4, 0.);
-    Matrix<double> result(4, 4);
-    Matrix<double> answer(Symmetric2_4x4, 0.);
+    Matrix<double> C(Ones_9x12, 0.);
+    Matrix<double> A(Ar_sparse_3x3, 0.);
+    Matrix<double> B(Br_sparse_3x4, 0.);
 
-    kronecker(result,
-                   NoMask(),
-                   Second<double>(),
-                   Times<double>(), mat, mat);
+    Matrix<double> answer(Answer_rr_sparse_9x12, 0.);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), C, answer);
 
-    BOOST_CHECK_EQUAL(result, answer);
+    kronecker(C, NoMask(), Plus<double>(), Times<double>(), A, B);
+
+    BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_emptyRowA_emptyColB)
 {
-    std::vector<std::vector<double>> A_vals = {{8, 1, 6},
-                                               {0, 0, 0},
-                                               {4, 9, 2}};
+    Matrix<double> result(Ones_9x12, 0.);
+    Matrix<double> A(Ar_sparse_3x3, 0.);
+    Matrix<double> B(Bc_sparse_3x4, 0.);
+    Matrix<double> answer(Answer_rc_sparse_9x12, 0.);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, result);
 
-    std::vector<std::vector<double>> B_vals = {{0, 0, 0, 1},
-                                               {1, 0, 1, 1},
-                                               {0, 0, 1, 1}};
-
-    std::vector<std::vector<double>> answer_vals = {{2, 1, 8, 16},
-                                                    {1, 1, 1, 1},
-                                                    {10,1, 12, 16}};
-
-    Matrix<double> A(A_vals, 0.);
-    Matrix<double> B(B_vals, 0.);
-    Matrix<double> result(Ones_3x4, 0.);
-    Matrix<double> answer(answer_vals, 0.);
-
-    kronecker(result,
-                   NoMask(),
-                   Plus<double>(),
-                   Times<double>(), A, B);
+    kronecker(result, NoMask(), Plus<double>(),
+              Times<double>(), A, B);
     BOOST_CHECK_EQUAL(result, answer);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_emptyColA_emptyRowB)
 {
-    std::vector<std::vector<double>> A_vals = {{8, 0, 6},
-                                               {1, 0, 9},
-                                               {4, 0, 2}};
+    Matrix<double> result(Ones_9x12, 0.);
+    Matrix<double> A(Ac_sparse_3x3, 0.);
+    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> answer(Answer_cr_sparse_9x12, 0.);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, result);
 
-    std::vector<std::vector<double>> B_vals = {{0, 1, 0, 1},
-                                               {1, 0, 1, 1},
-                                               {0, 0, 0, 0}};
-
-    std::vector<std::vector<double>> answer_vals = {{1, 9, 1, 9},
-                                                    {1, 2, 1, 2},
-                                                    {1, 5, 1, 5}};
-
-    Matrix<double> A(A_vals, 0.);
-    Matrix<double> B(B_vals, 0.);
-    Matrix<double> result(Ones_3x4, 0.);
-    Matrix<double> answer(answer_vals, 0.);
-
-    kronecker(result,
-                   NoMask(),
-                   Plus<double>(),
-                   Times<double>(), A, B);
+    kronecker(result, NoMask(), Plus<double>(),
+              Times<double>(), A, B);
     BOOST_CHECK_EQUAL(result, answer);
 }
 
@@ -670,21 +706,12 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_emptyColA_emptyRowB)
 BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_ABdup)
 {
     // Build some matrices.
-    Matrix<double> mat(A_sparse_3x3,0.);
-    Matrix<double> m3(Ones_3x3, 0.);
+    Matrix<double, DirectedMatrixTag> mat(A_sparse_3x3, 0.);
+    Matrix<double, DirectedMatrixTag> m3(Ones_9x9, 0.);
+    Matrix<double, DirectedMatrixTag> answer(AA_sparse_9x9, 0.);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, m3);
 
-    // A_sparse_3x3 * A_sparse_3x3 + Ones
-    static std::vector<std::vector<double> > ans =
-        {{145.,  50., 1},
-         {1.0,   26., 1},
-         {148.,  50., 82.}};
-
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(m3,
-        NoMask(), Plus<double>(),
-        Times<double>(),
-        mat, mat);
+    kronecker(m3, NoMask(), Plus<double>(), Times<double>(), mat, mat);
 
     BOOST_CHECK_EQUAL(m3, answer);
 }
@@ -693,19 +720,12 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_ABdup)
 BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_ACdup)
 {
     Matrix<double> C(A_sparse_3x3, 0.);
-    Matrix<double> B(A_sparse_3x3, 0.);
+    Matrix<double> B(1, 1);
+    B.setElement(0, 0, 1.0);
+    Matrix<double> answer(A_sparse_3x3, 0.);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, answer);
 
-    // A_sparse_3x3 * A_sparse_3x3 + A_sparse_3x3
-    static std::vector<std::vector<double> > ans =
-        {{156.,  56., 0},
-         {0.0,   20., 0},
-         {154.,  49., 90.}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(C,
-                   NoMask(),
-                   Plus<double>(),
-                   Times<double>(), C, B);
+    kronecker(C, NoMask(), Plus<double>(), Times<double>(), C, B);
 
     BOOST_CHECK_EQUAL(C, answer);
 }
@@ -713,20 +733,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_ACdup)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_BCdup)
 {
-    Matrix<double> A(A_sparse_3x3, 0.);
+    Matrix<double> A(1, 1);
     Matrix<double> C(A_sparse_3x3, 0.);
+    A.setElement(0, 0, 1.0);
+    Matrix<double> answer(A_sparse_3x3, 0.);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, answer);
 
-    // A_sparse_3x3 * A_sparse_3x3 + A_sparse_3x3
-    static std::vector<std::vector<double> > ans =
-        {{156.,  56., 0},
-         {0.0,   20., 0},
-         {154.,  49., 90.}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(C,
-                   NoMask(),
-                   Plus<double>(),
-                   Times<double>(), A, C);
+    kronecker(C, NoMask(), Plus<double>(), Times<double>(), A, C);
 
     BOOST_CHECK_EQUAL(C, answer);
 }
@@ -738,84 +751,64 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_BCdup)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB)
 {
-    Matrix<double> A(A_sparse_3x3, 0.0);
+    Matrix<double> C(9, 12);
+    Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
+    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
+
     Matrix<double> Identity(Identity_3x3, 0.0);
 
-    Matrix<double> Empty(3, 3);
-    Matrix<double> Ones(Ones_3x3, 0.);
-    Matrix<double> C(3,3);
+    Matrix<double> Empty(9, 12);
+    Matrix<double> Ones(Ones_9x12, 0.);
 
-    Matrix<double> MLower(Lower_3x3, 0.);
-    Matrix<double> MNotLower(NotLower_3x3, 0.);
+    Matrix<double> MLower(Lower_9x12, 0.);
+    Matrix<double> MNotLower(NotLower_9x12, 0.);
 
-    static std::vector<std::vector<double> > A_sparse_fill_in_3x3 =
-    {{12, 7,  1},
-     {1, -5,  1},
-     {7,  1,  9}};
-    Matrix<double> AFilled(A_sparse_fill_in_3x3, 0.0);
-
+    Matrix<double> Answer_9x12(Answer_sparse_9x12, 0.);
+    Matrix<double> Answer_9x12_Lower(Answer_sparse_9x12_Lower, 0.);
+    Matrix<double> Answer_9x12_NotLower(Answer_sparse_9x12_NotLower, 0.);
+    Matrix<double> Answer_9x12_Lower_Ones(Answer_sparse_9x12_Lower_Ones, 0.);
+    Matrix<double> Answer_9x12_NotLower_Ones(Answer_sparse_9x12_NotLower_Ones, 0.);
 
     // Merge
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C,
-                   Empty, NoAccumulate(),
-                   Times<double>(), A, Identity);
+    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, B);
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C,
-                   Ones, NoAccumulate(),
-                   Times<double>(), A, Identity);
-    BOOST_CHECK_EQUAL(C, A);
+    kronecker(C, Ones,  NoAccumulate(), Times<double>(), A, B);
+    BOOST_CHECK_EQUAL(C, Answer_9x12);
 
     C = Ones;
-    kronecker(C,
-                   A, NoAccumulate(),
-                   Times<double>(), A, Identity);
-    BOOST_CHECK_EQUAL(C, AFilled);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    BOOST_CHECK_EQUAL(C, Answer_9x12_Lower_Ones);
 
     C = Ones;
-    kronecker(C,
-                   MLower, NoAccumulate(),
-                   Times<double>(), Ones, Identity);
-    BOOST_CHECK_EQUAL(C, Ones);
-
-    C = Ones;
-    kronecker(C,
-                   MNotLower, NoAccumulate(),
-                   Times<double>(), Ones, Identity);
-    BOOST_CHECK_EQUAL(C, Ones);
+    kronecker(C, MNotLower, NoAccumulate(), Times<double>(), A, B);
+    BOOST_CHECK_EQUAL(C, Answer_9x12_NotLower_Ones
+        );
 
     // Replace
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C,
-                   Empty, NoAccumulate(),
-                   Times<double>(), A, Identity, REPLACE);
+    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, B, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C,
-                   Ones, NoAccumulate(),
-                   Times<double>(), A, Identity, REPLACE);
-    BOOST_CHECK_EQUAL(C, A);
+    kronecker(C, Ones,  NoAccumulate(), Times<double>(), A, B, REPLACE);
+    BOOST_CHECK_EQUAL(C, Answer_9x12);
 
     C = Ones;
-    kronecker(C,
-                   MLower, NoAccumulate(),
-                   Times<double>(), Ones, Identity, REPLACE);
-    BOOST_CHECK_EQUAL(C, MLower);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    BOOST_CHECK_EQUAL(C, Answer_9x12_Lower);
 
     C = Ones;
-    kronecker(C,
-                   MNotLower, NoAccumulate(),
-                   Times<double>(), Ones, Identity, REPLACE);
-    BOOST_CHECK_EQUAL(C, MNotLower);
+    kronecker(C, MNotLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    BOOST_CHECK_EQUAL(C, Answer_9x12_NotLower);
 }
-
+#if 0
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABM_empty)
 {
@@ -1871,7 +1864,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_Merge_Cones_Mlower)
 
     kronecker(result,
                    M,
-                   Second<double>(),
+                   Plus<double>(),
                    Times<double>(), A, B);
     BOOST_CHECK_EQUAL(result.nvals(), 12);
     BOOST_CHECK_EQUAL(result, answer);
@@ -2826,7 +2819,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_Replace_Cones_Mnlower)
 
     kronecker(result,
                    complement(M),
-                   Second<double>(),
+                   Plus<double>(),
                    Times<double>(), A, B,
                    REPLACE);
     BOOST_CHECK_EQUAL(result.nvals(), 6);
@@ -2852,7 +2845,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_Replace_Mstored_zero)
 
     kronecker(result,
                    complement(M),
-                   Second<double>(),
+                   Plus<double>(),
                    Times<double>(), A, B,
                    REPLACE);
     BOOST_CHECK_EQUAL(result.nvals(), 6);
@@ -2876,7 +2869,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_Merge)
 
     kronecker(result,
                    complement(M),
-                   Second<double>(),
+                   Plus<double>(),
                    Times<double>(), A, B);
     BOOST_CHECK_EQUAL(result.nvals(), 12);
     BOOST_CHECK_EQUAL(result, answer);
@@ -2900,7 +2893,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_Merge_Mstored_zero)
 
     kronecker(result,
                    complement(M),
-                   Second<double>(),
+                   Plus<double>(),
                    Times<double>(), A, B);
     BOOST_CHECK_EQUAL(result.nvals(), 12);
     BOOST_CHECK_EQUAL(result, answer);
