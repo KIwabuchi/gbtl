@@ -30,6 +30,7 @@
 #ifndef GB_ALGEBRA_HPP
 #define GB_ALGEBRA_HPP
 
+#include <stdlib.h>
 #include <math.h>
 #include <algorithm>
 #include <functional>
@@ -38,6 +39,38 @@
 
 namespace GraphBLAS
 {
+    namespace detail
+    {
+        // Overload Abs for different types (call the right library func).
+        template<typename D2>
+        inline D2 MyAbs(int8_t input)        { return abs(input); }
+        template<typename D2>
+        inline D2 MyAbs(int16_t input)       { return abs(input); }
+        template<typename D2>
+        inline D2 MyAbs(int32_t input)       { return abs(input); } // labs>
+        template<typename D2>
+        inline D2 MyAbs(int64_t input)       { return labs(input); } // llabs?
+
+        template<typename D2>
+        inline D2 MyAbs(float input)         { return fabsf(input); }
+
+        template<typename D2>
+        inline D2 MyAbs(double input)        { return fabs(input); }
+
+        // all other types are unsigned; i.e., no op.
+        template<typename D2>
+        inline D2 MyAbs(bool input)          { return input; }
+        template<typename D2>
+        inline D2 MyAbs(uint8_t input)       { return input; }
+        template<typename D2>
+        inline D2 MyAbs(uint16_t input)      { return input; }
+        template<typename D2>
+        inline D2 MyAbs(uint32_t input)      { return input; }
+        template<typename D2>
+        inline D2 MyAbs(uint64_t input)      { return input; }
+
+    } // namespace detail (within GraphBLAS namespace
+
     //************************************************************************
     // The Unary Operators
     //************************************************************************
@@ -50,12 +83,16 @@ namespace GraphBLAS
         inline D2 operator()(D1 input) const { return input; }
     };
 
-    template <typename D1 = bool, typename D2 = D1>
-    struct LogicalNot
+    template <typename D1, typename D2 = D1>
+    struct Abs
     {
         typedef D2 result_type;
-        inline D2 operator()(D1 input) const { return !input; }
+        inline D2 operator()(D1 input) const
+        {
+            return detail::MyAbs<D2>(input);
+        }
     };
+
 
     template <typename D1, typename D2 = D1>
     struct AdditiveInverse
@@ -72,6 +109,21 @@ namespace GraphBLAS
         {
             return static_cast<D2>(1) / input;
         }
+    };
+
+
+    template <typename D1 = bool, typename D2 = D1>
+    struct LogicalNot
+    {
+        typedef D2 result_type;
+        inline D2 operator()(D1 input) const { return !input; }
+    };
+
+    template <typename I1 = uint64_t, typename I2 = I1>
+    struct BitwiseNot
+    {
+        typedef I2 result_type;
+        inline I2 operator()(I1 input) const { return ~input; }
     };
 
     //************************************************************************

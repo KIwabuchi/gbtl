@@ -96,9 +96,92 @@ BOOST_AUTO_TEST_CASE(Identity_test)
 }
 
 //****************************************************************************
+BOOST_AUTO_TEST_CASE(Abs_test)
+{
+    int8_t  i8  = -8;
+    int16_t i16 = -16;
+    int32_t i32 = -32;
+    int64_t i64 = -64;
+
+    signed char   ci  = -64;
+    short         si  = -128;
+    int           i   = -256;
+    long int      li  = -512;
+
+    uint8_t  ui8  = 8;
+    uint16_t ui16 = 16;
+    uint32_t ui32 = 32;
+    uint64_t ui64 = 64;
+
+    unsigned char     uci  = 64;
+    unsigned short    usi  = 128;
+    unsigned int      ui   = 256;
+    unsigned long int uli  = 512;
+
+    float f = -45.45f;
+    double d = -1048.36;
+
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int8_t>()(i8),   abs(i8));
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int16_t>()(i16), abs(i16));
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int32_t>()(i32), abs(i32));
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int64_t>()(i64), labs(i64));
+
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<char>()(ci),     abs(ci));
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<short>()(si),    abs(si));
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int>()(i),       abs(i));
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<long int>()(li), labs(li));
+
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<uint8_t>()(ui8),   ui8);
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<uint16_t>()(ui16), ui16);
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<uint32_t>()(ui32), ui32);
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<uint64_t>()(ui64), ui64);
+
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<bool>()(true), true);
+
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned char>()(uci),  uci);
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned short>()(usi), usi);
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned int>()(ui),    ui);
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned long>()(uli),  uli);
+
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned int>()(ui),   ui);
+
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<float>()(f), fabsf(f));
+    BOOST_CHECK_EQUAL(GraphBLAS::Abs<double>()(d), fabs(d));
+}
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(LogicalNot_test)
 {
     BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<bool>()(true), false);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(BitwiseNot_test)
+{
+    bool    b   = true;
+
+    int8_t  i8  = -8;
+    int16_t i16 = -16;
+    int32_t i32 = -32;
+    int64_t i64 = -64;
+
+    uint8_t  ui8  = 8;
+    uint16_t ui16 = 16;
+    uint32_t ui32 = 32;
+    uint64_t ui64 = 64;
+
+    // odd result for bool (but correct)
+    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<bool>()(b), true);
+
+    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<int8_t>()(i8), 7);
+    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<int16_t>()(i16), 15);
+    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<int32_t>()(i32), 31);
+    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<int64_t>()(i64), 63);
+    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<uint8_t>()(ui8),   0xf7);
+    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<uint16_t>()(ui16), 0xffef);
+    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<uint32_t>()(ui32), 0xffffffdf);
+    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<uint64_t>()(ui64),
+                      0xffffffffffffffbf);
 }
 
 //****************************************************************************
