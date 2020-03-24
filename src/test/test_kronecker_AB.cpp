@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -32,7 +32,7 @@
 #include <graphblas/graphblas.hpp>
 
 #define BOOST_TEST_MAIN
-#define BOOST_TEST_MODULE kronecker_test_suite
+#define BOOST_TEST_MODULE kronecker_AB_test_suite
 
 #include <boost/test/included/unit_test.hpp>
 
@@ -808,290 +808,174 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB)
     kronecker(C, MNotLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
     BOOST_CHECK_EQUAL(C, Answer_9x12_NotLower);
 }
-#if 0
+
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABM_empty)
 {
-    Matrix<double> Empty(3, 3);
-    Matrix<double> Ones(Ones_3x3, 0.);
-    Matrix<double> C(3,3);
+    Matrix<double> C(9, 12);
+    Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
+    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
 
-    // NOTE: The mask is true for any non-zero.
-    Matrix<bool> M(LowerBool_3x3, false);
+    Matrix<double> Ones(Ones_9x12, 0.);
+    Matrix<double> Empty(9, 12);
+    Matrix<double> Empty3x3(3, 3);
+    Matrix<double> Empty3x4(3, 4);
 
-    Matrix<double> mUpper(NotLower_3x3, 0.);
+    Matrix<double> MLower(Lower_9x12, 0.);
+    Matrix<double> MNotLower(NotLower_9x12, 0.);
 
     // Merge
     C = Ones;
-    kronecker(C,
-                   M, NoAccumulate(),
-                   Times<double>(), Empty, Ones);
-    BOOST_CHECK_EQUAL(C, mUpper);
-
-    C = Ones;
-    kronecker(C,
-                   M, NoAccumulate(),
-                   Times<double>(), Ones, Empty);
-    BOOST_CHECK_EQUAL(C, mUpper);
-
-    C = Ones;
-    kronecker(C,
-                   Empty, NoAccumulate(),
-                   Times<double>(), Ones, Empty);
+    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, B);
     BOOST_CHECK_EQUAL(C, Ones);
+
+    C = Ones;
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), Empty3x3, B);
+    BOOST_CHECK_EQUAL(C, MNotLower);
+
+    C = Ones;
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, Empty3x4);
+    BOOST_CHECK_EQUAL(C, MNotLower);
 
     // Replace
     C = Ones;
-    kronecker(C,
-                   M, NoAccumulate(),
-                   Times<double>(), Empty, Ones, REPLACE);
+    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, B, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C,
-                   M, NoAccumulate(),
-                   Times<double>(), Ones, Empty, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), Empty3x3, B, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C,
-                   Empty, NoAccumulate(),
-                   Times<double>(), Ones, Empty, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, Empty3x4, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
+
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_Merge_full_mask)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABM_dense)
 {
-    IndexArrayType i_A      =  {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_A      =  {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_A = {12, 7, 3, 4, 5, 6, 7, 8, 9};
-    Matrix<double, DirectedMatrixTag> A(3, 3);
-    A.build(i_A, j_A, v_A);
+    Matrix<double> A(Ones_3x3, 0.);
+    Matrix<double> B(Ones_3x4, 0.);
 
-    IndexArrayType i_B      = {0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2};
-    IndexArrayType j_B      = {0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3};
-    std::vector<double> v_B = {5, 8, 1, 2, 6, 7, 3, 4, 5, 9, 1};
-    Matrix<double, DirectedMatrixTag> B(3, 4);
-    B.build(i_B, j_B, v_B);
+    Matrix<double> MLower(Lower_9x12, 0.);
+    Matrix<double> MNotLower(NotLower_9x12, 0.);
 
-    Matrix<double, DirectedMatrixTag> result(3, 4);
+    Matrix<double> Ones(Ones_9x12, 0.);
+    Matrix<double> C(9, 12);
 
-    IndexArrayType i_answer = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
-    IndexArrayType j_answer = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3};
-    std::vector<double> v_answer = {114, 160, 60, 27, 74, 97,
-                                    73, 14, 119, 157, 112, 23};
-    Matrix<double, DirectedMatrixTag> answer(3, 4);
-    answer.build(i_answer, j_answer, v_answer);
+    C = Ones;
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    BOOST_CHECK_EQUAL(C, Ones);
 
-    Matrix<unsigned int, DirectedMatrixTag> mask(3,4);
-    std::vector<unsigned int> v_mask(i_answer.size(), 1);
-    mask.build(i_answer, j_answer, v_mask);
-
-    kronecker(result,
-        mask, NoAccumulate(),
-        Times<double>(),
-        A, B);
-
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_mask_not_full)
-{
-    IndexArrayType i_A    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_A    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_A = {12, 7, 3, 4, 5, 6, 7, 8, 9};
-    Matrix<double, DirectedMatrixTag> A(3, 3);
-    A.build(i_A, j_A, v_A);
-
-    IndexArrayType i_B    = {0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2};
-    IndexArrayType j_B    = {0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3};
-    std::vector<double> v_B = {5, 8, 1, 2, 6, 7, 3, 4, 5, 9, 1};
-    Matrix<double, DirectedMatrixTag> B(3, 4);
-    B.build(i_B, j_B, v_B);
-
-    Matrix<double, DirectedMatrixTag> result(3, 4);
-
-    IndexArrayType i_answer = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_answer = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2};
-    std::vector<double> v_answer = {114, 160, 60, 27, 74, 97,
-                                    73, 14, 119, 157, 112};
-    Matrix<double, DirectedMatrixTag> answer(3, 4);
-    answer.build(i_answer, j_answer, v_answer);
-
-    Matrix<unsigned int, DirectedMatrixTag> mask(3,4);
-    std::vector<unsigned int> v_mask(i_answer.size(), 1);
-    mask.build(i_answer, j_answer, v_mask);
-
-    kronecker(result,
-        mask, NoAccumulate(),
-        Times<double>(),
-        A, B);
-
-    BOOST_CHECK_EQUAL(result, answer);
+    C = Ones;
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    BOOST_CHECK_EQUAL(C, MLower);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_Merge_Cones_Mlower_stored_zero)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_empty_rows)
 {
-    Matrix<double> A(A_dense_3x3, 0.);
-    Matrix<double> B(B_dense_3x4, 0.);
-    Matrix<double> M(Lower_3x4, 0.);
-    M.setElement(0, 1, 0.);
-    BOOST_CHECK_EQUAL(M.nvals(), 7);
+    Matrix<double> Ones(Ones_9x12, 0.);
+    Matrix<double> A(Ar_sparse_3x3, 0.);
+    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> answer(Answer_rr_sparse_9x12, 0.);
+    Matrix<double> C(9, 12);
 
-    Matrix<double> result(Ones_3x4, 0.);
+    Matrix<double> MLower(Lower_9x12, 0.);
+    Matrix<double> MNotLower(NotLower_9x12, 0.);
 
-    std::vector<std::vector<double> > ans = {{114,   1,   1,  1},
-                                             { 74,  97,   1,  1},
-                                             {119, 157, 112,  1}};
-    Matrix<double> answer(ans, 0.);
+    C = Ones;
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    BOOST_CHECK_EQUAL(C, answer);
 
-    kronecker(result,
-                   M,
-                   NoAccumulate(),
-                   Times<double>(), A, B);
-    BOOST_CHECK_EQUAL(result.nvals(), 12);
-    BOOST_CHECK_EQUAL(result, answer);
+    C = Ones;
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    BOOST_CHECK_EQUAL(C, answer);
+
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_emptyRowA_emptyColB)
 {
-    std::vector<std::vector<double>> A_vals = {{8, 1, 6},
-                                               {0, 0, 0},
-                                               {4, 9, 2}};
+    Matrix<double> C(9,12);
+    Matrix<double> Ones(Ones_9x12, 0.);
+    Matrix<double> A(Ar_sparse_3x3, 0.);
+    Matrix<double> B(Bc_sparse_3x4, 0.);
+    Matrix<double> answer(Answer_rc_sparse_9x12, 0.);
 
-    std::vector<std::vector<double>> B_vals = {{0, 0, 0, 1},
-                                               {1, 0, 1, 1},
-                                               {0, 0, 1, 1}};
+    Matrix<double> MLower(Lower_9x12, 0.);
+    Matrix<double> MNotLower(NotLower_9x12, 0.);
 
-    Matrix<double> A(A_vals, 0.);
-    Matrix<double> B(B_vals, 0.);
-    Matrix<double> Lower(Lower_3x4, 0.);
-    Matrix<double> Ones(Ones_3x4, 0.);
-    Matrix<double> C(3, 4);
 
     // REPLACE
-    std::vector<std::vector<double>> answer_vals = {{1, 0, 0, 0},
-                                                    {0, 0, 0, 0},
-                                                    {9, 0, 11,0}};
-    Matrix<double> answer(answer_vals, 0.);
-
     C = Ones;
-    kronecker(C,
-                   Lower,
-                   NoAccumulate(),
-                   Times<double>(), A, B, REPLACE);
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
-    std::vector<std::vector<double>> answer_vals2 = {{1, 1, 1, 1},
-                                                     {0, 0, 1, 1},
-                                                     {9, 0, 11,1}};
-    Matrix<double> answer2(answer_vals2, 0.);
-
     C = Ones;
-    kronecker(C,
-                   Lower,
-                   NoAccumulate(),
-                   Times<double>(), A, B);
-    BOOST_CHECK_EQUAL(C, answer2);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_emptyColA_emptyRowB)
 {
-    std::vector<std::vector<double>> A_vals = {{8, 0, 6},
-                                               {1, 0, 9},
-                                               {4, 0, 2}};
+    Matrix<double> C(9,12);
+    Matrix<double> Ones(Ones_9x12, 0.);
+    Matrix<double> A(Ac_sparse_3x3, 0.);
+    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> answer(Answer_cr_sparse_9x12, 0.);
 
-    std::vector<std::vector<double>> B_vals = {{0, 1, 0, 1},
-                                               {1, 0, 1, 1},
-                                               {0, 0, 0, 0}};
-
-
-    Matrix<double> A(A_vals, 0.);
-    Matrix<double> B(B_vals, 0.);
-    Matrix<double> Lower(Lower_3x4, 0.);
-    Matrix<double> Ones(Ones_3x4, 0.);
-    Matrix<double> C(3, 4);
+    Matrix<double> MLower(Lower_9x12, 0.);
+    Matrix<double> MNotLower(NotLower_9x12, 0.);
 
     // REPLACE
-    std::vector<std::vector<double>> answer_vals = {{0, 0, 0, 0},
-                                                    {0, 1, 0, 0},
-                                                    {0, 4, 0, 0}};
-    Matrix<double> answer(answer_vals, 0.);
-
     C = Ones;
-    kronecker(C,
-                   Lower,
-                   NoAccumulate(),
-                   Times<double>(), A, B, REPLACE);
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
-    std::vector<std::vector<double>> answer_vals2 = {{0, 1, 1, 1},
-                                                     {0, 1, 1, 1},
-                                                     {0, 4, 0, 1}};
-    Matrix<double> answer2(answer_vals2, 0.);
-
     C = Ones;
-    kronecker(C,
-                   Lower,
-                   NoAccumulate(),
-                   Times<double>(), A, B);
-    BOOST_CHECK_EQUAL(C, answer2);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_emptyRowM)
 {
-    std::vector<std::vector<double>> A_vals = {{8, 1, 6},
-                                               {0, 0, 0},
-                                               {4, 9, 2}};
+    Matrix<double> C(9,12);
+    Matrix<double> Ones(Ones_9x12, 0.);
+    Matrix<double> A(A_sparse_3x3, 0.);
+    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> answer(Answer_sparse_9x12, 0.);
 
-    std::vector<std::vector<double>> B_vals = {{0, 0, 0},
-                                               {1, 0, 1},
-                                               {0, 0, 1}};
+    Matrix<double> MLower(Lower_9x12, 0.);
+    Matrix<double> MNotLower(NotLower_9x12, 0.);
 
-
-    Matrix<double> A(A_vals, 0.);
-    Matrix<double> B(B_vals, 0.);
-    Matrix<double> NotLower(NotLower_3x3, 0.);
-    Matrix<double> Ones(Ones_3x3, 0.);
-    Matrix<double> C(3,3);
 
     // Replace
-    std::vector<std::vector<double>> answer_vals = {{0, 0, 7},
-                                                    {0, 0, 0},
-                                                    {0, 0, 0}};
-    Matrix<double> answer(answer_vals, 0.);
-
     C = Ones;
-    kronecker(C,
-                   NotLower,
-                   NoAccumulate(),
-                   Times<double>(), A, B, REPLACE);
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
-    std::vector<std::vector<double>> answer_vals2 = {{1, 0, 7},
-                                                     {1, 1, 0},
-                                                     {1, 1, 1}};
-    Matrix<double> answer2(answer_vals2, 0.);
-
     C = Ones;
-    kronecker(C,
-                   NotLower,
-                   NoAccumulate(),
-                   Times<double>(), A, B);
-    BOOST_CHECK_EQUAL(C, answer2);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    BOOST_CHECK_EQUAL(C, answer);
 }
 
+#if 0
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_ABdup)
 {
@@ -1396,7 +1280,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABMempty)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABM_empty)
 {
     Matrix<double> Empty(3, 3);
     Matrix<double> Ones(Ones_3x3, 0.);
@@ -1443,6 +1327,11 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABMempty)
                    Empty, Plus<double>(),
                    Times<double>(), Ones, Empty, REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABM_dense)
+{
 }
 
 //****************************************************************************
@@ -1769,108 +1658,6 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_MCdup)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_Replace_lower_mask_result_ones)
-{
-    Matrix<double> A(A_dense_3x3, 0.);
-    Matrix<double> B(B_dense_3x4, 0.);
-    Matrix<double> M(LowerMask_3x4, 0.);
-    BOOST_CHECK_EQUAL(M.nvals(), 6);
-
-    Matrix<double> result(Ones_3x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{114,   0,   0,  0},
-                                             { 74,  97,   0,  0},
-                                             {119, 157, 112,  0}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(result,
-                   M,
-                   Second<double>(),
-                   Times<double>(), A, B,
-                   REPLACE);
-
-    BOOST_CHECK_EQUAL(result.nvals(), 6);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_Replace_bool_masked_result_ones)
-{
-    Matrix<double> A(A_dense_3x3, 0.);
-    Matrix<double> B(B_dense_3x4, 0.);
-    Matrix<bool> M(LowerBool_3x4, false);
-    BOOST_CHECK_EQUAL(M.nvals(), 6);
-
-    Matrix<double> result(Ones_3x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{114,   0,   0,  0},
-                                             { 74,  97,   0,  0},
-                                             {119, 157, 112,  0}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(result,
-                   M,
-                   Second<double>(),
-                   Times<double>(), A, B,
-                   REPLACE);
-
-    BOOST_CHECK_EQUAL(result.nvals(), 6);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_Replace_mask_stored_zero_result_ones)
-{
-    Matrix<double> A(A_dense_3x3, 0.);
-    Matrix<double> B(B_dense_3x4, 0.);
-    Matrix<double> M(Lower_3x4, 0.);
-    M.setElement(0, 1, 0.);
-    BOOST_CHECK_EQUAL(M.nvals(), 7);
-
-    Matrix<double> result(Ones_3x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{114,   0,   0,  0},
-                                             { 74,  97,   0,  0},
-                                             {119, 157, 112,  0}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(result,
-                   M,
-                   Second<double>(),
-                   Times<double>(), A, B,
-                   REPLACE);
-    BOOST_CHECK_EQUAL(result.nvals(), 6);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_Merge_Cones_Mlower)
-{
-    Matrix<double> A(A_dense_3x3, 0.);
-    Matrix<double> B(B_dense_3x4, 0.);
-
-    static std::vector<std::vector<double> > M_3x4 = {{1, 0, 0, 0},
-                                                      {1, 1, 0, 0},
-                                                      {1, 1, 1, 0}};
-    Matrix<double> M(M_3x4, 0.);
-    BOOST_CHECK_EQUAL(M.nvals(), 6);
-
-    Matrix<double> result(Ones_3x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{114,   1,   1,  1},
-                                             { 74,  97,   1,  1},
-                                             {119, 157, 112,  1}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(result,
-                   M,
-                   Plus<double>(),
-                   Times<double>(), A, B);
-    BOOST_CHECK_EQUAL(result.nvals(), 12);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
 // CompMask_NoAccum
 //****************************************************************************
 
@@ -2026,7 +1813,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_empty)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_Merge_Cones_Mlower_stored_zero)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_dense)
 {
     Matrix<double> A(A_dense_3x3, 0.);
     Matrix<double> B(B_dense_3x4, 0.);
@@ -2326,32 +2113,9 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_BCdup)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_Replace_ABdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_MCdup)
 {
     // Build some matrices.
-    std::vector<std::vector<double> > m = {{1, 1, 0, 0},
-                                           {1, 2, 2, 0},
-                                           {0, 2, 3, 3},
-                                           {0, 0, 3, 4}};
-    Matrix<double> mat(m, 0.);
-
-    Matrix<double> result(Ones_4x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{2,  0,  0,  0},
-                                             {3,  9,  0,  0},
-                                             {2, 10, 22,  0},
-                                             {0,  6, 21, 25}};
-    Matrix<double> answer(ans, 0.);
-
-    Matrix<double> M(NotLower_4x4, 0.);
-
-    kronecker(result,
-                   complement(M),
-                   NoAccumulate(),
-                   Times<double>(), mat, mat,
-                   REPLACE);
-
-    BOOST_CHECK_EQUAL(result, answer);
 }
 
 //****************************************************************************
@@ -2526,6 +2290,11 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABM_empty)
 }
 
 //****************************************************************************
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABM_dense)
+{
+}
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_emptyRowA_emptyColB)
 {
     std::vector<std::vector<double>> A_vals = {{8, 1, 6},
@@ -2611,6 +2380,11 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_emptyColA_emptyRowB)
                    Plus<double>(),
                    Times<double>(), A, B);
     BOOST_CHECK_EQUAL(C, answer2);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABM_emptyRowM)
+{
 }
 
 //****************************************************************************
@@ -2802,130 +2576,6 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_MCdup)
     BOOST_CHECK_EQUAL(C, answer2);
 }
 
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_Replace_Cones_Mnlower)
-{
-    Matrix<double> A(A_dense_3x3, 0.);
-    Matrix<double> B(B_dense_3x4, 0.);
-    Matrix<double> M(NotLower_3x4, 0.);
-    BOOST_CHECK_EQUAL(M.nvals(), 6);
-
-    Matrix<double> result(Ones_3x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{114,   0,   0,  0},
-                                             { 74,  97,   0,  0},
-                                             {119, 157, 112,  0}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(result,
-                   complement(M),
-                   Plus<double>(),
-                   Times<double>(), A, B,
-                   REPLACE);
-    BOOST_CHECK_EQUAL(result.nvals(), 6);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_Replace_Mstored_zero)
-{
-    Matrix<double> A(A_dense_3x3, 0.);
-    Matrix<double> B(B_dense_3x4, 0.);
-    Matrix<double> M(NotLower_3x4, 0.);
-
-    M.setElement(0, 0, 0.);
-    BOOST_CHECK_EQUAL(M.nvals(), 7);
-
-    Matrix<double> result(Ones_3x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{114,   0,   0,  0},
-                                             { 74,  97,   0,  0},
-                                             {119, 157, 112,  0}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(result,
-                   complement(M),
-                   Plus<double>(),
-                   Times<double>(), A, B,
-                   REPLACE);
-    BOOST_CHECK_EQUAL(result.nvals(), 6);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_Merge)
-{
-    Matrix<double> A(A_dense_3x3, 0.);
-    Matrix<double> B(B_dense_3x4, 0.);
-    Matrix<double> M(NotLower_3x4, 0.);
-    BOOST_CHECK_EQUAL(M.nvals(), 6);
-
-    Matrix<double> result(Ones_3x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{114,   1,   1,  1},
-                                             { 74,  97,   1,  1},
-                                             {119, 157, 112,  1}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(result,
-                   complement(M),
-                   Plus<double>(),
-                   Times<double>(), A, B);
-    BOOST_CHECK_EQUAL(result.nvals(), 12);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_Merge_Mstored_zero)
-{
-    Matrix<double> A(A_dense_3x3, 0.);
-    Matrix<double> B(B_dense_3x4, 0.);
-    Matrix<double> M(NotLower_3x4, 0.);
-    M.setElement(0, 0, 0.);
-    BOOST_CHECK_EQUAL(M.nvals(), 7);
-
-    Matrix<double> result(Ones_3x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{114,   1,   1,  1},
-                                             { 74,  97,   1,  1},
-                                             {119, 157, 112,  1}};
-    Matrix<double> answer(ans, 0.);
-
-    kronecker(result,
-                   complement(M),
-                   Plus<double>(),
-                   Times<double>(), A, B);
-    BOOST_CHECK_EQUAL(result.nvals(), 12);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_Merge_ABdup)
-{
-    // Build some matrices.
-    std::vector<std::vector<double> > m = {{1, 1, 0, 0},
-                                           {1, 2, 2, 0},
-                                           {0, 2, 3, 3},
-                                           {0, 0, 3, 4}};
-    Matrix<double> mat(m, 0.);
-
-    Matrix<double> result(Ones_4x4, 0.);
-
-    std::vector<std::vector<double> > ans = {{2,  1,  1,  1},
-                                             {3,  9,  1,  1},
-                                             {2, 10, 22,  1},
-                                             {0,  6, 21, 25}};
-    Matrix<double> answer(ans, 0.);
-
-    Matrix<double> M(NotLower_4x4, 0.);
-
-    kronecker(result,
-                   complement(M),
-                   NoAccumulate(),
-                   Times<double>(), mat, mat);
-
-    BOOST_CHECK_EQUAL(result, answer);
-}
 #endif
 
 BOOST_AUTO_TEST_SUITE_END()
