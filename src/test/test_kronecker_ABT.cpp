@@ -32,7 +32,7 @@
 #include <graphblas/graphblas.hpp>
 
 #define BOOST_TEST_MAIN
-#define BOOST_TEST_MODULE kronecker_AB_test_suite
+#define BOOST_TEST_MODULE kronecker_ABT_test_suite
 
 #include <boost/test/included/unit_test.hpp>
 
@@ -49,6 +49,11 @@ namespace
      {0,  2,  0},
      {3,  0,  4}};
 
+    static std::vector<std::vector<double> > AT_sparse_3x3 =
+    {{1,  0,  3},
+     {0,  2,  0},
+     {0,  0,  4}};
+
     static std::vector<std::vector<double> > AA_sparse_9x9 =
     {{1,  0,  0,   0,  0,  0,   0,  0,  0},
      {0,  2,  0,   0,  0,  0,   0,  0,  0},
@@ -61,6 +66,18 @@ namespace
      {9,  0, 12,   0,  0,  0,  12,  0, 16}
     };
 
+    static std::vector<std::vector<double> > AAT_sparse_9x9 =
+    {{1,  0,  3,   0,  0,  0,   0,  0,  0},
+     {0,  2,  0,   0,  0,  0,   0,  0,  0},
+     {0,  0,  4,   0,  0,  0,   0,  0,  0},
+     {0,  0,  0,   2,  0,  6,   0,  0,  0},
+     {0,  0,  0,   0,  4,  0,   0,  0,  0},
+     {0,  0,  0,   0,  0,  8,   0,  0,  0},
+     {3,  0,  9,   0,  0,  0,   4,  0, 12},
+     {0,  6,  0,   0,  0,  0,   0,  8,  0},
+     {0,  0, 12,   0,  0,  0,   0,  0, 16}
+    };
+
     static std::vector<std::vector<double> > Ar_sparse_3x3 =
     {{1,  0,  0},
      {0,  2,  0},
@@ -71,25 +88,38 @@ namespace
      {0,  2,  0},
      {0,  0,  4}};
 
-    static std::vector<std::vector<double> > AT_sparse_3x3 =
-    {{1,  0,  3},
-     {0,  2,  0},
-     {0,  0,  4}};
-
     static std::vector<std::vector<double> > B_sparse_3x4 =
     {{1,  1,  0,  0},
      {0,  2,  2,  0},
      {3,  0,  0,  3}};
+
+    static std::vector<std::vector<double> > B_sparse_4x3 =
+    {{1,  0,  3},
+     {1,  2,  0},
+     {0,  2,  0},
+     {0,  0,  3}};
 
     static std::vector<std::vector<double> > Br_sparse_3x4 =
     {{0,  0,  0,  0},
      {0,  2,  2,  0},
      {3,  0,  0,  3}};
 
+    static std::vector<std::vector<double> > Br_sparse_4x3 =
+    {{0,  0,  3},
+     {0,  2,  0},
+     {0,  2,  0},
+     {0,  0,  3}};
+
     static std::vector<std::vector<double> > Bc_sparse_3x4 =
     {{1,  0,  0,  0},
      {0,  0,  2,  0},
      {3,  0,  0,  3}};
+
+    static std::vector<std::vector<double> > Bc_sparse_4x3 =
+    {{1,  0,  3},
+     {0,  0,  0},
+     {0,  2,  0},
+     {0,  0,  3}};
 
     static std::vector<std::vector<double> > BT_sparse_3x4 =
     {{1,  0,  3},
@@ -222,6 +252,12 @@ namespace
 
     static std::vector<std::vector<double> > Ones_3x3 =
     {{1, 1, 1},
+     {1, 1, 1},
+     {1, 1, 1}};
+
+    static std::vector<std::vector<double> > Ones_4x3 =
+    {{1, 1, 1},
+     {1, 1, 1},
      {1, 1, 1},
      {1, 1, 1}};
 
@@ -388,10 +424,10 @@ namespace
 //****************************************************************************
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_bad_dimensions)
+BOOST_AUTO_TEST_CASE(test_kronecker_ABT_bad_dimensions)
 {
     Matrix<double> A(A_sparse_3x3, 0.); // 3x3
-    Matrix<double> B(B_sparse_3x4, 0.); // 3x4
+    Matrix<double> B(B_sparse_4x3, 0.); // 4x3
     Matrix<double> ones9x12(Ones_9x12, 0.);
 
     Matrix<double> M9x9(M_9x9, 0.);
@@ -407,12 +443,12 @@ BOOST_AUTO_TEST_CASE(test_kronecker_bad_dimensions)
     // dim(C) != dim(A)*dim(B)
     BOOST_CHECK_THROW(
         (kronecker(result9x9, NoMask(), NoAccumulate(),
-                   Times<double>(), A, B)),
+                   Times<double>(), A, transpose(B))),
         DimensionException);
 
     BOOST_CHECK_THROW(
         (kronecker(result12x12, NoMask(), NoAccumulate(),
-                   Times<double>(), A, B)),
+                   Times<double>(), A, transpose(B))),
         DimensionException);
 
     // NoMask_Accum_AB
@@ -420,12 +456,12 @@ BOOST_AUTO_TEST_CASE(test_kronecker_bad_dimensions)
     // dim(C) != dim(A)*dim(B)
     BOOST_CHECK_THROW(
         (kronecker(result9x9, NoMask(), Plus<double>(),
-                   Times<double>(), A, B)),
+                   Times<double>(), A, transpose(B))),
         DimensionException);
 
     BOOST_CHECK_THROW(
         (kronecker(result12x12, NoMask(), Plus<double>(),
-                   Times<double>(), A, B)),
+                   Times<double>(), A, transpose(B))),
         DimensionException);
 
     // Mask_NoAccum
@@ -434,18 +470,18 @@ BOOST_AUTO_TEST_CASE(test_kronecker_bad_dimensions)
     // nrows(C) != nrows(M)
     BOOST_CHECK_THROW(
         (kronecker(result9x12, M10x12, NoAccumulate(),
-                   Times<double>(), A, B)),
+                   Times<double>(), A, transpose(B))),
         DimensionException);
 
     // ncols(C) != ncols(M)
     BOOST_CHECK_THROW(
         (kronecker(result9x12, M9x9, NoAccumulate(),
-                   Times<double>(), A, B)),
+                   Times<double>(), A, transpose(B))),
         DimensionException);
 
     BOOST_CHECK_THROW(
         (kronecker(ones9x12, M9x12, NoAccumulate(),
-                   Times<double>(), A, A,
+                   Times<double>(), A, transpose(A),
                    REPLACE)),
         DimensionException);
 
@@ -454,13 +490,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_bad_dimensions)
     // incompatible mask matrix dimensions
     BOOST_CHECK_THROW(
         (kronecker(ones9x12, M10x12, Second<double>(),
-                   Times<double>(), A, B, REPLACE)),
+                   Times<double>(), A, transpose(B), REPLACE)),
         DimensionException);
 
     // incompatible mask matrix dimensions
     BOOST_CHECK_THROW(
         (kronecker(ones9x12, M9x9, Second<double>(),
-                   Times<double>(), A, B, MERGE)),
+                   Times<double>(), A, transpose(B), MERGE)),
         DimensionException);
 
     // CompMask_NoAccum (replace and merge)
@@ -468,13 +504,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_bad_dimensions)
     // incompatible mask matrix dimensions
     BOOST_CHECK_THROW(
         (kronecker(ones9x12, complement(M10x12), NoAccumulate(),
-                   Times<double>(), A, B, REPLACE)),
+                   Times<double>(), A, transpose(B), REPLACE)),
         DimensionException);
 
     // incompatible mask matrix dimensions
     BOOST_CHECK_THROW(
         (kronecker(ones9x12, complement(M9x9), NoAccumulate(),
-                   Times<double>(), A, B, MERGE)),
+                   Times<double>(), A, transpose(B), MERGE)),
         DimensionException);
 
     // CompMask_Accum (replace and merge)
@@ -482,13 +518,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_bad_dimensions)
     // incompatible mask matrix dimensions
     BOOST_CHECK_THROW(
         (kronecker(ones9x12, complement(M10x12), Plus<double>(),
-                   Times<double>(), A, B, REPLACE)),
+                   Times<double>(), A, transpose(B), REPLACE)),
         DimensionException);
 
     // incompatible mask matrix dimensions
     BOOST_CHECK_THROW(
         (kronecker(ones9x12, complement(M9x9), Plus<double>(),
-                   Times<double>(), A, B, MERGE)),
+                   Times<double>(), A, transpose(B), MERGE)),
         DimensionException);
 }
 
@@ -497,22 +533,22 @@ BOOST_AUTO_TEST_CASE(test_kronecker_bad_dimensions)
 //****************************************************************************
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_ABT)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> B(B_sparse_4x3, 0.);
 
     Matrix<double> answer(Answer_sparse_9x12, 0.);
 
     kronecker(C, NoMask(), NoAccumulate(),
-              Times<double>(), A, B);
+              Times<double>(), A, transpose(B));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_empty)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_ABT_empty)
 {
     Matrix<double> Zero(3, 3);
     Matrix<double> Ones(Ones_3x3, 0.);
@@ -520,84 +556,84 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_empty)
     Matrix<double> mD(Ones_9x9, 0.);
     Matrix<double> Zero9x9(9, 9);
 
-    kronecker(C, NoMask(), NoAccumulate(), Times<double>(), Zero, Ones);
+    kronecker(C, NoMask(), NoAccumulate(), Times<double>(), Zero, transpose(Ones));
     BOOST_CHECK_EQUAL(C, Zero9x9);
 
-    kronecker(mD, NoMask(), NoAccumulate(), Times<double>(), Ones, Zero);
+    kronecker(mD, NoMask(), NoAccumulate(), Times<double>(), Ones, transpose(Zero));
     BOOST_CHECK_EQUAL(mD, Zero9x9);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_dense)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_ABT_dense)
 {
     Matrix<double> Ones3x3(Ones_3x3, 0.);
-    Matrix<double> Ones3x4(Ones_3x4, 0.);
+    Matrix<double> Ones4x3(Ones_4x3, 0.);
     Matrix<double> Ones9x12(Ones_9x12, 0.);
     Matrix<double> result(9, 12);
 
     kronecker(result, NoMask(), NoAccumulate(),
-              Times<double>(), Ones3x3, Ones3x4);
+              Times<double>(), Ones3x3, transpose(Ones4x3));
 
     BOOST_CHECK_EQUAL(result, Ones9x12);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_empty_rows)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_ABT_empty_rows)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
 
     Matrix<double> answer(Answer_rr_sparse_9x12, 0.);
 
     kronecker(C, NoMask(), NoAccumulate(),
-              Times<double>(), A, B);
+              Times<double>(), A, transpose(B));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_emptyRowA_emptyColB)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_ABT_emptyRowA_emptyColB)
 {
     Matrix<double> result(9, 12);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Bc_sparse_3x4, 0.);
+    Matrix<double> B(Bc_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rc_sparse_9x12, 0.);
 
     kronecker(result, NoMask(), NoAccumulate(),
-              Times<double>(), A, B);
+              Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(result, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_emptyColA_emptyRowB)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_ABT_emptyColA_emptyRowB)
 {
     Matrix<double> result(9, 12);
     Matrix<double> A(Ac_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_cr_sparse_9x12, 0.);
 
     kronecker(result, NoMask(), NoAccumulate(),
-              Times<double>(), A, B);
+              Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(result, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_ABdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_ABT_ABdup)
 {
     // Build some matrices.
     Matrix<double, DirectedMatrixTag> mat(A_sparse_3x3, 0.);
     Matrix<double, DirectedMatrixTag> m3(9, 9);
-    Matrix<double, DirectedMatrixTag> answer(AA_sparse_9x9, 0.);
+    Matrix<double, DirectedMatrixTag> answer(AAT_sparse_9x9, 0.);
 
     kronecker(m3, NoMask(), NoAccumulate(),
-              Times<double>(), mat, mat);
+              Times<double>(), mat, transpose(mat));
 
     BOOST_CHECK_EQUAL(m3, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_ACdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_ABT_ACdup)
 {
     Matrix<double> C(A_sparse_3x3, 0.);
     Matrix<double> B(1, 1);
@@ -606,22 +642,22 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_ACdup)
     Matrix<double> answer(A_sparse_3x3, 0.);
 
     kronecker(C, NoMask(), NoAccumulate(),
-              Times<double>(), C, B);
+              Times<double>(), C, transpose(B));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_BCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_ABT_BCdup)
 {
     Matrix<double> A(1, 1);
     Matrix<double> C(A_sparse_3x3, 0.);
     A.setElement(0, 0, 1.0);
 
-    Matrix<double> answer(A_sparse_3x3, 0.);
+    Matrix<double> answer(AT_sparse_3x3, 0.);
 
     kronecker(C, NoMask(), NoAccumulate(),
-                   Times<double>(), A, C);
+              Times<double>(), A, transpose(C));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
@@ -632,24 +668,21 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_NoAccum_AB_BCdup)
 //****************************************************************************
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_ABT)
 {
     Matrix<double> C(Ones_9x12, 0.);
     Matrix<double> A(A_sparse_3x3, 0.); // 3x3
-    Matrix<double> B(B_sparse_3x4, 0.); // 3x4
+    Matrix<double> B(B_sparse_4x3, 0.); // 3x4
 
     Matrix<double> answer(Answer_sparse_9x12, 0.);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, C);
 
-    kronecker(C,
-              NoMask(),
-              Plus<double>(),
-              Times<double>(), A, B);
+    kronecker(C, NoMask(), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_empty)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_ABT_empty)
 {
     Matrix<double> Zero(3, 3);
     Matrix<double> Ones(Ones_3x3, 0.);
@@ -657,18 +690,18 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_empty)
     Matrix<double> mD(Ones_9x9, 0.);
     Matrix<double> answer(Ones_9x9, 0.);
 
-    kronecker(C, NoMask(), Plus<double>(), Times<double>(), Zero, Ones);
+    kronecker(C, NoMask(), Plus<double>(), Times<double>(), Zero, transpose(Ones));
     BOOST_CHECK_EQUAL(C, answer);
 
-    kronecker(mD, NoMask(), Plus<double>(), Times<double>(), Ones, Zero);
+    kronecker(mD, NoMask(), Plus<double>(), Times<double>(), Ones, transpose(Zero));
     BOOST_CHECK_EQUAL(mD, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_dense)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_ABT_dense)
 {
     Matrix<double> Ones3x3(Ones_3x3, 0.);
-    Matrix<double> Ones3x4(Ones_3x4, 0.);
+    Matrix<double> Ones4x3(Ones_4x3, 0.);
     Matrix<double> Ones9x12(Ones_9x12, 0.);
     Matrix<double> result(Ones_9x12, 0.);
     Matrix<double> answer(9, 12);
@@ -676,70 +709,68 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_dense)
              Ones9x12, Ones9x12);
 
     kronecker(result, NoMask(), Plus<double>(),
-              Times<double>(), Ones3x3, Ones3x4);
+              Times<double>(), Ones3x3, transpose(Ones4x3));
 
     BOOST_CHECK_EQUAL(result, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_empty_rows)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_ABT_empty_rows)
 {
     Matrix<double> C(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
 
     Matrix<double> answer(Answer_rr_sparse_9x12, 0.);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), C, answer);
 
-    kronecker(C, NoMask(), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, NoMask(), Plus<double>(), Times<double>(), A, transpose(B));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_emptyRowA_emptyColB)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_ABT_emptyRowA_emptyColB)
 {
     Matrix<double> result(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Bc_sparse_3x4, 0.);
+    Matrix<double> B(Bc_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rc_sparse_9x12, 0.);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, result);
 
-    kronecker(result, NoMask(), Plus<double>(),
-              Times<double>(), A, B);
+    kronecker(result, NoMask(), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(result, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_emptyColA_emptyRowB)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_ABT_emptyColA_emptyRowB)
 {
     Matrix<double> result(Ones_9x12, 0.);
     Matrix<double> A(Ac_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_cr_sparse_9x12, 0.);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, result);
 
-    kronecker(result, NoMask(), Plus<double>(),
-              Times<double>(), A, B);
+    kronecker(result, NoMask(), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(result, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_ABdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_ABT_ABdup)
 {
     // Build some matrices.
     Matrix<double, DirectedMatrixTag> mat(A_sparse_3x3, 0.);
     Matrix<double, DirectedMatrixTag> m3(Ones_9x9, 0.);
-    Matrix<double, DirectedMatrixTag> answer(AA_sparse_9x9, 0.);
+    Matrix<double, DirectedMatrixTag> answer(AAT_sparse_9x9, 0.);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, m3);
 
-    kronecker(m3, NoMask(), Plus<double>(), Times<double>(), mat, mat);
+    kronecker(m3, NoMask(), Plus<double>(), Times<double>(), mat, transpose(mat));
 
     BOOST_CHECK_EQUAL(m3, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_ACdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_ABT_ACdup)
 {
     Matrix<double> C(A_sparse_3x3, 0.);
     Matrix<double> B(1, 1);
@@ -747,21 +778,22 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_ACdup)
     Matrix<double> answer(A_sparse_3x3, 0.);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, answer);
 
-    kronecker(C, NoMask(), Plus<double>(), Times<double>(), C, B);
+    kronecker(C, NoMask(), Plus<double>(), Times<double>(), C, transpose(B));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_BCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_ABT_BCdup)
 {
     Matrix<double> A(1, 1);
     Matrix<double> C(A_sparse_3x3, 0.);
     A.setElement(0, 0, 1.0);
     Matrix<double> answer(A_sparse_3x3, 0.);
-    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, answer);
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
+             answer, transpose(answer));
 
-    kronecker(C, NoMask(), Plus<double>(), Times<double>(), A, C);
+    kronecker(C, NoMask(), Plus<double>(), Times<double>(), A, transpose(C));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
@@ -771,11 +803,11 @@ BOOST_AUTO_TEST_CASE(test_kronecker_NoMask_Accum_AB_BCdup)
 // ****************************************************************************
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABT)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
-    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
+    Matrix<double> B(B_sparse_4x3, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
 
     Matrix<double> Identity(Identity_3x3, 0.0);
 
@@ -795,88 +827,88 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB)
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, Ones,  NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, Ones,  NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Answer_9x12);
 
     C = Ones;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Answer_9x12_Lower_Ones);
 
     C = Ones;
-    kronecker(C, MNotLower, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, MNotLower, NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Answer_9x12_NotLower_Ones);
 
     // Replace
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C, Ones,  NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, Ones,  NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Answer_9x12);
 
     C = Ones;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Answer_9x12_Lower);
 
     C = Ones;
-    kronecker(C, MNotLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MNotLower, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Answer_9x12_NotLower);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABM_empty)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABTM_empty)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
-    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
+    Matrix<double> B(B_sparse_4x3, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
 
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> Empty(9, 12);
     Matrix<double> Empty3x3(3, 3);
-    Matrix<double> Empty3x4(3, 4);
+    Matrix<double> Empty4x3(4, 3);
 
     Matrix<double> MLower(Lower_9x12, 0.);
     Matrix<double> MNotLower(NotLower_9x12, 0.);
 
     // Merge
     C = Ones;
-    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), Empty3x3, B);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), Empty3x3, transpose(B));
     BOOST_CHECK_EQUAL(C, MNotLower);
 
     C = Ones;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, Empty3x4);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(Empty4x3));
     BOOST_CHECK_EQUAL(C, MNotLower);
 
     // Replace
     C = Ones;
-    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, Empty, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), Empty3x3, B, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), Empty3x3, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, Empty3x4, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(Empty4x3), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABM_dense)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABTM_dense)
 {
     Matrix<double> A(Ones_3x3, 0.);
-    Matrix<double> B(Ones_3x4, 0.);
+    Matrix<double> B(Ones_4x3, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
     Matrix<double> MNotLower(NotLower_9x12, 0.);
@@ -885,20 +917,20 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABM_dense)
     Matrix<double> C(9, 12);
 
     C = Ones;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, MLower);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_empty_rows)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABT_empty_rows)
 {
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rr_sparse_9x12, 0.);
     Matrix<double> C(9, 12);
 
@@ -907,23 +939,23 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_empty_rows)
 
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_emptyRowA_emptyColB)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABT_emptyRowA_emptyColB)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Bc_sparse_3x4, 0.);
+    Matrix<double> B(Bc_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rc_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -933,23 +965,23 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_emptyRowA_emptyColB)
     // REPLACE
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_emptyColA_emptyRowB)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABT_emptyColA_emptyRowB)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ac_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_cr_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -958,23 +990,23 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_emptyColA_emptyRowB)
     // REPLACE
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_emptyRowM)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABT_emptyRowM)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> B(B_sparse_4x3, 0.);
     Matrix<double> answer(Answer_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -984,23 +1016,23 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_emptyRowM)
     // Replace
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_ABdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABT_ABdup)
 {
     Matrix<double> C(9,9);
     Matrix<double> Ones(Ones_9x9, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> answer(AA_sparse_9x9, 0.);
+    Matrix<double> answer(AAT_sparse_9x9, 0.);
 
     Matrix<double> MLower(Lower_9x9, 0.);
     Matrix<double> MNotLower(NotLower_9x9, 0.);
@@ -1008,19 +1040,19 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_ABdup)
     // Replace
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, A, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(A), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, A);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(A));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_ACdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABT_ACdup)
 {
     Matrix<double> Ones(Ones_3x4, 0.);
     Matrix<double> mat(B_sparse_3x4, 0.);
@@ -1036,51 +1068,54 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_ACdup)
     // Replace
     C = mat;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), C, B, REPLACE);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), C, transpose(B), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = mat;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), C, B);
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), C, transpose(B));
 
     BOOST_CHECK_EQUAL(C, mat);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_BCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABT_BCdup)
 {
     // Build some matrices.
-    Matrix<double> mat(B_sparse_3x4, 0.);
-    Matrix<double> C(3,4);
+    Matrix<double> mat(A_sparse_3x3, 0.);
+    Matrix<double> C(3,3);
     Matrix<double> A(1, 1);    A.setElement(0, 0, 1.0);
     Matrix<double> answer(mat);
 
-    Matrix<double> MLower(Lower_3x4, 0.);
-    Matrix<double> MNotLower(NotLower_3x4, 0.);
+    Matrix<double> MLower(Lower_3x3, 0.);
+    Matrix<double> MNotLower(NotLower_3x3, 0.);
 
     // Replace
     C = mat;
-    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, C, REPLACE);
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(),
+              MLower, transpose(answer));
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(C), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = mat;
-    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, C);
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(),
+              transpose(MLower), transpose(answer));
+    kronecker(C, MLower, NoAccumulate(), Times<double>(), A, transpose(C));
 
-    BOOST_CHECK_EQUAL(C, mat);
+    BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_MCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_ABT_MCdup)
 {
     // Build some matrices.
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> B(B_sparse_4x3, 0.);
     Matrix<double> answer(Answer_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -1089,13 +1124,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_MCdup)
     // Replace
     C = MLower;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, C, NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, C, NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = MLower;
-    kronecker(C, C, NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, C, NoAccumulate(), Times<double>(), A, transpose(B));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
@@ -1105,11 +1140,11 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_NoAccum_AB_MCdup)
 //****************************************************************************
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
-    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
+    Matrix<double> B(B_sparse_4x3, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
 
     Matrix<double> Identity(Identity_3x3, 0.0);
 
@@ -1130,99 +1165,99 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB)
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C, Empty, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, Empty, Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, Answer_9x12);
-    kronecker(C, Ones,  Plus<double>(), Times<double>(), A, B);
+    kronecker(C, Ones,  Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer); //Answer_9x12);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, Answer_9x12_Lower);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, Answer_9x12_NotLower);
-    kronecker(C, MNotLower, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, MNotLower, Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 
     // Replace
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C, Empty, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, Empty, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, Answer_9x12);
-    kronecker(C, Ones,  Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, Ones,  Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              MLower, Answer_9x12_Lower);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              MNotLower, Answer_9x12_NotLower);
-    kronecker(C, MNotLower, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MNotLower, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABM_empty)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABTM_empty)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
-    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
+    Matrix<double> B(B_sparse_4x3, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
 
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> Empty(9, 12);
     Matrix<double> Empty3x3(3, 3);
-    Matrix<double> Empty3x4(3, 4);
+    Matrix<double> Empty4x3(4, 3);
 
     Matrix<double> MLower(Lower_9x12, 0.);
 
     // Merge
     C = Ones;
-    kronecker(C, Empty, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, Empty, Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, MLower, Plus<double>(), Times<double>(), Empty3x3, B);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), Empty3x3, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, Empty3x4);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(Empty4x3));
     BOOST_CHECK_EQUAL(C, Ones);
 
     // Replace
     C = Ones;
-    kronecker(C, Empty, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, Empty, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C, MLower, Plus<double>(), Times<double>(), Empty3x3, B, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), Empty3x3, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, MLower);
 
     C = Ones;
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, Empty3x4, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(Empty4x3), REPLACE);
     BOOST_CHECK_EQUAL(C, MLower);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABM_dense)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABTM_dense)
 {
     Matrix<double> A(Ones_3x3, 0.);
-    Matrix<double> B(Ones_3x4, 0.);
+    Matrix<double> B(Ones_4x3, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
     Matrix<double> MNotLower(NotLower_9x12, 0.);
@@ -1232,24 +1267,24 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABM_dense)
     Matrix<double> answer(9, 12);
 
     C = Ones;
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B));
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, MLower);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              MLower, MLower);
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_empty_rows)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_empty_rows)
 {
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rr_sparse_9x12, 0.);
     Matrix<double> C(9, 12);
 
@@ -1259,22 +1294,22 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_empty_rows)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_emptyRowA_emptyColB)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_emptyRowA_emptyColB)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Bc_sparse_3x4, 0.);
+    Matrix<double> B(Bc_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rc_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -1284,23 +1319,23 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_emptyRowA_emptyColB)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_emptyColA_emptyRowB)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_emptyColA_emptyRowB)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ac_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_cr_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -1310,23 +1345,23 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_emptyColA_emptyRowB)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_emptyRowM)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_emptyRowM)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> B(B_sparse_4x3, 0.);
     Matrix<double> answer(Answer_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -1336,23 +1371,23 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_emptyRowM)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_ABdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_ABdup)
 {
     Matrix<double> C(9,9);
     Matrix<double> Ones(Ones_9x9, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> answer(AA_sparse_9x9, 0.);
+    Matrix<double> answer(AAT_sparse_9x9, 0.);
 
     Matrix<double> MLower(Lower_9x9, 0.);
     Matrix<double> MNotLower(NotLower_9x9, 0.);
@@ -1361,23 +1396,23 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_ABdup)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, A, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(A), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, A);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(A));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_ACdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_ACdup)
 {
     // Build some matrices.
     Matrix<double> Ones(Ones_3x4, 0.);
-    Matrix<double> mat(B_sparse_3x4, 0.);
+    Matrix<double> mat(B_sparse_4x3, 0.);
     Matrix<double> C(3, 4);
     Matrix<double> B(1, 1);    B.setElement(0, 0, 1.0);
     Matrix<double> answer(mat);
@@ -1389,7 +1424,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_ACdup)
     C = mat;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), C, B, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), C, transpose(B), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
@@ -1397,16 +1432,16 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_ACdup)
     C = mat;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, mat);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), mat, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), C, B);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), C, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_BCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_BCdup)
 {
     // Build some matrices.
-    Matrix<double> mat(B_sparse_3x4, 0.);
-    Matrix<double> C(3,4);
+    Matrix<double> mat(A_sparse_3x3, 0.);
+    Matrix<double> C(3,3);
     Matrix<double> A(1, 1);    A.setElement(0, 0, 1.0);
     Matrix<double> answer(mat);
 
@@ -1415,29 +1450,29 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_BCdup)
 
     // Replace
     C = mat;
-    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, mat);
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, transpose(mat));
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, answer);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, C, REPLACE);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(C), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = mat;
-    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, mat);
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, transpose(mat));
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, mat);
-    kronecker(C, MLower, Plus<double>(), Times<double>(), A, C);
+    kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(C));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_MCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_MCdup)
 {
     // Build some matrices.
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> B(B_sparse_4x3, 0.);
     Matrix<double> answer(Answer_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -1447,13 +1482,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_MCdup)
     C = MLower;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, C, Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, C, Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = MLower;
-    kronecker(C, C, Plus<double>(), Times<double>(), A, B);
+    kronecker(C, C, Plus<double>(), Times<double>(), A, transpose(B));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
@@ -1461,9 +1496,9 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_AB_MCdup)
 //****************************************************************************
 // CompMask_NoAccum
 //****************************************************************************
-
+#if 0
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
@@ -1523,7 +1558,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABM_empty)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABTM_empty)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
@@ -1565,7 +1600,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABM_empty)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABM_dense)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABTM_dense)
 {
     Matrix<double> A(Ones_3x3, 0.);
     Matrix<double> B(Ones_3x4, 0.);
@@ -1586,7 +1621,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABM_dense)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_empty_rows)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_empty_rows)
 {
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
@@ -1610,7 +1645,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_empty_rows)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_emptyRowA_emptyColB)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_emptyRowA_emptyColB)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
@@ -1636,7 +1671,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_emptyRowA_emptyColB)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_emptyColA_emptyRowB)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_emptyColA_emptyRowB)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
@@ -1661,7 +1696,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_emptyColA_emptyRowB)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_emptyRowM)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_emptyRowM)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
@@ -1687,7 +1722,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_emptyRowM)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_ABdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_ABdup)
 {
     Matrix<double> C(9,9);
     Matrix<double> Ones(Ones_9x9, 0.);
@@ -1712,7 +1747,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_ABdup)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_ACdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_ACdup)
 {
     Matrix<double> Ones(Ones_3x4, 0.);
     Matrix<double> mat(B_sparse_3x4, 0.);
@@ -1740,7 +1775,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_ACdup)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_BCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_BCdup)
 {
     // Build some matrices.
     Matrix<double> mat(B_sparse_3x4, 0.);
@@ -1766,7 +1801,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_BCdup)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_MCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_MCdup)
 {
     // Build some matrices.
     Matrix<double> C(9,12);
@@ -1798,7 +1833,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_AB_MCdup)
 //****************************************************************************
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
@@ -1871,7 +1906,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABM_empty)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABTM_empty)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
@@ -1913,7 +1948,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABM_empty)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABM_dense)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABTM_dense)
 {
     Matrix<double> A(Ones_3x3, 0.);
     Matrix<double> B(Ones_3x4, 0.);
@@ -1939,7 +1974,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABM_dense)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_empty_rows)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_empty_rows)
 {
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
@@ -1963,7 +1998,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_empty_rows)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_emptyRowA_emptyColB)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_emptyRowA_emptyColB)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
@@ -1989,7 +2024,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_emptyRowA_emptyColB)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_emptyColA_emptyRowB)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_emptyColA_emptyRowB)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
@@ -2015,7 +2050,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_emptyColA_emptyRowB)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABM_emptyRowM)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABTM_emptyRowM)
 {
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
@@ -2041,7 +2076,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABM_emptyRowM)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_ABdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_ABdup)
 {
     Matrix<double> C(9,9);
     Matrix<double> Ones(Ones_9x9, 0.);
@@ -2067,7 +2102,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_ABdup)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_ACdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_ACdup)
 {
     // Build some matrices.
     Matrix<double> Ones(Ones_3x4, 0.);
@@ -2096,7 +2131,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_ACdup)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_BCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_BCdup)
 {
     // Build some matrices.
     Matrix<double> mat(B_sparse_3x4, 0.);
@@ -2125,7 +2160,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_BCdup)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_MCdup)
+BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_MCdup)
 {
     // Build some matrices.
     Matrix<double> C(9,12);
@@ -2152,5 +2187,5 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_AB_MCdup)
     BOOST_CHECK_EQUAL(C, answer);
 }
 
-
+#endif
 BOOST_AUTO_TEST_SUITE_END()
