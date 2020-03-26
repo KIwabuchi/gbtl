@@ -1412,7 +1412,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_ACdup)
 {
     // Build some matrices.
     Matrix<double> Ones(Ones_3x4, 0.);
-    Matrix<double> mat(B_sparse_4x3, 0.);
+    Matrix<double> mat(B_sparse_3x4, 0.);
     Matrix<double> C(3, 4);
     Matrix<double> B(1, 1);    B.setElement(0, 0, 1.0);
     Matrix<double> answer(mat);
@@ -1445,21 +1445,19 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_BCdup)
     Matrix<double> A(1, 1);    A.setElement(0, 0, 1.0);
     Matrix<double> answer(mat);
 
-    Matrix<double> MLower(Lower_3x4, 0.);
-    Matrix<double> MNotLower(NotLower_3x4, 0.);
+    Matrix<double> MLower(Lower_3x3, 0.);
+    Matrix<double> MNotLower(NotLower_3x3, 0.);
 
     // Replace
     C = mat;
-    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, transpose(mat));
-    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, answer);
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower,transpose(mat));
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, mat);
     kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(C), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = mat;
-    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, transpose(mat));
-    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, mat);
     kronecker(C, MLower, Plus<double>(), Times<double>(), A, transpose(C));
 
     BOOST_CHECK_EQUAL(C, answer);
@@ -1496,13 +1494,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_Mask_Accum_ABT_MCdup)
 //****************************************************************************
 // CompMask_NoAccum
 //****************************************************************************
-#if 0
+
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
-    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
+    Matrix<double> B(B_sparse_4x3, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
 
     Matrix<double> Identity(Identity_3x3, 0.0);
 
@@ -1522,38 +1520,38 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT)
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C, complement(Ones), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(Ones), NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, complement(Empty),  NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(Empty),  NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Answer_9x12);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Answer_9x12_Lower_Ones);
 
     C = Ones;
-    kronecker(C, complement(MLower), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(MLower), NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Answer_9x12_NotLower_Ones);
 
     // Replace
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C, complement(Ones), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(Ones), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C, complement(Empty),  NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(Empty),  NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Answer_9x12);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Answer_9x12_Lower);
 
     C = Ones;
-    kronecker(C, complement(MLower), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MLower), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Answer_9x12_NotLower);
 }
 
@@ -1562,40 +1560,40 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABTM_empty)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
-    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
+    Matrix<double> B(B_sparse_4x3, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
 
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> Empty(9, 12);
     Matrix<double> Empty3x3(3, 3);
-    Matrix<double> Empty3x4(3, 4);
+    Matrix<double> Empty4x3(4, 3);
 
     Matrix<double> MLower(Lower_9x12, 0.);
     Matrix<double> MNotLower(NotLower_9x12, 0.);
 
     // Merge
     C = Ones;
-    kronecker(C, complement(Ones), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(Ones), NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), Empty3x3, B);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), Empty3x3, transpose(B));
     BOOST_CHECK_EQUAL(C, MNotLower);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, Empty3x4);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(Empty4x3));
     BOOST_CHECK_EQUAL(C, MNotLower);
 
     // Replace
     C = Ones;
-    kronecker(C, complement(Ones), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(Ones), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), Empty3x3, B, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), Empty3x3, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, Empty3x4, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(Empty4x3), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 }
 
@@ -1603,7 +1601,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABTM_empty)
 BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABTM_dense)
 {
     Matrix<double> A(Ones_3x3, 0.);
-    Matrix<double> B(Ones_3x4, 0.);
+    Matrix<double> B(Ones_4x3, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
     Matrix<double> MNotLower(NotLower_9x12, 0.);
@@ -1612,11 +1610,11 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABTM_dense)
     Matrix<double> C(9, 12);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, MLower);
 }
 
@@ -1625,7 +1623,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_empty_rows)
 {
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rr_sparse_9x12, 0.);
     Matrix<double> C(9, 12);
 
@@ -1634,12 +1632,12 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_empty_rows)
 
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 
 }
@@ -1650,7 +1648,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_emptyRowA_emptyColB)
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Bc_sparse_3x4, 0.);
+    Matrix<double> B(Bc_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rc_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -1660,13 +1658,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_emptyRowA_emptyColB)
     // REPLACE
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -1676,7 +1674,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_emptyColA_emptyRowB)
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ac_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_cr_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -1685,13 +1683,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_emptyColA_emptyRowB)
     // REPLACE
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -1701,7 +1699,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_emptyRowM)
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> B(B_sparse_4x3, 0.);
     Matrix<double> answer(Answer_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -1711,13 +1709,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_emptyRowM)
     // Replace
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -1727,7 +1725,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_ABdup)
     Matrix<double> C(9,9);
     Matrix<double> Ones(Ones_9x9, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> answer(AA_sparse_9x9, 0.);
+    Matrix<double> answer(AAT_sparse_9x9, 0.);
 
     Matrix<double> MLower(Lower_9x9, 0.);
     Matrix<double> MNotLower(NotLower_9x9, 0.);
@@ -1735,14 +1733,14 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_ABdup)
     // Replace
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, A, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(A), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, A);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(A));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -1763,13 +1761,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_ACdup)
     // Replace
     C = mat;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), C, B, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), C, transpose(B), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = mat;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), C, B);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), C, transpose(B));
 
     BOOST_CHECK_EQUAL(C, mat);
 }
@@ -1778,26 +1776,26 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_ACdup)
 BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_BCdup)
 {
     // Build some matrices.
-    Matrix<double> mat(B_sparse_3x4, 0.);
-    Matrix<double> C(3,4);
+    Matrix<double> mat(A_sparse_3x3, 0.);
+    Matrix<double> C(3,3);
     Matrix<double> A(1, 1);    A.setElement(0, 0, 1.0);
-    Matrix<double> answer(mat);
+    Matrix<double> answer(AT_sparse_3x3, 0.);
 
-    Matrix<double> MLower(Lower_3x4, 0.);
-    Matrix<double> MNotLower(NotLower_3x4, 0.);
+    Matrix<double> MLower(Lower_3x3, 0.);
+    Matrix<double> MNotLower(NotLower_3x3, 0.);
 
     // Replace
     C = mat;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, C, REPLACE);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(C), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = mat;
-    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, C);
+    kronecker(C, complement(MNotLower), NoAccumulate(), Times<double>(), A, transpose(C));
 
-    BOOST_CHECK_EQUAL(C, mat);
+    BOOST_CHECK_EQUAL(C, answer);
 }
 
 //****************************************************************************
@@ -1807,7 +1805,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_MCdup)
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> B(B_sparse_4x3, 0.);
     Matrix<double> answer(Answer_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -1816,14 +1814,14 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_NoAccum_ABT_MCdup)
     // Replace
     C = MLower;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MNotLower, answer);
-    kronecker(C, complement(C), NoAccumulate(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(C), NoAccumulate(), Times<double>(), A, transpose(B), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = MLower;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, complement(C), NoAccumulate(), Times<double>(), A, B);
+    kronecker(C, complement(C), NoAccumulate(), Times<double>(), A, transpose(B));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
@@ -1837,7 +1835,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
-    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
+    Matrix<double> B(B_sparse_4x3, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
 
     Matrix<double> Identity(Identity_3x3, 0.0);
 
@@ -1858,50 +1856,50 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT)
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C, complement(Ones), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(Ones), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, Answer_9x12);
-    kronecker(C, complement(Empty),  Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(Empty),  Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer); //Answer_9x12);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, Answer_9x12_Lower);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, Answer_9x12_NotLower);
-    kronecker(C, complement(MLower), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(MLower), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 
     // Replace
     // Mempty vs Mfull vs Mlower
 
     C = Ones;
-    kronecker(C, complement(Ones), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(Ones), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, Answer_9x12);
-    kronecker(C, complement(Empty),  Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(Empty),  Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              MLower, Answer_9x12_Lower);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              MNotLower, Answer_9x12_NotLower);
-    kronecker(C, complement(MLower), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MLower), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -1910,40 +1908,40 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABTM_empty)
 {
     Matrix<double> C(9, 12);
     Matrix<double> A(A_sparse_3x3, 0.); // 1 0 0 / 0 2 0 / 3 0 4
-    Matrix<double> B(B_sparse_3x4, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
+    Matrix<double> B(B_sparse_4x3, 0.); // 1 1 0 0 / 0 2 2 0 / 3 0 0 3
 
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> Empty(9, 12);
     Matrix<double> Empty3x3(3, 3);
-    Matrix<double> Empty3x4(3, 4);
+    Matrix<double> Empty4x3(4, 3);
 
     Matrix<double> MLower(Lower_9x12, 0.);
     Matrix<double> MNotLower(NotLower_9x12, 0.);
 
     // Merge
     C = Ones;
-    kronecker(C, complement(Ones), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(Ones), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), Empty3x3, B);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), Empty3x3, transpose(B));
     BOOST_CHECK_EQUAL(C, Ones);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, Empty3x4);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(Empty4x3));
     BOOST_CHECK_EQUAL(C, Ones);
 
     // Replace
     C = Ones;
-    kronecker(C, complement(Ones), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(Ones), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, Empty);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), Empty3x3, B, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), Empty3x3, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, MLower);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, Empty3x4, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(Empty4x3), REPLACE);
     BOOST_CHECK_EQUAL(C, MLower);
 }
 
@@ -1951,7 +1949,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABTM_empty)
 BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABTM_dense)
 {
     Matrix<double> A(Ones_3x3, 0.);
-    Matrix<double> B(Ones_3x4, 0.);
+    Matrix<double> B(Ones_4x3, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
     Matrix<double> MNotLower(NotLower_9x12, 0.);
@@ -1961,13 +1959,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABTM_dense)
     Matrix<double> answer(9, 12);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B));
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              Ones, MLower);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(),
              MLower, MLower);
     BOOST_CHECK_EQUAL(C, answer);
@@ -1978,7 +1976,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_empty_rows)
 {
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rr_sparse_9x12, 0.);
     Matrix<double> C(9, 12);
 
@@ -1988,12 +1986,12 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_empty_rows)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -2003,7 +2001,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_emptyRowA_emptyColB)
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ar_sparse_3x3, 0.);
-    Matrix<double> B(Bc_sparse_3x4, 0.);
+    Matrix<double> B(Bc_sparse_4x3, 0.);
     Matrix<double> answer(Answer_rc_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -2013,13 +2011,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_emptyRowA_emptyColB)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -2029,7 +2027,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_emptyColA_emptyRowB)
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(Ac_sparse_3x3, 0.);
-    Matrix<double> B(Br_sparse_3x4, 0.);
+    Matrix<double> B(Br_sparse_4x3, 0.);
     Matrix<double> answer(Answer_cr_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -2039,13 +2037,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_emptyColA_emptyRowB)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -2055,7 +2053,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABTM_emptyRowM)
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> B(B_sparse_4x3, 0.);
     Matrix<double> answer(Answer_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -2065,13 +2063,13 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABTM_emptyRowM)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -2081,7 +2079,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_ABdup)
     Matrix<double> C(9,9);
     Matrix<double> Ones(Ones_9x9, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> answer(AA_sparse_9x9, 0.);
+    Matrix<double> answer(AAT_sparse_9x9, 0.);
 
     Matrix<double> MLower(Lower_9x9, 0.);
     Matrix<double> MNotLower(NotLower_9x9, 0.);
@@ -2090,14 +2088,14 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_ABdup)
     C = Ones;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, A, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(A), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = Ones;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MNotLower, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, A);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(A));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -2118,7 +2116,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_ACdup)
     C = mat;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, answer);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), C, B, REPLACE);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), C, transpose(B), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
@@ -2126,7 +2124,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_ACdup)
     C = mat;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, mat);
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), mat, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), C, B);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), C, transpose(B));
     BOOST_CHECK_EQUAL(C, answer);
 }
 
@@ -2134,27 +2132,25 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_ACdup)
 BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_BCdup)
 {
     // Build some matrices.
-    Matrix<double> mat(B_sparse_3x4, 0.);
-    Matrix<double> C(3,4);
+    Matrix<double> mat(A_sparse_3x3, 0.);
+    Matrix<double> C(3,3);
     Matrix<double> A(1, 1);    A.setElement(0, 0, 1.0);
     Matrix<double> answer(mat);
 
-    Matrix<double> MLower(Lower_3x4, 0.);
-    Matrix<double> MNotLower(NotLower_3x4, 0.);
+    Matrix<double> MLower(Lower_3x3, 0.);
+    Matrix<double> MNotLower(NotLower_3x3, 0.);
 
     // Replace
     C = mat;
-    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, mat);
-    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, answer);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, C, REPLACE);
+    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, transpose(mat));
+    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, mat);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(C), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = mat;
-    eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MLower, mat);
-    eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), answer, mat);
-    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, C);
+    kronecker(C, complement(MNotLower), Plus<double>(), Times<double>(), A, transpose(C));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
@@ -2166,7 +2162,7 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_MCdup)
     Matrix<double> C(9,12);
     Matrix<double> Ones(Ones_9x12, 0.);
     Matrix<double> A(A_sparse_3x3, 0.);
-    Matrix<double> B(B_sparse_3x4, 0.);
+    Matrix<double> B(B_sparse_4x3, 0.);
     Matrix<double> answer(Answer_sparse_9x12, 0.);
 
     Matrix<double> MLower(Lower_9x12, 0.);
@@ -2175,17 +2171,16 @@ BOOST_AUTO_TEST_CASE(test_kronecker_CompMask_Accum_ABT_MCdup)
     // Replace
     C = MLower;
     eWiseMult(answer, NoMask(), NoAccumulate(), Times<double>(), MNotLower, answer);
-    kronecker(C, complement(C), Plus<double>(), Times<double>(), A, B, REPLACE);
+    kronecker(C, complement(C), Plus<double>(), Times<double>(), A, transpose(B), REPLACE);
 
     BOOST_CHECK_EQUAL(C, answer);
 
     // Merge
     C = MLower;
     eWiseAdd(answer, NoMask(), NoAccumulate(), Plus<double>(), MLower, answer);
-    kronecker(C, complement(C), Plus<double>(), Times<double>(), A, B);
+    kronecker(C, complement(C), Plus<double>(), Times<double>(), A, transpose(B));
 
     BOOST_CHECK_EQUAL(C, answer);
 }
 
-#endif
 BOOST_AUTO_TEST_SUITE_END()
