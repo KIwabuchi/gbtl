@@ -63,6 +63,56 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_bad_dimension)
     Matrix<double, DirectedMatrixTag> A(4, 4);
     A.build(i, j, v);
 
+    // bind1st
+    {
+        Matrix<double, DirectedMatrixTag> C(3, 4);
+        BOOST_CHECK_THROW(
+            (apply(C,
+                   NoMask(),
+                   NoAccumulate(),
+                   Times<double>(),
+                   A,
+                   2.0)),
+            DimensionException);
+    }
+    {
+        Matrix<double, DirectedMatrixTag> C(4, 3);
+        BOOST_CHECK_THROW(
+            (apply(C,
+                   NoMask(),
+                   NoAccumulate(),
+                   Times<double>(),
+                   2.0,
+                   A)),
+            DimensionException);
+    }
+
+    {
+        Matrix<double, DirectedMatrixTag> C(4, 4);
+        Matrix<bool> M(3, 4);
+        BOOST_CHECK_THROW(
+            (apply(C,
+                   M,
+                   NoAccumulate(),
+                   Times<double>(),
+                   2.0,
+                   A)),
+            DimensionException);
+    }
+    {
+        Matrix<double, DirectedMatrixTag> C(4, 4);
+        Matrix<bool> M(4, 3);
+        BOOST_CHECK_THROW(
+            (apply(C,
+                   M,
+                   NoAccumulate(),
+                   Times<double>(),
+                   2.0,
+                   A)),
+            DimensionException);
+    }
+
+    // bind 2nd
     {
         Matrix<double, DirectedMatrixTag> C(3, 4);
         BOOST_CHECK_THROW(
@@ -110,6 +160,7 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_bad_dimension)
                    2.0)),
             DimensionException);
     }
+
 }
 
 //****************************************************************************
@@ -136,6 +187,15 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_nomask_noaccum)
                      GraphBLAS::NoMask(),
                      GraphBLAS::NoAccumulate(),
                      GraphBLAS::Times<double>(),
+                     -1.0,
+                     mA);
+
+    BOOST_CHECK_EQUAL(mC, answer);
+
+    GraphBLAS::apply(mC,
+                     GraphBLAS::NoMask(),
+                     GraphBLAS::NoAccumulate(),
+                     GraphBLAS::Times<double>(),
                      mA,
                      -1.0);
 
@@ -153,8 +213,6 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_mask_merge_noaccum)
     std::vector<std::vector<double>> matC = {{1, 2, 3},
                                              {4, 5, 6},
                                              {7, 8, 0}};
-    GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> mC(matC, 0);
-
 
     std::vector<std::vector<bool>> matMask = {{true, false, false},
                                               {true, true,  false,},
@@ -166,14 +224,30 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_mask_merge_noaccum)
                                                   {-4, -9, 0}};
     GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> answer(matAnswer, 0);
 
-    GraphBLAS::apply(mC,
-                     mask,
-                     GraphBLAS::NoAccumulate(),
-                     GraphBLAS::Times<double>(),
-                     mA,
-                     -1.0);
+    {
+        GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> mC(matC, 0);
 
-    BOOST_CHECK_EQUAL(mC, answer);
+        GraphBLAS::apply(mC,
+                         mask,
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         -1.0,
+                         mA);
+
+        BOOST_CHECK_EQUAL(mC, answer);
+    }
+    {
+        GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> mC(matC, 0);
+
+        GraphBLAS::apply(mC,
+                         mask,
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         mA,
+                         -1.0);
+
+        BOOST_CHECK_EQUAL(mC, answer);
+    }
 }
 
 //****************************************************************************
@@ -187,7 +261,6 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_mask_replace_noaccum)
     std::vector<std::vector<double>> matC = {{1, 2, 3},
                                              {4, 5, 6},
                                              {7, 8, 0}};
-    GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> mC(matC, 0);
 
 
     std::vector<std::vector<bool>> matMask = {{true, false, false},
@@ -200,15 +273,30 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_mask_replace_noaccum)
                                                   {-4, -9, 0}};
     GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> answer(matAnswer, 0);
 
-    GraphBLAS::apply(mC,
-                     mask,
-                     GraphBLAS::NoAccumulate(),
-                     GraphBLAS::Times<double>(),
-                     mA,
-                     -1.0,
-                     GraphBLAS::REPLACE);
+    {
+        GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> mC(matC, 0);
+        GraphBLAS::apply(mC,
+                         mask,
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         -1.0,
+                         mA,
+                         GraphBLAS::REPLACE);
 
-    BOOST_CHECK_EQUAL(mC, answer);
+        BOOST_CHECK_EQUAL(mC, answer);
+    }
+    {
+        GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> mC(matC, 0);
+        GraphBLAS::apply(mC,
+                         mask,
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         mA,
+                         -1.0,
+                         GraphBLAS::REPLACE);
+
+        BOOST_CHECK_EQUAL(mC, answer);
+    }
 }
 
 //****************************************************************************
@@ -244,9 +332,18 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_noaccum)
               NoMask(),
               NoAccumulate(),
               Plus<double>(),
+              0.5,
+              A);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(3, 4);
+        apply(C2,
+              NoMask(),
+              NoAccumulate(),
+              Plus<double>(),
               A,
               0.5);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
 
     // Mask, replace
@@ -261,11 +358,22 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_noaccum)
               M,
               NoAccumulate(),
               Plus<double>(),
+              0.5,
+              A,
+              REPLACE);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(Ctmp, 0);
+        apply(C2,
+              M,
+              NoAccumulate(),
+              Plus<double>(),
               A,
               0.5,
               REPLACE);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
+
     // Mask, merge
     {
         std::vector<std::vector<double>> ans = {{1.5, 1.5,   0,   0},
@@ -278,10 +386,20 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_noaccum)
               M,
               NoAccumulate(),
               Plus<double>(),
+              0.5,
+              A,
+              MERGE);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(Ctmp, 0);
+        apply(C2,
+              M,
+              NoAccumulate(),
+              Plus<double>(),
               A,
               0.5,
               MERGE);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
 
     // complement(Mask), replace
@@ -296,10 +414,20 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_noaccum)
               complement(M),
               NoAccumulate(),
               Plus<double>(),
+              0.5,
+              A,
+              REPLACE);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(Ctmp, 0);
+        apply(C2,
+              complement(M),
+              NoAccumulate(),
+              Plus<double>(),
               A,
               0.5,
               REPLACE);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
     // complement(Mask), merge
     {
@@ -313,10 +441,20 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_noaccum)
               complement(M),
               NoAccumulate(),
               Plus<double>(),
+              0.5,
+              A,
+              MERGE);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(Ctmp, 0);
+        apply(C2,
+              complement(M),
+              NoAccumulate(),
+              Plus<double>(),
               A,
               0.5,
               MERGE);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
 }
 
@@ -331,7 +469,6 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_nomask_plus_accum)
     std::vector<std::vector<double>> matC = {{1, 2, 3},
                                              {4, 5, 6},
                                              {7, 8, 0}};
-    GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> mC(matC, 0);
 
     std::vector<std::vector<double>> matAnswer = {{-7, 1, -3},
                                                   { 1, 0, -1},
@@ -339,14 +476,28 @@ BOOST_AUTO_TEST_CASE(sparse_apply_matrix_nomask_plus_accum)
     // NOTE: The accum results in an explicit zero
     GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> answer(matAnswer, 1337);
 
-    GraphBLAS::apply(mC,
-                     GraphBLAS::NoMask(),
-                     GraphBLAS::Plus<double>(),
-                     GraphBLAS::Times<double>(),
-                     mA,
-                     -1.0);
+    {
+        GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> mC(matC, 0);
+        GraphBLAS::apply(mC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::Plus<double>(),
+                         GraphBLAS::Times<double>(),
+                         -1.0,
+                         mA);
 
-    BOOST_CHECK_EQUAL(mC, answer);
+        BOOST_CHECK_EQUAL(mC, answer);
+    }
+    {
+        GraphBLAS::Matrix<double, GraphBLAS::DirectedMatrixTag> mC(matC, 0);
+        GraphBLAS::apply(mC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::Plus<double>(),
+                         GraphBLAS::Times<double>(),
+                         mA,
+                         -1.0);
+
+        BOOST_CHECK_EQUAL(mC, answer);
+    }
 }
 
 //****************************************************************************
@@ -382,9 +533,18 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_plus_accum)
               NoMask(),
               Plus<double>(),
               Times<double>(),
+              0.5,
+              A);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(Ctmp, 0.);
+        apply(C2,
+              NoMask(),
+              Plus<double>(),
+              Times<double>(),
               A,
               0.5);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
 
     // Mask, replace
@@ -399,10 +559,20 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_plus_accum)
               M,
               Plus<double>(),
               Times<double>(),
+              0.5,
+              A,
+              REPLACE);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(Ctmp, 0);
+        apply(C2,
+              M,
+              Plus<double>(),
+              Times<double>(),
               A,
               0.5,
               REPLACE);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
     // Mask, merge
     {
@@ -416,10 +586,20 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_plus_accum)
               M,
               Plus<double>(),
               Times<double>(),
+              0.5,
+              A,
+              MERGE);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(Ctmp, 0);
+        apply(C2,
+              M,
+              Plus<double>(),
+              Times<double>(),
               A,
               0.5,
               MERGE);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
 
     // complement(Mask), replace
@@ -434,10 +614,20 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_plus_accum)
               complement(M),
               Plus<double>(),
               Times<double>(),
+              0.5,
+              A,
+              REPLACE);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(Ctmp, 0);
+        apply(C2,
+              complement(M),
+              Plus<double>(),
+              Times<double>(),
               A,
               0.5,
               REPLACE);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
     // complement(Mask), merge
     {
@@ -451,10 +641,20 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_plus_accum)
               complement(M),
               Plus<double>(),
               Times<double>(),
+              0.5,
+              A,
+              MERGE);
+        BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(Ctmp, 0);
+        apply(C2,
+              complement(M),
+              Plus<double>(),
+              Times<double>(),
               A,
               0.5,
               MERGE);
-        BOOST_CHECK_EQUAL(C, answer);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
 }
 
@@ -472,7 +672,6 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_second_accum)
     std::vector<double> v = {1, 1, 1, 2, 2, 2, 3, 3, 3, 4};
     Matrix<double, DirectedMatrixTag> A(4, 4);
     A.build(i, j, v);
-    Matrix<double, DirectedMatrixTag> C(4, 4);
 
     std::vector<double> v_answer = {0.5, 0.5, 0.5, 1.0, 1.0,
                                     1.0, 1.5, 1.5, 1.5, 2.0};
@@ -480,13 +679,23 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_second_accum)
     Matrix<double, DirectedMatrixTag> answer(4, 4);
     answer.build(i, j, v_answer);
 
+    Matrix<double, DirectedMatrixTag> C(4, 4);
     apply(C,
+          NoMask(),
+          Second<double>(),
+          Times<double>(),
+          0.5,
+          A);
+    BOOST_CHECK_EQUAL(C, answer);
+
+    Matrix<double, DirectedMatrixTag> C2(4, 4);
+    apply(C2,
           NoMask(),
           Second<double>(),
           Times<double>(),
           A,
           0.5);
-    BOOST_CHECK_EQUAL(C, answer);
+    BOOST_CHECK_EQUAL(C2, answer);
 }
 
 //****************************************************************************
@@ -526,6 +735,15 @@ BOOST_AUTO_TEST_CASE(apply_stdmat_test_noaccum_transpose)
               transpose(A),
               0.5);
         BOOST_CHECK_EQUAL(C, answer);
+
+        Matrix<double, DirectedMatrixTag> C2(3, 4);
+        apply(C2,
+              NoMask(),
+              NoAccumulate(),
+              Times<double>(),
+              transpose(A),
+              0.5);
+        BOOST_CHECK_EQUAL(C2, answer);
     }
 }
 
@@ -549,6 +767,15 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_bad_dimension)
                    NoMask(),
                    NoAccumulate(),
                    Times<double>(),
+                   0.5,
+                   u)),
+            DimensionException);
+
+        BOOST_CHECK_THROW(
+            (apply(w,
+                   NoMask(),
+                   NoAccumulate(),
+                   Times<double>(),
                    u,
                    0.5)),
             DimensionException);
@@ -557,6 +784,14 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_bad_dimension)
     {
         Vector<double> w(4);
         Vector<bool> m(3);
+        BOOST_CHECK_THROW(
+            (apply(w,
+                   m,
+                   NoAccumulate(),
+                   Times<double>(),
+                   0.5,
+                   u)),
+            DimensionException);
         BOOST_CHECK_THROW(
             (apply(w,
                    m,
@@ -576,19 +811,32 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_nomask_noaccum)
     GraphBLAS::Vector<double> vA(vecA, 0);
 
     std::vector<double> vecC = {1, 2, 0, 0};
-    GraphBLAS::Vector<double> vC(vecC, 0);
 
     std::vector<double> vecAnswer = {-8, 0, -6,  0};
     GraphBLAS::Vector<double> answer(vecAnswer, 0);
 
-    GraphBLAS::apply(vC,
-                     GraphBLAS::NoMask(),
-                     GraphBLAS::NoAccumulate(),
-                     GraphBLAS::Times<double>(),
-                     vA,
-                     -1.0);
+    {
+        GraphBLAS::Vector<double> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         -1.0,
+                         vA);
 
-    BOOST_CHECK_EQUAL(vC, answer);
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
+    {
+        GraphBLAS::Vector<double> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         vA,
+                         -1.0);
+
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
 }
 
 //****************************************************************************
@@ -599,19 +847,32 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_nomask_noaccum_bool)
     GraphBLAS::Vector<bool> vA(vecA, false);
 
     std::vector<bool> vecC = {true, true, false, false};
-    GraphBLAS::Vector<bool> vC(vecC, false);
 
     std::vector<bool> vecAnswer = {true, false, true, false};
     GraphBLAS::Vector<bool> answer(vecAnswer, false);
 
-    GraphBLAS::apply(vC,
-                     GraphBLAS::NoMask(),
-                     GraphBLAS::NoAccumulate(),
-                     GraphBLAS::LogicalXor<bool>(),
-                     vA,
-                     false);
+    {
+        GraphBLAS::Vector<bool> vC(vecC, false);
+        GraphBLAS::apply(vC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::LogicalXor<bool>(),
+                         false,
+                         vA);
 
-    BOOST_CHECK_EQUAL(vC, answer);
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
+    {
+        GraphBLAS::Vector<bool> vC(vecC, false);
+        GraphBLAS::apply(vC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::LogicalXor<bool>(),
+                         vA,
+                         false);
+
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
 }
 
 //****************************************************************************
@@ -622,19 +883,32 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_nomask_noaccum_int)
     GraphBLAS::Vector<int> vA(vecA, 0);
 
     std::vector<int> vecC = {1, 1, 0, 0};
-    GraphBLAS::Vector<int> vC(vecC, 0);
 
     std::vector<int> vecAnswer = {2, 0, 2, 0};
     GraphBLAS::Vector<int> answer(vecAnswer, 0);
 
-    GraphBLAS::apply(vC,
-                     GraphBLAS::NoMask(),
-                     GraphBLAS::NoAccumulate(),
-                     GraphBLAS::Plus<int>(),
-                     vA,
-                     1);
+    {
+        GraphBLAS::Vector<int> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Plus<int>(),
+                         1,
+                         vA);
 
-    BOOST_CHECK_EQUAL(vC, answer);
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
+    {
+        GraphBLAS::Vector<int> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Plus<int>(),
+                         vA,
+                         1);
+
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
 }
 
 //****************************************************************************
@@ -644,7 +918,6 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_mask_merge_noaccum)
     GraphBLAS::Vector<double> vA(vecA, 0);
 
     std::vector<double> vecC = {1, 1, 2, 2, 0, 0, 0, 0};
-    GraphBLAS::Vector<double> vC(vecC, 0);
 
     std::vector<bool> vecMask = {true, false, true, false, true, false, true, false};
     GraphBLAS::Vector<bool> mask(vecMask, false);
@@ -652,14 +925,28 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_mask_merge_noaccum)
     std::vector<double> vecAnswer = {-8, 1, 0, 2, -6, 0, 0, 0};
     GraphBLAS::Vector<double> answer(vecAnswer, 0);
 
-    GraphBLAS::apply(vC,
-                     mask,
-                     GraphBLAS::NoAccumulate(),
-                     GraphBLAS::Times<double>(),
-                     vA,
-                     -1.0);
+    {
+        GraphBLAS::Vector<double> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         mask,
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         -1.0,
+                         vA);
 
-    BOOST_CHECK_EQUAL(vC, answer);
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
+    {
+        GraphBLAS::Vector<double> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         mask,
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         vA,
+                         -1.0);
+
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
 }
 
 //****************************************************************************
@@ -669,7 +956,6 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_mask_replace_noaccum)
     GraphBLAS::Vector<double> vA(vecA, 0);
 
     std::vector<double> vecC = {1, 1, 2, 2, 0, 0, 0, 0};
-    GraphBLAS::Vector<double> vC(vecC, 0);
 
     std::vector<bool> vecMask = {true, false, true, false, true, false, true, false};
     GraphBLAS::Vector<bool> mask(vecMask, false);
@@ -677,15 +963,31 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_mask_replace_noaccum)
     std::vector<double> vecAnswer = {-8, 0, 0, 0, -6, 0, 0, 0};
     GraphBLAS::Vector<double> answer(vecAnswer, 0);
 
-    GraphBLAS::apply(vC,
-                     mask,
-                     GraphBLAS::NoAccumulate(),
-                     GraphBLAS::Times<double>(),
-                     vA,
-                     -1.0,
-                     REPLACE);
+    {
+        GraphBLAS::Vector<double> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         mask,
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         -1.0,
+                         vA,
+                         REPLACE);
 
-    BOOST_CHECK_EQUAL(vC, answer);
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
+
+    {
+        GraphBLAS::Vector<double> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         mask,
+                         GraphBLAS::NoAccumulate(),
+                         GraphBLAS::Times<double>(),
+                         vA,
+                         -1.0,
+                         REPLACE);
+
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
 }
 
 //****************************************************************************
@@ -710,9 +1012,18 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_noaccum)
               NoMask(),
               NoAccumulate(),
               Times<double>(),
+              -1.,
+              u);
+        BOOST_CHECK_EQUAL(w, answer);
+
+        Vector<double> w2(6);
+        apply(w2,
+              NoMask(),
+              NoAccumulate(),
+              Times<double>(),
               u,
               -1.);
-        BOOST_CHECK_EQUAL(w, answer);
+        BOOST_CHECK_EQUAL(w2, answer);
     }
 
     // Mask, replace
@@ -725,10 +1036,20 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_noaccum)
               m,
               NoAccumulate(),
               Times<double>(),
+              -1.,
+              u,
+              REPLACE);
+        BOOST_CHECK_EQUAL(w, answer);
+
+        Vector<double> w2(wtmp, 0);
+        apply(w2,
+              m,
+              NoAccumulate(),
+              Times<double>(),
               u,
               -1.,
               REPLACE);
-        BOOST_CHECK_EQUAL(w, answer);
+        BOOST_CHECK_EQUAL(w2, answer);
     }
     // Mask, merge
     {
@@ -740,10 +1061,20 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_noaccum)
               m,
               NoAccumulate(),
               Times<double>(),
+              -1.,
+              u,
+              MERGE);
+        BOOST_CHECK_EQUAL(w, answer);
+
+        Vector<double> w2(wtmp, 0);
+        apply(w2,
+              m,
+              NoAccumulate(),
+              Times<double>(),
               u,
               -1.,
               MERGE);
-        BOOST_CHECK_EQUAL(w, answer);
+        BOOST_CHECK_EQUAL(w2, answer);
     }
 
     // complement(Mask), replace
@@ -756,10 +1087,20 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_noaccum)
               complement(m),
               NoAccumulate(),
               Times<double>(),
+              -1.,
+              u,
+              REPLACE);
+        BOOST_CHECK_EQUAL(w, answer);
+
+        Vector<double> w2(wtmp, 0);
+        apply(w2,
+              complement(m),
+              NoAccumulate(),
+              Times<double>(),
               u,
               -1.,
               REPLACE);
-        BOOST_CHECK_EQUAL(w, answer);
+        BOOST_CHECK_EQUAL(w2, answer);
     }
     // complement(Mask), merge
     {
@@ -771,10 +1112,20 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_noaccum)
               complement(m),
               NoAccumulate(),
               Times<double>(),
+              -1.,
+              u,
+              MERGE);
+        BOOST_CHECK_EQUAL(w, answer);
+
+        Vector<double> w2(wtmp, 0);
+        apply(w2,
+              complement(m),
+              NoAccumulate(),
+              Times<double>(),
               u,
               -1.,
               MERGE);
-        BOOST_CHECK_EQUAL(w, answer);
+        BOOST_CHECK_EQUAL(w2, answer);
     }
 }
 
@@ -786,20 +1137,34 @@ BOOST_AUTO_TEST_CASE(sparse_apply_vector_accum)
     GraphBLAS::Vector<double> vA(vecA, 0);
 
     std::vector<double> vecC = {8, 2, 0, 0};
-    GraphBLAS::Vector<double> vC(vecC, 0);
 
     // NOTE: The accum results in an explicit zero
     std::vector<double> vecAnswer = {0, 2, -6,  666};
     GraphBLAS::Vector<double> answer(vecAnswer, 666);
 
-    GraphBLAS::apply(vC,
-                     GraphBLAS::NoMask(),
-                     GraphBLAS::Plus<double>(),
-                     GraphBLAS::Times<double>(),
-                     vA,
-                     -1.);
+    {
+        GraphBLAS::Vector<double> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::Plus<double>(),
+                         GraphBLAS::Times<double>(),
+                         -1.,
+                         vA);
 
-    BOOST_CHECK_EQUAL(vC, answer);
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
+
+    {
+        GraphBLAS::Vector<double> vC(vecC, 0);
+        GraphBLAS::apply(vC,
+                         GraphBLAS::NoMask(),
+                         GraphBLAS::Plus<double>(),
+                         GraphBLAS::Times<double>(),
+                         vA,
+                         -1.);
+
+        BOOST_CHECK_EQUAL(vC, answer);
+    }
 }
 
 //****************************************************************************
@@ -824,9 +1189,18 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_plus_accum)
               NoMask(),
               Plus<double>(),
               Times<double>(),
+              -1.,
+              u);
+        BOOST_CHECK_EQUAL(w, answer);
+
+        Vector<double> w2(wtmp, 0);
+        apply(w2,
+              NoMask(),
+              Plus<double>(),
+              Times<double>(),
               u,
               -1.);
-        BOOST_CHECK_EQUAL(w, answer);
+        BOOST_CHECK_EQUAL(w2, answer);
     }
 
     // Mask, replace
@@ -839,15 +1213,35 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_plus_accum)
               m,
               Plus<double>(),
               Times<double>(),
+              -1.,
+              u,
+              REPLACE);
+        BOOST_CHECK_EQUAL(w, answer);
+
+        Vector<double> w2(wtmp, 0);
+        apply(w2,
+              m,
+              Plus<double>(),
+              Times<double>(),
               u,
               -1.,
               REPLACE);
-        BOOST_CHECK_EQUAL(w, answer);
+        BOOST_CHECK_EQUAL(w2, answer);
     }
     // Mask, merge
     {
         std::vector<double> ans = {9, 0, 7., -3., 9, 0};
         Vector<double> answer(ans, 0.);
+
+        Vector<double> w2(wtmp, 0);
+        apply(w2,
+              m,
+              Plus<double>(),
+              Times<double>(),
+              -1.,
+              u,
+              MERGE);
+        BOOST_CHECK_EQUAL(w2, answer);
 
         Vector<double> w(wtmp, 0);
         apply(w,
@@ -870,10 +1264,20 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_plus_accum)
               complement(m),
               Plus<double>(),
               Times<double>(),
+              -1.,
+              u,
+              REPLACE);
+        BOOST_CHECK_EQUAL(w, answer);
+
+        Vector<double> w2(wtmp, 0);
+        apply(w2,
+              complement(m),
+              Plus<double>(),
+              Times<double>(),
               u,
               -1.,
               REPLACE);
-        BOOST_CHECK_EQUAL(w, answer);
+        BOOST_CHECK_EQUAL(w2, answer);
     }
     // complement(Mask), merge
     {
@@ -885,10 +1289,20 @@ BOOST_AUTO_TEST_CASE(apply_stdvec_test_plus_accum)
               complement(m),
               Plus<double>(),
               Times<double>(),
+              -1.,
+              u,
+              MERGE);
+        BOOST_CHECK_EQUAL(w, answer);
+
+        Vector<double> w2(wtmp, 0);
+        apply(w2,
+              complement(m),
+              Plus<double>(),
+              Times<double>(),
               u,
               -1.,
               MERGE);
-        BOOST_CHECK_EQUAL(w, answer);
+        BOOST_CHECK_EQUAL(w2, answer);
     }
 }
 
