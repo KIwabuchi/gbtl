@@ -281,30 +281,31 @@ namespace GraphBLAS
         template<typename CScalarT,
                  typename MaskT,
                  typename AccumT,
-                 typename UnaryFunctionT,
+                 typename UnaryOpT,
                  typename AMatrixT,
-                 typename ...ATagsT>
-        friend inline void apply(Matrix<CScalarT, ATagsT...> &C,
+                 typename ...CTagsT>
+        friend inline void apply(Matrix<CScalarT, CTagsT...> &C,
                                  MaskT                 const &Mask,
                                  AccumT                const &accum,
-                                 UnaryFunctionT               op,
+                                 UnaryOpT                     op,
                                  AMatrixT              const &A,
                                  OutputControlEnum            outp);
+
 
         // 4.3.8.4: matrix binaryop bind2nd variant
         template<typename CScalarT,
                  typename MaskT,
                  typename AccumT,
-                 typename BinaryFunctionT,
-                 typename AMatrixT,
-                 typename ValueT,
-                 typename ...ATagsT>
-        friend inline void apply(Matrix<CScalarT, ATagsT...> &C,
+                 typename BinaryOpT,
+                 typename FirstT,
+                 typename SecondT,
+                 typename ...CTagsT>
+        friend inline void apply(Matrix<CScalarT, CTagsT...> &C,
                                  MaskT                 const &Mask,
                                  AccumT                const &accum,
-                                 BinaryFunctionT              op,
-                                 AMatrixT              const &A,
-                                 ValueT                       val,
+                                 BinaryOpT                    op,
+                                 FirstT                const &lhs,
+                                 SecondT               const &rhs,
                                  OutputControlEnum            outp);
 
         //--------------------------------------------------------------------

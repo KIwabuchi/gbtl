@@ -52,6 +52,31 @@
 #define GB_INCLUDE_BACKEND_OPERATIONS 1
 #include <backend_include.hpp>
 
+/// @todo: Figure out a better place to put these definitions
+namespace GraphBLAS
+{
+    template <class>
+    inline constexpr bool is_vector_v = false;
+
+    template <class T, class... Tags>
+    inline constexpr bool is_vector_v<Vector<T, Tags...>> = true;
+
+    template <class VectorT>
+    inline constexpr bool is_vector_v<VectorComplementView<VectorT>> = true;
+
+    template <class>
+    inline constexpr bool is_matrix_v = false;
+
+    template <class T, class... Tags>
+    inline constexpr bool is_matrix_v<Matrix<T, Tags...>> = true;
+
+    template <class MatrixT>
+    inline constexpr bool is_matrix_v<MatrixComplementView<MatrixT>> = true;
+
+    template <class MatrixT>
+    inline constexpr bool is_matrix_v<TransposeView<MatrixT>> = true;
+}
+
 //****************************************************************************
 // New signatures to conform to GraphBLAS Specification
 //****************************************************************************
@@ -712,7 +737,7 @@ namespace GraphBLAS
         backend::apply(w.m_vec, mask.m_vec, accum, op, u.m_vec, outp);
 
         GRB_LOG_VERBOSE("w out: " << w.m_vec);
-        GRB_LOG_FN_END("assign - 4.3.8.1 - vector variant");
+        GRB_LOG_FN_END("apply - 4.3.8.1 - vector variant");
     }
 
     // 4.3.8.2: matrix variant
@@ -721,8 +746,8 @@ namespace GraphBLAS
              typename AccumT,
              typename UnaryOpT,
              typename AMatrixT,
-             typename ...ATagsT>
-    inline void apply(Matrix<CScalarT, ATagsT...> &C,
+             typename ...CTagsT>
+    inline void apply(Matrix<CScalarT, CTagsT...> &C,
                       MaskT                 const &Mask,
                       AccumT                const &accum,
                       UnaryOpT                     op,
@@ -749,75 +774,137 @@ namespace GraphBLAS
         GRB_LOG_FN_END("apply - 4.3.8.2 - matrix variant");
     }
 
-    // 4.3.8.3: vector binaryop bind2nd variant
+    // 4.3.8.3: vector binaryop variants
     template<typename WScalarT,
              typename MaskT,
              typename AccumT,
              typename BinaryOpT,
-             typename UVectorT,
-             typename ValueT,
+             typename FirstT,
+             typename SecondT,
              typename ...WTagsT>
-    inline void apply(Vector<WScalarT, WTagsT...> &w,
-                      MaskT                 const &mask,
-                      AccumT                const &accum,
-                      BinaryOpT                    op,
-                      UVectorT              const &u,
-                      ValueT                       val,
-                      OutputControlEnum            outp = MERGE)
+    inline void apply(
+        Vector<WScalarT, WTagsT...> &w,
+        MaskT                 const &mask,
+        AccumT                const &accum,
+        BinaryOpT                    op,
+        FirstT                const &lhs,
+        SecondT               const &rhs,
+        OutputControlEnum            outp = MERGE)
     {
-        GRB_LOG_FN_BEGIN("apply - 4.3.8.3 - vector binaryop bind2nd variant");
-        GRB_LOG_VERBOSE("w in: " << w.m_vec);
-        GRB_LOG_VERBOSE("mask in: " << mask.m_vec);
-        GRB_LOG_VERBOSE_ACCUM(accum);
-        GRB_LOG_VERBOSE_OP(op);
-        GRB_LOG_VERBOSE("u in: " << u.m_vec);
-        GRB_LOG_VERBOSE("val in: " << val);
-        GRB_LOG_VERBOSE_OUTP(outp);
+        // figure out if the user wants bind1st or bind2nd based on the arg types
+        constexpr bool is_bind1st = is_vector_v<SecondT>;
+        constexpr bool is_bind2nd = is_vector_v<FirstT>;
 
-        check_size_size(w, mask, "apply(vec,binop): w.size != mask.size");
-        check_size_size(w, u, "apply(vec,binop): w.size != u.size");
+        // make sure only one of the types matches
+        static_assert(is_bind1st ^ is_bind2nd, "apply isn't going to work");
 
-        backend::apply_binop(w.m_vec, mask.m_vec, accum, op, u.m_vec, val, outp);
+        if constexpr(is_bind1st) {
+            GRB_LOG_FN_BEGIN("apply - 4.3.8.3 - vector binaryop bind1st variant");
+            GRB_LOG_VERBOSE("w in: " << w.m_vec);
+            GRB_LOG_VERBOSE("mask in: " << mask.m_vec);
+            GRB_LOG_VERBOSE_ACCUM(accum);
+            GRB_LOG_VERBOSE_OP(op);
+            GRB_LOG_VERBOSE("val in: " << lhs);
+            GRB_LOG_VERBOSE("u in: " << rhs.m_vec);
+            GRB_LOG_VERBOSE_OUTP(outp);
 
-        GRB_LOG_VERBOSE("w out: " << w.m_vec);
-        GRB_LOG_FN_END("assign - 4.3.8.3 - vector binaryop bind2nd variant");
+            check_size_size(w, mask, "apply(vec,binop): w.size != mask.size");
+            check_size_size(w, rhs, "apply(vec,binop): w.size != u.size");
+
+            backend::apply_binop_1st(w.m_vec, mask.m_vec, accum,
+                                     op, lhs, rhs.m_vec, outp);
+
+            GRB_LOG_VERBOSE("w out: " << w.m_vec);
+            GRB_LOG_FN_END("apply - 4.3.8.3 - vector binaryop bind1st variant");
+        }
+        else {
+            GRB_LOG_FN_BEGIN("apply - 4.3.8.3 - vector binaryop bind2nd variant");
+            GRB_LOG_VERBOSE("w in: " << w.m_vec);
+            GRB_LOG_VERBOSE("mask in: " << mask.m_vec);
+            GRB_LOG_VERBOSE_ACCUM(accum);
+            GRB_LOG_VERBOSE_OP(op);
+            GRB_LOG_VERBOSE("u in: " << lhs.m_vec);
+            GRB_LOG_VERBOSE("val in: " << rhs);
+            GRB_LOG_VERBOSE_OUTP(outp);
+
+            check_size_size(w, mask, "apply(vec,binop): w.size != mask.size");
+            check_size_size(w, lhs, "apply(vec,binop): w.size != u.size");
+
+            backend::apply_binop_2nd(w.m_vec, mask.m_vec, accum,
+                                     op, lhs.m_vec, rhs, outp);
+
+            GRB_LOG_VERBOSE("w out: " << w.m_vec);
+            GRB_LOG_FN_END("apply - 4.3.8.3 - vector binaryop bind2nd variant");
+        }
     }
 
-    // 4.3.8.4: matrix binaryop bind2nd variant
+    // 4.3.8.4: matrix binaryop variants
     template<typename CScalarT,
              typename MaskT,
              typename AccumT,
              typename BinaryOpT,
-             typename AMatrixT,
-             typename ValueT,
-             typename ...ATagsT>
-    inline void apply(Matrix<CScalarT, ATagsT...> &C,
-                      MaskT                 const &Mask,
-                      AccumT                const &accum,
-                      BinaryOpT                    op,
-                      AMatrixT              const &A,
-                      ValueT                       val,
-                      OutputControlEnum            outp = MERGE)
+             typename FirstT,
+             typename SecondT,
+             typename ...CTagsT>
+    inline void apply(
+        Matrix<CScalarT, CTagsT...> &C,
+        MaskT                 const &Mask,
+        AccumT                const &accum,
+        BinaryOpT                    op,
+        FirstT                const &lhs,
+        SecondT               const &rhs,
+        OutputControlEnum            outp = MERGE)
     {
+        // figure out if the user wants bind1st or bind2nd based on the argument types
+        constexpr bool is_bind1st = is_matrix_v<SecondT>;
+        constexpr bool is_bind2nd = is_matrix_v<FirstT>;
 
-        GRB_LOG_FN_BEGIN("apply - 4.3.8.4 - matrix binaryop bind2nd variant");
-        GRB_LOG_VERBOSE("C in: " << C.m_mat);
-        GRB_LOG_VERBOSE("Mask in: " << Mask.m_mat);
-        GRB_LOG_VERBOSE_ACCUM(accum);
-        GRB_LOG_VERBOSE_OP(op);
-        GRB_LOG_VERBOSE("A in: " << A);
-        GRB_LOG_VERBOSE("val in: " << val);
-        GRB_LOG_VERBOSE_OUTP(outp);
+        // make sure only one of the types matches
+        static_assert(is_bind1st ^ is_bind2nd, "apply isn't going to work");
 
-        check_ncols_ncols(C, Mask, "apply(mat,binop): C.ncols != Mask.ncols");
-        check_nrows_nrows(C, Mask, "apply(mat,binop): C.nrows != Mask.nrows");
-        check_ncols_ncols(C, A, "apply(mat,binop): C.ncols != A.ncols");
-        check_nrows_nrows(C, A, "apply(mat,binop): C.nrows != A.nrows");
+        if constexpr(is_bind1st) {
+            GRB_LOG_FN_BEGIN("apply - 4.3.8.4 - matrix binaryop bind1st variant");
+            GRB_LOG_VERBOSE("C in: " << C.m_mat);
+            GRB_LOG_VERBOSE("Mask in: " << Mask.m_mat);
+            GRB_LOG_VERBOSE_ACCUM(accum);
+            GRB_LOG_VERBOSE_OP(op);
+            GRB_LOG_VERBOSE("val in: " << lhs);
+            GRB_LOG_VERBOSE("A in: " << rhs.m_mat);
+            GRB_LOG_VERBOSE_OUTP(outp);
 
-        backend::apply_binop(C.m_mat, Mask.m_mat, accum, op, A.m_mat, val, outp);
+            check_ncols_ncols(C, Mask, "apply(mat,binop): C.ncols != Mask.ncols");
+            check_nrows_nrows(C, Mask, "apply(mat,binop): C.nrows != Mask.nrows");
+            check_ncols_ncols(C, rhs, "apply(mat,binop): C.ncols != A.ncols");
+            check_nrows_nrows(C, rhs, "apply(mat,binop): C.nrows != A.nrows");
 
-        GRB_LOG_VERBOSE("C out: " << C.m_mat);
-        GRB_LOG_FN_END("apply - 4.3.8.4 - matrix binaryop bind2nd variant");
+            backend::apply_binop_1st(C.m_mat, Mask.m_mat, accum,
+                                     op, lhs, rhs.m_mat, outp);
+
+            GRB_LOG_VERBOSE("C out: " << C.m_mat);
+            GRB_LOG_FN_END("apply - 4.3.8.4 - matrix binaryop bind1st variant");
+        }
+        else
+        {
+            GRB_LOG_FN_BEGIN("apply - 4.3.8.4 - matrix binaryop bind2nd variant");
+            GRB_LOG_VERBOSE("C in: " << C.m_mat);
+            GRB_LOG_VERBOSE("Mask in: " << Mask.m_mat);
+            GRB_LOG_VERBOSE_ACCUM(accum);
+            GRB_LOG_VERBOSE_OP(op);
+            GRB_LOG_VERBOSE("A in: " << lhs.m_mat);
+            GRB_LOG_VERBOSE("val in: " << rhs);
+            GRB_LOG_VERBOSE_OUTP(outp);
+
+            check_ncols_ncols(C, Mask, "apply(mat,binop): C.ncols != Mask.ncols");
+            check_nrows_nrows(C, Mask, "apply(mat,binop): C.nrows != Mask.nrows");
+            check_ncols_ncols(C, lhs, "apply(mat,binop): C.ncols != A.ncols");
+            check_nrows_nrows(C, lhs, "apply(mat,binop): C.nrows != A.nrows");
+
+            backend::apply_binop_2nd(C.m_mat, Mask.m_mat, accum,
+                                     op, lhs.m_mat, rhs, outp);
+
+            GRB_LOG_VERBOSE("C out: " << C.m_mat);
+            GRB_LOG_FN_END("apply - 4.3.8.4 - matrix binaryop bind2nd variant");
+        }
     }
 
     //************************************************************************

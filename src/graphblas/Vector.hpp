@@ -421,36 +421,35 @@ namespace GraphBLAS
                                   SequenceT   const &indices,
                                   OutputControlEnum  outp);
 
-        // 4.3.8.1:
+        // 4.3.8.1: vector unaryop variant
         template<typename WScalarT,
                  typename MaskT,
                  typename AccumT,
-                 typename UnaryFunctionT,
+                 typename UnaryOpT,
                  typename UVectorT,
-                 typename ...WTagsT>
-        friend inline void apply(
-            GraphBLAS::Vector<WScalarT, WTagsT...> &w,
-            MaskT                            const &mask,
-            AccumT                           const &accum,
-            UnaryFunctionT                          op,
-            UVectorT                         const &u,
-            OutputControlEnum                       outp);
-
-
-        // 4.3.8.3: vector binaryop bind2nd variant
-        template<typename WScalarT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename BinaryFunctionT,
-                 typename UVectorT,
-                 typename ValueT,
                  typename ...WTagsT>
         friend inline void apply(Vector<WScalarT, WTagsT...> &w,
                                  MaskT                 const &mask,
                                  AccumT                const &accum,
-                                 BinaryFunctionT              op,
+                                 UnaryOpT                     op,
                                  UVectorT              const &u,
-                                 ValueT                       val,
+                                 OutputControlEnum            outp);
+
+
+        // 4.3.8.3: vector binaryop variants
+        template<typename WScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryOpT,
+                 typename FirstT,
+                 typename SecondT,
+                 typename ...WTagsT>
+        friend inline void apply(Vector<WScalarT, WTagsT...> &w,
+                                 MaskT                 const &mask,
+                                 AccumT                const &accum,
+                                 BinaryOpT                    op,
+                                 FirstT                const &lhs,
+                                 SecondT               const &rhs,
                                  OutputControlEnum            outp);
 
         // 4.3.9.1
