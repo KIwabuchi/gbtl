@@ -204,12 +204,16 @@ namespace algorithms
 
                     // v' += (-k_i/m)*k'
                     // TODO: Replace the following with apply with binary op and scalar
-                    GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<RealT>>
-                        scalar_multiply(static_cast<RealT>(-k.extractElement(i)/m));
+                    //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<RealT>>
+                    //    scalar_multiply(static_cast<RealT>(-k.extractElement(i)/m));
 
-                    GraphBLAS::apply(v, GraphBLAS::NoMask(),
-                                     GraphBLAS::Plus<RealT>(),
-                                     scalar_multiply, k);
+                    GraphBLAS::apply(
+                        v, GraphBLAS::NoMask(),
+                        GraphBLAS::Plus<RealT>(),
+                        std::bind(GraphBLAS::Times<RealT>(),
+                                  std::placeholders::_1,
+                                  static_cast<RealT>(-k.extractElement(i)/m)),
+                        k);
 
 
                     // q' = v' * S = [e_i' * (A + A') + (-k_i/m)*k'] * S
@@ -229,13 +233,17 @@ namespace algorithms
 
                     // t = (q == kappa)
                     // Replace the following with apply with binary op and scalar
-                    GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
-                        equal_kappa(kappa);
+                    //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
+                    //    equal_kappa(kappa);
 
                     GraphBLAS::Vector<bool> t(rows);
                     GraphBLAS::apply(t, GraphBLAS::NoMask(),
                                      GraphBLAS::NoAccumulate(),
-                                     equal_kappa, q);
+                                     std::bind(GraphBLAS::Equal<RealT>(),
+                                               std::placeholders::_1,
+                                               kappa),
+                                     q);
+
                     // remove all stored falses (TODO: Replace with GxB_select?)
                     GraphBLAS::apply(t, t, GraphBLAS::NoAccumulate(),
                                      GraphBLAS::Identity<T>(), t, GraphBLAS::REPLACE);
@@ -260,12 +268,16 @@ namespace algorithms
 
                         // t = (q == kappa)
                         // Replace the following with apply with binary op and scalar
-                        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
-                            equal_max_p(max_p);
+                        //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
+                        //    equal_max_p(max_p);
 
                         GraphBLAS::apply(t, GraphBLAS::NoMask(),
                                          GraphBLAS::NoAccumulate(),
-                                         equal_max_p, p);
+                                         std::bind(GraphBLAS::Equal<RealT>(),
+                                                   std::placeholders::_1,
+                                                   max_p),
+                                         p);
+
                         // remove all stored falses (TODO: Replace with GxB_select?)
                         GraphBLAS::apply(t, t, GraphBLAS::NoAccumulate(),
                                          GraphBLAS::Identity<T>(), t,
@@ -422,18 +434,22 @@ namespace algorithms
 
                     // v' += (-k_i/m)*k'
                     // TODO: Replace the following with apply with binary op and scalar
-                    GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<RealT>>
-                        scalar_multiply(static_cast<RealT>(-k.extractElement(i)/m));
+                    //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<RealT>>
+                    //    scalar_multiply(static_cast<RealT>(-k.extractElement(i)/m));
 
-                    GraphBLAS::apply(v, GraphBLAS::NoMask(),
-                                     GraphBLAS::Plus<RealT>(),
-                                     scalar_multiply, k);
+                    GraphBLAS::apply(
+                        v, GraphBLAS::NoMask(),
+                        GraphBLAS::Plus<RealT>(),
+                        std::bind(GraphBLAS::Times<RealT>(),
+                                  std::placeholders::_1,
+                                  static_cast<RealT>(-k.extractElement(i)/m)),
+                        k);
 
                     // ============= MASKING =============
                     // find mask of communities that are neighbors of vertex i
 
                     // Extract the neighbors of vertex i as bools
-                    // TODO figure out if extract can be done once (note different domain)
+                    /// @todo figure out if extract can be done once (note different domain)
                     GraphBLAS::extract(q_mask, GraphBLAS::NoMask(),
                                        GraphBLAS::NoAccumulate(),
                                        GraphBLAS::transpose(ApAT),  // transpose optional
@@ -462,12 +478,16 @@ namespace algorithms
 
                     // t = (q == kappa)
                     // Replace the following with apply with binary op and scalar
-                    GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
-                        equal_kappa(kappa);
+                    //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
+                    //    equal_kappa(kappa);
 
                     GraphBLAS::apply(t, GraphBLAS::NoMask(),
                                      GraphBLAS::NoAccumulate(),
-                                     equal_kappa, q);
+                                     std::bind(GraphBLAS::Equal<RealT>(),
+                                               std::placeholders::_1,
+                                               kappa),
+                                     q);
+
                     // remove all stored falses (TODO: Replace with GxB_select?)
                     GraphBLAS::apply(t, t, GraphBLAS::NoAccumulate(),
                                      GraphBLAS::Identity<T>(), t, GraphBLAS::REPLACE);
@@ -492,12 +512,15 @@ namespace algorithms
 
                         // t = (q == kappa)
                         // Replace the following with apply with binary op and scalar
-                        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
-                            equal_max_p(max_p);
+                        //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
+                        //    equal_max_p(max_p);
 
                         GraphBLAS::apply(t, GraphBLAS::NoMask(),
                                          GraphBLAS::NoAccumulate(),
-                                         equal_max_p, p);
+                                         std::bind(GraphBLAS::Equal<RealT>(),
+                                                   std::placeholders::_1,
+                                                   max_p),
+                                         p);
                         // remove all stored falses (TODO: Replace with GxB_select?)
                         GraphBLAS::apply(t, t, GraphBLAS::NoAccumulate(),
                                          GraphBLAS::Identity<T>(), t,

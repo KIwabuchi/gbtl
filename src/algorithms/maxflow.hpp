@@ -345,9 +345,12 @@ namespace algorithms
 
             // GM = gamma*M
             MatrixT GM(num_nodes, num_nodes);
-            GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<T> > apply_gamma(gamma);
+            //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<T> > apply_gamma(gamma);
             GraphBLAS::apply(GM, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                             apply_gamma, M);
+                             std::bind(GraphBLAS::Times<T>(),
+                                       std::placeholders::_1,
+                                       gamma),
+                             M);
             //GraphBLAS::print_matrix(std::cerr, GM, "gamma*M");
 
             // F += gamma(M - M')
@@ -429,9 +432,12 @@ namespace algorithms
             //std::cerr << "gamma = min(M.*R) = " << gamma << std::endl;
 
             // GM = gamma*M
-            GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<T> > apply_gamma(gamma);
+            //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<T> > apply_gamma(gamma);
             GraphBLAS::apply(GM, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                             apply_gamma, M);
+                             std::bind(GraphBLAS::Times<T>(),
+                                       std::placeholders::_1,
+                                       gamma),
+                             M);
             //GraphBLAS::print_matrix(std::cerr, GM, "gamma*M");
 
             // F += gamma*M

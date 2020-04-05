@@ -98,13 +98,19 @@ namespace algorithms
         GraphBLAS::apply(
             m,
             GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-            GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<RealT>>(damping_factor),
+            std::bind(GraphBLAS::Times<RealT>(),
+                      std::placeholders::_1,
+                      damping_factor),
             m);
         //GraphBLAS::print_matrix(std::cout, m, "Scaled Graph");
 
-        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Plus<RealT> >
-            add_scaled_teleport((1.0 - damping_factor)/
-                                static_cast<T>(rows));
+        //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Plus<RealT> >
+        //    add_scaled_teleport((1.0 - damping_factor)/
+        //                        static_cast<T>(rows));
+        auto add_scaled_teleport =
+            std::bind(GraphBLAS::Plus<RealT>(),
+                      std::placeholders::_1,
+                      (1.0 - damping_factor)/static_cast<T>(rows));
 
         GraphBLAS::assign(page_rank,
                           GraphBLAS::NoMask(),

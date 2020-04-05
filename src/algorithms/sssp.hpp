@@ -341,10 +341,13 @@ namespace algorithms
 
         // AL = A .* (A <= delta)
         MatrixT AL(n, n);
-        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::LessEqual<T>>
-            leq_delta((T)delta);
+        //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::LessEqual<T>>
+        //    leq_delta((T)delta);
         GraphBLAS::apply(AL, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                         leq_delta, graph);
+                         std::bind(GraphBLAS::LessEqual<T>(),
+                                   std::placeholders::_1,
+                                   static_cast<T>(delta)),
+                          graph);
         GraphBLAS::apply(AL, AL, GraphBLAS::NoAccumulate(),
                          GraphBLAS::Identity<T>(), graph, GraphBLAS::REPLACE);
         //GraphBLAS::print_matrix(std::cerr, AL, "AL = A(<=delta)");
@@ -353,10 +356,13 @@ namespace algorithms
         MatrixT AH(n, n);
         //GraphBLAS::apply(AH, GraphBLAS::complement(AL), GraphBLAS::NoAccumulate(),
         //                 GraphBLAS::Identity<T>(), A);
-        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::GreaterThan<T>>
-            gt_delta(delta);
+        //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::GreaterThan<T>>
+        //    gt_delta(delta);
         GraphBLAS::apply(AH, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                         gt_delta, graph);
+                         std::bind(GraphBLAS::GreaterThan<T>(),
+                                   std::placeholders::_1,
+                                   delta),
+                         graph);
         GraphBLAS::apply(AH, AH, GraphBLAS::NoAccumulate(),
                          GraphBLAS::Identity<T>(), graph, GraphBLAS::REPLACE);
         //GraphBLAS::print_matrix(std::cerr, AH, "AH = A(>delta)");
@@ -365,10 +371,13 @@ namespace algorithms
         GraphBLAS::IndexType i(0);
 
         // t >= i*delta
-        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::GreaterEqual<T>>
-            geq_idelta((T)i*delta);
+        //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::GreaterEqual<T>>
+        //    geq_idelta((T)i*delta);
         GraphBLAS::apply(tcomp, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                         geq_idelta, t);
+                         std::bind(GraphBLAS::GreaterEqual<T>(),
+                                   std::placeholders::_1,
+                                   static_cast<T>(i)*delta),
+                         t);
         GraphBLAS::apply(tcomp, tcomp, GraphBLAS::NoAccumulate(),
                          GraphBLAS::Identity<bool>(), tcomp);
 
@@ -473,13 +482,16 @@ namespace algorithms
             ++i;
 
             // t >= i*delta
-            GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::GreaterEqual<T>>
-                geq_idelta((T)i*delta);
+            //GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::GreaterEqual<T>>
+            //    geq_idelta((T)i*delta);
 
             GraphBLAS::apply(tcomp,
                              GraphBLAS::NoMask(),
                              GraphBLAS::NoAccumulate(),
-                             geq_idelta, t);
+                             std::bind(GraphBLAS::GreaterEqual<T>(),
+                                       std::placeholders::_1,
+                                       static_cast<T>(i)*delta),
+                             t);
             GraphBLAS::apply(tcomp, tcomp, GraphBLAS::NoAccumulate(),
                              GraphBLAS::Identity<bool>(), tcomp, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cerr, tcomp, "tcomp = t(>=i*delta)");
