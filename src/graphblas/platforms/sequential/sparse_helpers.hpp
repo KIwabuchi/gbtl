@@ -348,7 +348,8 @@ namespace GraphBLAS
                 return false;
             }
 
-            typedef typename BinaryOpT::result_type D3ScalarType;
+            using D3ScalarType =
+                decltype(op(std::declval<D1>(), std::declval<D1>()));
             D3ScalarType tmp;
 
             if (vec.size() == 1)

@@ -331,9 +331,12 @@ namespace GraphBLAS
             // =================================================================
             // Accumulate into z
 
-            typedef typename std::conditional<std::is_same<AccumT, NoAccumulate>::value,
-                    typename WVectorT::ScalarType,
-                    typename AccumT::result_type>::type ZScalarType;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                typename WVectorT::ScalarType, /// @todo UScalarType?
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<UScalarType>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_stencil_opt_accum_1D(z, w, t,
@@ -385,9 +388,12 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<std::is_same<AccumT, NoAccumulate>::value,
-                    typename CMatrixT::ScalarType,
-                    typename AccumT::result_type>::type ZScalarType;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                typename CMatrixT::ScalarType, /// @todo AScalarType?
+                decltype(accum(std::declval<typename CMatrixT::ScalarType>(),
+                               std::declval<AScalarType>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
             ewise_or_stencil_opt_accum(Z, C, T,
@@ -539,11 +545,12 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
-                typename WVectorT::ScalarType,
-                typename AccumT::result_type>::type ZScalarType;
+                typename WVectorT::ScalarType,  /// @todo ValueT?
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<ValueT>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_stencil_opt_accum_1D(z, w, t,
@@ -594,9 +601,12 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<std::is_same<AccumT, NoAccumulate>::value,
-                    typename CMatrixT::ScalarType,
-                    typename AccumT::result_type>::type ZScalarType;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                typename CMatrixT::ScalarType,  /// @todo ValueT?
+                decltype(accum(std::declval<CScalarType>(),
+                               std::declval<ValueT>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<CScalarType> Z(C.nrows(), C.ncols());
             ewise_or_stencil_opt_accum(Z, C, T,

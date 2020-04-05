@@ -69,7 +69,6 @@ namespace GraphBLAS
             // =================================================================
             // Apply the unary operator from A into T.
             typedef typename UVectorT::ScalarType        UScalarType;
-            //typedef typename UnaryOpT::result_type       TScalarType;
             using TScalarType = decltype(op(std::declval<UScalarType>()));
             std::vector<std::tuple<IndexType,TScalarType> > t_contents;
 
@@ -100,7 +99,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 TScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<WScalarT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType,ZScalarType> > z_contents;
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
@@ -133,7 +134,6 @@ namespace GraphBLAS
 
 
             using TScalarType = decltype(op(std::declval<AScalarType>()));
-            //typedef typename UnaryOpT::result_type                  TScalarType;
             typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
 
 
@@ -182,7 +182,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 TScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<ZScalarType> Z(nrows, ncols);
             ewise_or_opt_accum(Z, C, T, accum);
@@ -216,7 +218,6 @@ namespace GraphBLAS
             // Apply the binary operator to u and val and store into T.
             // This is really the guts of what makes this special.
             typedef typename UVectorT::ScalarType         UScalarType;
-            //typedef typename BinaryOpT::result_type       TScalarType;
             using TScalarType = decltype(op(std::declval<ValueT>(),
                                             std::declval<UScalarType>()));
             std::vector<std::tuple<IndexType,TScalarType> > t_contents;
@@ -247,7 +248,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 TScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<WScalarT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType,ZScalarType> > z_contents;
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
@@ -281,7 +284,6 @@ namespace GraphBLAS
             // Apply the binary operator to u and val and store into T.
             // This is really the guts of what makes this special.
             typedef typename UVectorT::ScalarType         UScalarType;
-            //typedef typename BinaryOpT::result_type       TScalarType;
             using TScalarType = decltype(op(std::declval<UScalarType>(),
                                             std::declval<ValueT>()));
             std::vector<std::tuple<IndexType,TScalarType> > t_contents;
@@ -312,7 +314,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 TScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<WScalarT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType,ZScalarType> > z_contents;
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
@@ -397,7 +401,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 TScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<ZScalarType> Z(nrows, ncols);
             ewise_or_opt_accum(Z, C, T, accum);
@@ -431,7 +437,6 @@ namespace GraphBLAS
             typedef typename AMatrixT::ScalarType                   AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
 
-            //typedef typename BinaryOpT::result_type                 TScalarType;
             using TScalarType = decltype(op(std::declval<AScalarType>(),
                                             std::declval<ValueT>()));
             typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
@@ -483,7 +488,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 TScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<ZScalarType> Z(nrows, ncols);
             ewise_or_opt_accum(Z, C, T, accum);

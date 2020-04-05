@@ -76,16 +76,16 @@ namespace GraphBLAS
             IndexType nrow_C(C.nrows());
             IndexType ncol_C(C.ncols());
 
-            typedef typename SemiringT::result_type D3ScalarType;
+            typedef typename SemiringT::result_type TScalarType;
             typedef typename AMatrixT::ScalarType AScalarType;
             typedef typename BMatrixT::ScalarType BScalarType;
             typedef typename CMatrixT::ScalarType CScalarType;
             typedef std::vector<std::tuple<IndexType,CScalarType> > CColType;
-            typedef std::vector<std::tuple<IndexType,D3ScalarType> > TColType;
+            typedef std::vector<std::tuple<IndexType,TScalarType> > TColType;
 
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
-            LilSparseMatrix<D3ScalarType> T(nrow_A, ncol_B);
+            LilSparseMatrix<TScalarType> T(nrow_A, ncol_B);
 
             // Build this completely based on the semiring
             if ((A.nvals() > 0) && (B.nvals() > 0))
@@ -103,7 +103,7 @@ namespace GraphBLAS
                             typename AMatrixT::RowType A_row(A.getRow(row_idx));
                             if (!A_row.empty())
                             {
-                                D3ScalarType T_val;
+                                TScalarType T_val;
                                 if (dot(T_val, A_row, B_col, op))
                                 {
                                     T_col.push_back(
@@ -126,8 +126,11 @@ namespace GraphBLAS
             // Accumulate into Z
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
-                D3ScalarType,
-                typename AccumT::result_type>::type ZScalarType;
+                TScalarType,
+                decltype(accum(std::declval<CScalarType>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
             LilSparseMatrix<ZScalarType> Z(nrow_C, ncol_C);
 
             ewise_or_opt_accum(Z, C, T, accum);

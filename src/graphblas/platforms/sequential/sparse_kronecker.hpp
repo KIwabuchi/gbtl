@@ -85,9 +85,10 @@ namespace GraphBLAS
 
             // =================================================================
             // Do the basic product work with the binaryop.
-            typedef typename BinaryOpT::result_type D3ScalarType;
-            LilSparseMatrix<D3ScalarType> T(nrow_C, ncol_C);
-            typedef typename LilSparseMatrix<D3ScalarType>::RowType TRowType;
+            using TScalarType = decltype(op(std::declval<AScalarType>(),
+                                            std::declval<BScalarType>()));
+            LilSparseMatrix<TScalarType> T(nrow_C, ncol_C);
+            typedef typename LilSparseMatrix<TScalarType>::RowType TRowType;
 
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
@@ -113,7 +114,7 @@ namespace GraphBLAS
 
                             for (auto &b_i : B_row)
                             {
-                                D3ScalarType T_val(op(val_A, std::get<1>(b_i)));
+                                TScalarType T_val(op(val_A, std::get<1>(b_i)));
                                 T_row.push_back(
                                     std::make_tuple(
                                         col_idxA*ncol_B + std::get<0>(b_i), T_val));
@@ -131,8 +132,11 @@ namespace GraphBLAS
             // Accumulate into Z
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
-                D3ScalarType,
-                typename AccumT::result_type>::type ZScalarType;
+                TScalarType,
+                decltype(accum(std::declval<CScalarType>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
             LilSparseMatrix<ZScalarType> Z(nrow_C, ncol_C);
 
             ewise_or_opt_accum(Z, C, T, accum);

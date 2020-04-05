@@ -70,7 +70,9 @@ namespace GraphBLAS
         {
             // =================================================================
             // Do the basic ewise-and work: T = A .* B
-            typedef typename BinaryOpT::result_type D3ScalarType;
+            using D3ScalarType =
+                decltype(op(std::declval<typename UVectorT::ScalarType>(),
+                            std::declval<typename VVectorT::ScalarType>()));
             std::vector<std::tuple<IndexType,D3ScalarType> > t_contents;
 
             if ((u.nvals() > 0) || (v.nvals() > 0))
@@ -121,7 +123,9 @@ namespace GraphBLAS
 
             // =================================================================
             // Do the basic ewise-and work: T = A .* B
-            typedef typename BinaryOpT::result_type D3ScalarType;
+            using D3ScalarType =
+                decltype(op(std::declval<typename AMatrixT::ScalarType>(),
+                            std::declval<typename BMatrixT::ScalarType>()));
             typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
             LilSparseMatrix<D3ScalarType> T(num_rows, num_cols);
 

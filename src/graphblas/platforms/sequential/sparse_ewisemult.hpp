@@ -71,7 +71,9 @@ namespace GraphBLAS
         {
             // =================================================================
             // Do the basic ewise-and work: t = u .* v
-            typedef typename BinaryOpT::result_type D3ScalarType;
+            using D3ScalarType =
+                decltype(op(std::declval<typename UVectorT::ScalarType>(),
+                            std::declval<typename VVectorT::ScalarType>()));
             std::vector<std::tuple<IndexType,D3ScalarType> > t_contents;
 
             if ((u.nvals() > 0) && (v.nvals() > 0))
@@ -122,7 +124,9 @@ namespace GraphBLAS
 
             // =================================================================
             // Do the basic ewise-and work: T = A .* B
-            typedef typename BinaryOpT::result_type D3ScalarType;
+            using D3ScalarType =
+                decltype(op(std::declval<typename AMatrixT::ScalarType>(),
+                            std::declval<typename BMatrixT::ScalarType>()));
             typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
             LilSparseMatrix<D3ScalarType> T(num_rows, num_cols);
 
@@ -151,24 +155,15 @@ namespace GraphBLAS
                 }
             }
 
-//            GRB_LOG_E(">>> T <<<");
-//            GRB_LOG_E(T);
-
             // =================================================================
             // Accumulate into Z
 
             LilSparseMatrix<CScalarT> Z(num_rows, num_cols);
             ewise_or_opt_accum(Z, C, T, accum);
 
-//            GRB_LOG_E(">>> Z <<< ");
-//            GRB_LOG_E(Z);
-
             // =================================================================
             // Copy Z into the final output considering mask and replace/merge
             write_with_opt_mask(C, Z, Mask, outp);
-
-//            GRB_LOG_E(">>> C <<< ");
-//            GRB_LOG_E(C);
 
         } // ewisemult
 

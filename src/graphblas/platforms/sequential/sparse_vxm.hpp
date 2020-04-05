@@ -70,11 +70,11 @@ namespace GraphBLAS
         {
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
-            typedef typename SemiringT::result_type D3ScalarType;
+            typedef typename SemiringT::result_type TScalarType;
             typedef typename AMatrixT::ScalarType AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> > AColType;
 
-            std::vector<std::tuple<IndexType, D3ScalarType> > t;
+            std::vector<std::tuple<IndexType, TScalarType> > t;
 
             if ((A.nvals() > 0) && (u.nvals() > 0))
             {
@@ -85,7 +85,7 @@ namespace GraphBLAS
 
                     if (!A_col.empty())
                     {
-                        D3ScalarType t_val;
+                        TScalarType t_val;
                         if (dot(t_val, u_contents, A_col, op))
                         {
                             t.push_back(std::make_tuple(col_idx, t_val));
@@ -96,11 +96,14 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            /// @todo Do we need a type generator for z: D(w) if no accum,
-            /// or D3(accum). I think that output type should be equivalent, but
-            /// still need to work the proof.
-            typedef typename WVectorT::ScalarType WScalarType;
-            std::vector<std::tuple<IndexType, WScalarType> > z;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                TScalarType,
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
+            std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);
 
             // =================================================================

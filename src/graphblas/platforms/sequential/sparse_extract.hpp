@@ -355,7 +355,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 UScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<UScalarType>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);
@@ -412,7 +414,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 AScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<typename CMatrixT::ScalarType>(),
+                               std::declval<AScalarType>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
             ewise_or_opt_accum(Z, C, T, accum);
@@ -469,7 +473,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 AScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<AScalarType>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);

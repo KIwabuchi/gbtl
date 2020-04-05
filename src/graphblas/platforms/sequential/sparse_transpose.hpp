@@ -99,11 +99,13 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("T: " << T);
 
             // =================================================================
-            // Accumulate T via C into Z
+            // Accumulate T via C into Z;
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 AScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<typename CMatrixT::ScalarType>(),
+                               std::declval<typename AMatrixT::ScalarType>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<ZScalarType> Z(ncols, nrows);
             ewise_or_opt_accum(Z, C, T, accum);

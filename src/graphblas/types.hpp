@@ -54,8 +54,8 @@ namespace GraphBLAS
     struct NoAccumulate
     {
         // It doesn't really matter what the type is, it never gets executed.
-        typedef bool result_type;
-        inline bool operator()(bool lhs, bool rhs) { return true; }
+        template <typename D1=bool, typename D2=bool, typename D3=bool>
+        inline D3 operator()(D1 lhs, D2 rhs) const { return true; }
     };
 
 
