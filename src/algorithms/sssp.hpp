@@ -341,7 +341,7 @@ namespace algorithms
 
         // AL = A .* (A <= delta)
         MatrixT AL(n, n);
-        GraphBLAS::BinaryOp_Bind2nd<T, GraphBLAS::LessEqual<T>>
+        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::LessEqual<T>>
             leq_delta((T)delta);
         GraphBLAS::apply(AL, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                          leq_delta, graph);
@@ -353,7 +353,7 @@ namespace algorithms
         MatrixT AH(n, n);
         //GraphBLAS::apply(AH, GraphBLAS::complement(AL), GraphBLAS::NoAccumulate(),
         //                 GraphBLAS::Identity<T>(), A);
-        GraphBLAS::BinaryOp_Bind2nd<T, GraphBLAS::GreaterThan<T>>
+        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::GreaterThan<T>>
             gt_delta(delta);
         GraphBLAS::apply(AH, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                          gt_delta, graph);
@@ -365,7 +365,7 @@ namespace algorithms
         GraphBLAS::IndexType i(0);
 
         // t >= i*delta
-        GraphBLAS::BinaryOp_Bind2nd<T, GraphBLAS::GreaterEqual<T>>
+        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::GreaterEqual<T>>
             geq_idelta((T)i*delta);
         GraphBLAS::apply(tcomp, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                          geq_idelta, t);
@@ -473,7 +473,7 @@ namespace algorithms
             ++i;
 
             // t >= i*delta
-            GraphBLAS::BinaryOp_Bind2nd<T, GraphBLAS::GreaterEqual<T>>
+            GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::GreaterEqual<T>>
                 geq_idelta((T)i*delta);
 
             GraphBLAS::apply(tcomp,

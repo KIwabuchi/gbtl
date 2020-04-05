@@ -45,7 +45,7 @@ namespace
     class SetRandom
     {
     public:
-        typedef T result_type;
+        typedef T      result_type;
         SetRandom(double seed = 0.) { m_generator.seed(seed); }
 
         inline result_type operator()(T val)
@@ -204,7 +204,7 @@ namespace algorithms
 
                     // v' += (-k_i/m)*k'
                     // TODO: Replace the following with apply with binary op and scalar
-                    GraphBLAS::BinaryOp_Bind2nd<RealT, GraphBLAS::Times<RealT>>
+                    GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<RealT>>
                         scalar_multiply(static_cast<RealT>(-k.extractElement(i)/m));
 
                     GraphBLAS::apply(v, GraphBLAS::NoMask(),
@@ -229,7 +229,7 @@ namespace algorithms
 
                     // t = (q == kappa)
                     // Replace the following with apply with binary op and scalar
-                    GraphBLAS::BinaryOp_Bind2nd<RealT, GraphBLAS::Equal<RealT>>
+                    GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
                         equal_kappa(kappa);
 
                     GraphBLAS::Vector<bool> t(rows);
@@ -260,7 +260,7 @@ namespace algorithms
 
                         // t = (q == kappa)
                         // Replace the following with apply with binary op and scalar
-                        GraphBLAS::BinaryOp_Bind2nd<RealT, GraphBLAS::Equal<RealT>>
+                        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
                             equal_max_p(max_p);
 
                         GraphBLAS::apply(t, GraphBLAS::NoMask(),
@@ -422,7 +422,7 @@ namespace algorithms
 
                     // v' += (-k_i/m)*k'
                     // TODO: Replace the following with apply with binary op and scalar
-                    GraphBLAS::BinaryOp_Bind2nd<RealT, GraphBLAS::Times<RealT>>
+                    GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Times<RealT>>
                         scalar_multiply(static_cast<RealT>(-k.extractElement(i)/m));
 
                     GraphBLAS::apply(v, GraphBLAS::NoMask(),
@@ -462,7 +462,7 @@ namespace algorithms
 
                     // t = (q == kappa)
                     // Replace the following with apply with binary op and scalar
-                    GraphBLAS::BinaryOp_Bind2nd<RealT, GraphBLAS::Equal<RealT>>
+                    GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
                         equal_kappa(kappa);
 
                     GraphBLAS::apply(t, GraphBLAS::NoMask(),
@@ -492,7 +492,7 @@ namespace algorithms
 
                         // t = (q == kappa)
                         // Replace the following with apply with binary op and scalar
-                        GraphBLAS::BinaryOp_Bind2nd<RealT, GraphBLAS::Equal<RealT>>
+                        GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::Equal<RealT>>
                             equal_max_p(max_p);
 
                         GraphBLAS::apply(t, GraphBLAS::NoMask(),

@@ -68,24 +68,29 @@ namespace GraphBLAS
         {
             // =================================================================
             // Apply the unary operator from A into T.
-            // This is really the guts of what makes this special.
             typedef typename UVectorT::ScalarType        UScalarType;
-            typedef typename UnaryOpT::result_type       TScalarType;
+            //typedef typename UnaryOpT::result_type       TScalarType;
+            using TScalarType = decltype(op(std::declval<UScalarType>()));
             std::vector<std::tuple<IndexType,TScalarType> > t_contents;
 
             if (u.nvals() > 0)
             {
-                auto u_contents(u.getContents());
-                auto row_iter = u_contents.begin();
-                while (row_iter != u_contents.end())
-                {
-                    GraphBLAS::IndexType u_idx;
-                    UScalarType          u_val;
-                    std::tie(u_idx, u_val) = *row_iter;
-                    TScalarType t_val = static_cast<TScalarType>(op(u_val));
-                    t_contents.push_back(std::make_tuple(u_idx,t_val));
-                    ++row_iter;
+                for (auto&& [idx, val] : u.getContents()) {
+                    t_contents.emplace_back(idx, op(val));
                 }
+
+                //auto u_contents(u.getContents());
+                //auto row_iter = u_contents.begin();
+                //while (row_iter != u_contents.end())
+                //{
+                //   //GraphBLAS::IndexType u_idx;
+                //    //UScalarType          u_val;
+                //    //std::tie(u_idx, u_val) = *row_iter;
+                //    auto&& [u_idx, u_val] = *row_iter;
+                //    auto t_val = op(u_val);
+                //    t_contents.push_back(std::make_tuple(u_idx,t_val));
+                //    ++row_iter;
+                //}
             }
 
             GRB_LOG_VERBOSE("t: " << t_contents);
@@ -126,7 +131,9 @@ namespace GraphBLAS
             typedef typename AMatrixT::ScalarType                   AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
 
-            typedef typename UnaryOpT::result_type                  TScalarType;
+
+            using TScalarType = decltype(op(std::declval<AScalarType>()));
+            //typedef typename UnaryOpT::result_type                  TScalarType;
             typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
 
 
@@ -138,26 +145,30 @@ namespace GraphBLAS
             // This is really the guts of what makes this special.
             LilSparseMatrix<TScalarType> T(nrows, ncols);
 
-            ARowType a_row;
+            //ARowType a_row;
             TRowType t_row;
 
-            IndexType a_idx;
-            AScalarType a_val;
+            //IndexType a_idx;
+            //AScalarType a_val;
 
             for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
             {
-                a_row = A.getRow(row_idx);
+                auto a_row = A.getRow(row_idx);
                 if (!a_row.empty())
                 {
                     t_row.clear();
-                    auto row_iter = a_row.begin();
-                    while (row_iter != a_row.end())
-                    {
-                        std::tie(a_idx, a_val) = *row_iter;
-                        TScalarType t_val = static_cast<TScalarType>(op(a_val));
-                        t_row.push_back(std::make_tuple(a_idx,t_val));
-                        ++row_iter;
+
+                    for (auto&& [a_idx, a_val] : a_row) {
+                        t_row.emplace_back(a_idx, op(a_val));
                     }
+                    //auto row_iter = a_row.begin();
+                    //while (row_iter != a_row.end())
+                    //{
+                    //    std::tie(a_idx, a_val) = *row_iter;
+                    //    TScalarType t_val = static_cast<TScalarType>(op(a_val));
+                    //    t_row.push_back(std::make_tuple(a_idx,t_val));
+                    //    ++row_iter;
+                    //}
 
                     if (!t_row.empty())
                         T.setRow(row_idx, t_row);
@@ -205,22 +216,28 @@ namespace GraphBLAS
             // Apply the binary operator to u and val and store into T.
             // This is really the guts of what makes this special.
             typedef typename UVectorT::ScalarType         UScalarType;
-            typedef typename BinaryOpT::result_type       TScalarType;
+            //typedef typename BinaryOpT::result_type       TScalarType;
+            using TScalarType = decltype(op(std::declval<ValueT>(),
+                                            std::declval<UScalarType>()));
             std::vector<std::tuple<IndexType,TScalarType> > t_contents;
 
             if (u.nvals() > 0)
             {
-                auto u_contents(u.getContents());
-                auto row_iter = u_contents.begin();
-                while (row_iter != u_contents.end())
-                {
-                    GraphBLAS::IndexType u_idx;
-                    UScalarType          u_val;
-                    std::tie(u_idx, u_val) = *row_iter;
-                    TScalarType t_val = static_cast<TScalarType>(op(val, u_val));
-                    t_contents.push_back(std::make_tuple(u_idx,t_val));
-                    ++row_iter;
+                for (auto&& [idx, u_val] : u.getContents()) {
+                    t_contents.emplace_back(idx, op(val, u_val));
                 }
+
+                //auto u_contents(u.getContents());
+                //auto row_iter = u_contents.begin();
+                //while (row_iter != u_contents.end())
+                //{
+                //    GraphBLAS::IndexType u_idx;
+                //    UScalarType          u_val;
+                //    std::tie(u_idx, u_val) = *row_iter;
+                //    TScalarType t_val = static_cast<TScalarType>(op(val, u_val));
+                //    t_contents.push_back(std::make_tuple(u_idx,t_val));
+                //    ++row_iter;
+                //}
             }
 
             GRB_LOG_VERBOSE("t: " << t_contents);
@@ -264,22 +281,28 @@ namespace GraphBLAS
             // Apply the binary operator to u and val and store into T.
             // This is really the guts of what makes this special.
             typedef typename UVectorT::ScalarType         UScalarType;
-            typedef typename BinaryOpT::result_type       TScalarType;
+            //typedef typename BinaryOpT::result_type       TScalarType;
+            using TScalarType = decltype(op(std::declval<UScalarType>(),
+                                            std::declval<ValueT>()));
             std::vector<std::tuple<IndexType,TScalarType> > t_contents;
 
             if (u.nvals() > 0)
             {
-                auto u_contents(u.getContents());
-                auto row_iter = u_contents.begin();
-                while (row_iter != u_contents.end())
-                {
-                    GraphBLAS::IndexType u_idx;
-                    UScalarType          u_val;
-                    std::tie(u_idx, u_val) = *row_iter;
-                    TScalarType t_val = static_cast<TScalarType>(op(u_val, val));
-                    t_contents.push_back(std::make_tuple(u_idx, t_val));
-                    ++row_iter;
+                for (auto&& [idx, u_val] : u.getContents()) {
+                    t_contents.emplace_back(idx, op(u_val, val));
                 }
+
+                // auto u_contents(u.getContents());
+                // auto row_iter = u_contents.begin();
+                // while (row_iter != u_contents.end())
+                // {
+                //     GraphBLAS::IndexType u_idx;
+                //     UScalarType          u_val;
+                //     std::tie(u_idx, u_val) = *row_iter;
+                //     TScalarType t_val = static_cast<TScalarType>(op(u_val, val));
+                //     t_contents.push_back(std::make_tuple(u_idx, t_val));
+                //     ++row_iter;
+                // }
             }
 
             GRB_LOG_VERBOSE("t: " << t_contents);
@@ -323,7 +346,8 @@ namespace GraphBLAS
             typedef typename AMatrixT::ScalarType                   AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
 
-            typedef typename BinaryOpT::result_type                 TScalarType;
+            using TScalarType = decltype(op(std::declval<ValueT>(),
+                                            std::declval<AScalarType>()));
             typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
 
 
@@ -347,15 +371,19 @@ namespace GraphBLAS
                 if (!a_row.empty())
                 {
                     t_row.clear();
-                    auto row_iter = a_row.begin();
-                    while (row_iter != a_row.end())
-                    {
-                        std::tie(a_idx, a_val) = *row_iter;
-                        TScalarType t_val =
-                            static_cast<TScalarType>(op(val, a_val));
-                        t_row.push_back(std::make_tuple(a_idx,t_val));
-                        ++row_iter;
+
+                    for (auto&& [a_idx, a_val] : a_row) {
+                        t_row.emplace_back(a_idx, op(val, a_val));
                     }
+                    // auto row_iter = a_row.begin();
+                    // while (row_iter != a_row.end())
+                    // {
+                    //     std::tie(a_idx, a_val) = *row_iter;
+                    //     TScalarType t_val =
+                    //         static_cast<TScalarType>(op(val, a_val));
+                    //     t_row.push_back(std::make_tuple(a_idx,t_val));
+                    //     ++row_iter;
+                    // }
 
                     if (!t_row.empty())
                         T.setRow(row_idx, t_row);
@@ -403,7 +431,9 @@ namespace GraphBLAS
             typedef typename AMatrixT::ScalarType                   AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
 
-            typedef typename BinaryOpT::result_type                 TScalarType;
+            //typedef typename BinaryOpT::result_type                 TScalarType;
+            using TScalarType = decltype(op(std::declval<AScalarType>(),
+                                            std::declval<ValueT>()));
             typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
 
 
@@ -427,15 +457,19 @@ namespace GraphBLAS
                 if (!a_row.empty())
                 {
                     t_row.clear();
-                    auto row_iter = a_row.begin();
-                    while (row_iter != a_row.end())
-                    {
-                        std::tie(a_idx, a_val) = *row_iter;
-                        TScalarType t_val =
-                            static_cast<TScalarType>(op(a_val, val));
-                        t_row.push_back(std::make_tuple(a_idx,t_val));
-                        ++row_iter;
+                    for (auto&& [a_idx, a_val] : a_row) {
+                        t_row.emplace_back(a_idx, op(a_val, val));
                     }
+
+                    // auto row_iter = a_row.begin();
+                    // while (row_iter != a_row.end())
+                    // {
+                    //     std::tie(a_idx, a_val) = *row_iter;
+                    //     TScalarType t_val =
+                    //         static_cast<TScalarType>(op(a_val, val));
+                    //     t_row.push_back(std::make_tuple(a_idx,t_val));
+                    //     ++row_iter;
+                    // }
 
                     if (!t_row.empty())
                         T.setRow(row_idx, t_row);

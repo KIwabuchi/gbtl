@@ -115,11 +115,8 @@ namespace algorithms
         GrB::IndexType level(0);
         do {
             ++level;
-            GrB::BinaryOp_Bind2nd<GrB::IndexType,
-                                  GrB::Times<GrB::IndexType>>
-                apply_level(level);
             GrB::apply(v, GrB::NoMask(), GrB::Plus<GrB::IndexType>(),
-                       apply_level, q);
+                       GrB::Times<GrB::IndexType>(), q, level, GrB::REPLACE);
             GrB::vxm(q, GrB::complement(v), GrB::NoAccumulate(),
                      GrB::LogicalSemiring<bool>(), q, A,
                      GrB::REPLACE);
@@ -175,10 +172,8 @@ namespace algorithms
 
         /// @todo REMOVE THE FOLLOWING WHEN STRUCTURE ONLY MASK SUPPORTED
         // Restore zero-based indices by subtracting 1 from all values
-        GrB::BinaryOp_Bind2nd<GrB::IndexType, GrB::Minus<GrB::IndexType>>
-            subtract_1(1);
         GrB::apply(parents, GrB::NoMask(), GrB::NoAccumulate(),
-                   subtract_1, parents, GrB::REPLACE);
+                   GrB::Minus<GrB::IndexType>(), parents, 1, GrB::REPLACE);
     }
 
     //************************************************************************

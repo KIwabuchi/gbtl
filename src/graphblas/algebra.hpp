@@ -74,6 +74,11 @@ namespace GraphBLAS
     //************************************************************************
     // The Unary Operators
     //************************************************************************
+    // Following the removal of std::unary_function from C++17 and beyond,
+    // these functors do not need to subclass from unary_function nor
+    // define:
+    //   - argument_type
+    //   - result_type
 
     // Also performs casting
     template <typename D1, typename D2 = D1>
@@ -127,27 +132,21 @@ namespace GraphBLAS
     };
 
     //************************************************************************
+    // User std::bind to turn binary ops into unary ops
+    //
     // Turn a binary op into a unary op by binding the 2nd term to a constant
     //
-    template <typename ConstT, typename BinaryOpT>
-    struct BinaryOp_Bind2nd
-    {
-        ConstT n;  /// @todo consider defaulting ConstT to BinaryOpT::rhs_type
-        BinaryOpT op;
-        typedef typename BinaryOpT::result_type result_type;
-        typedef typename BinaryOpT::lhs_type ValueType;
-
-        BinaryOp_Bind2nd(ConstT const &value,
-                         BinaryOpT     operation = BinaryOpT() ) :
-            n(value),
-            op(operation)
-        {}
-
-        result_type operator()(ValueType const &value) const
-        {
-            return op(value, n);
-        }
-    };
+    //                     std::bind(GraphBLAS::Minus<float>(),
+    //                               std::placeholders::_1,
+    //                               static_cast<float>(nsver)),
+    //
+    // Turn a binary op into a unary op by binding the 1st term to a constant
+    //
+    //                     std::bind(GraphBLAS::Minus<float>(),
+    //                               static_cast<float>(nsver),
+    //                               std::placeholders::_2),
+    //
+    //************************************************************************
 }
 
 namespace GraphBLAS
@@ -155,12 +154,22 @@ namespace GraphBLAS
     //************************************************************************
     // The Binary Operators
     //************************************************************************
+    // Following the removal of std::binary_function from C++17 and beyond,
+    // these functors do not need to subclass from binary_function but should
+    // still define:
+    //   - first_argument_type
+    //   - second_argument_type
+    //   - result_type
+    //
+    // In lambda speak
+    // [](auto x, auto y) → D3 { return x * y };
+    // [](D1 x, D2 y) -> D3 { return x * y; }
 
     template <typename D1 = bool, typename D2 = D1, typename D3 = D1>
     struct LogicalOr
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs || rhs; }
     };
@@ -168,8 +177,8 @@ namespace GraphBLAS
     template <typename D1 = bool, typename D2 = D1, typename D3 = D1>
     struct LogicalAnd
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs && rhs; }
     };
@@ -177,8 +186,8 @@ namespace GraphBLAS
     template <typename D1 = bool, typename D2 = D1, typename D3 = D1>
     struct LogicalXor
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         // ((bool)lhs) != ((bool)rhs)
         // inline D3 operator()(D1 lhs, D2 rhs) const { return lhs ^ rhs; }
@@ -191,8 +200,8 @@ namespace GraphBLAS
     template <typename D1, typename D2 = D1, typename D3 = bool>
     struct Equal
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs == rhs; }
     };
@@ -200,8 +209,8 @@ namespace GraphBLAS
     template <typename D1, typename D2 = D1, typename D3 = bool>
     struct NotEqual
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs != rhs; }
     };
@@ -209,8 +218,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = bool>
     struct GreaterThan
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs > rhs; }
     };
@@ -218,8 +227,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = bool>
     struct LessThan
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs < rhs; }
     };
@@ -227,8 +236,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = bool>
     struct GreaterEqual
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs >= rhs; }
     };
@@ -236,8 +245,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = bool>
     struct LessEqual
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs <= rhs; }
     };
@@ -245,8 +254,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct First
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs; }
     };
@@ -254,8 +263,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Second
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return rhs; }
     };
@@ -263,8 +272,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Min
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs < rhs ? lhs : rhs; }
     };
@@ -272,8 +281,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Max
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs < rhs ? rhs : lhs; }
     };
@@ -281,8 +290,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Plus
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs + rhs; }
     };
@@ -290,8 +299,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Minus
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs - rhs; }
     };
@@ -299,8 +308,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Times
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs * rhs; }
     };
@@ -308,8 +317,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Div
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs / rhs; }
     };
@@ -317,8 +326,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Power
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return std::pow(lhs, rhs); }
     };
@@ -326,6 +335,8 @@ namespace GraphBLAS
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Xor
     {
+        typedef D1 first_argument_type;
+        typedef D2 second_argument_type;
         typedef D3 result_type;
         inline D3 operator()(D1 lhs, D2 rhs) const { return (lhs ^ rhs); }
     };
@@ -346,9 +357,7 @@ typedef GraphBLAS::LogicalXor<bool>   GrB_LXOR;
     struct M_NAME                                               \
     {                                                           \
     public:                                                     \
-        typedef ScalarT lhs_type;                               \
-        typedef ScalarT rhs_type;                               \
-        typedef ScalarT ScalarType;                             \
+        typedef ScalarT argument_type;                          \
         typedef ScalarT result_type;                            \
                                                                 \
         ScalarT identity() const                                \
@@ -391,9 +400,8 @@ namespace GraphBLAS
     class SRNAME                                                        \
     {                                                                   \
     public:                                                             \
-        typedef D1 lhs_type;                                            \
-        typedef D2 rhs_type;                                            \
-        typedef D3 ScalarType;                                          \
+        typedef D1 first_argument_type;                                 \
+        typedef D2 second_argument_type;                                \
         typedef D3 result_type;                                         \
                                                                         \
         D3 add(D3 a, D3 b) const                                        \
@@ -402,7 +410,7 @@ namespace GraphBLAS
         D3 mult(D1 a, D2 b) const                                       \
         { return MULT_BINARYOP<D1,D2,D3>()(a, b); }                     \
                                                                         \
-        ScalarType zero() const                                         \
+        D3 zero() const                                                 \
         { return ADD_MONOID<D3>().identity(); }                         \
     };
 
@@ -438,15 +446,15 @@ namespace GraphBLAS
     struct MultiplicativeOpFromSemiring
     {
     public:
-        typedef typename SemiringT::lhs_type lhs_type;
-        typedef typename SemiringT::rhs_type rhs_type;
-        typedef typename SemiringT::result_type result_type;
-        typedef typename SemiringT::ScalarType ScalarType;
+        typedef typename SemiringT::first_argument_type  first_argument_type;
+        typedef typename SemiringT::second_argument_type second_argument_type;
+        typedef typename SemiringT::result_type          result_type;
 
         MultiplicativeOpFromSemiring() = delete;
         MultiplicativeOpFromSemiring(SemiringT const &sr) : sr(sr) {}
 
-        ScalarType operator() (lhs_type lhs, rhs_type rhs) const
+        result_type operator() (first_argument_type lhs,
+                                second_argument_type rhs) const
         {
             return sr.mult(lhs, rhs);
         }
@@ -461,17 +469,17 @@ namespace GraphBLAS
     {
     public:
         typedef typename SemiringT::result_type result_type;
-        typedef typename SemiringT::ScalarType ScalarType;
+        typedef typename SemiringT::result_type argument_type;
 
         AdditiveMonoidFromSemiring() = delete;
         AdditiveMonoidFromSemiring(SemiringT const &sr) : sr(sr) {}
 
-        ScalarType identity() const
+        argument_type identity() const
         {
             return sr.zero();
         }
 
-        ScalarType operator() (ScalarType lhs, ScalarType rhs) const
+        result_type operator() (argument_type lhs, argument_type rhs) const
         {
             return sr.add(lhs, rhs);
         }

@@ -31,6 +31,7 @@
 #define ALGORITHMS_BC_HPP
 
 #include <iostream>
+#include <functional>
 
 #include <graphblas/graphblas.hpp>
 
@@ -241,23 +242,29 @@ namespace algorithms
                           GraphBLAS::Plus<float>(),        // Accum
                           GraphBLAS::Plus<float>(),        // Op
                           GraphBLAS::transpose(BCu),       // A, transpose make col reduce
-                          GraphBLAS::REPLACE);                           // replace
+                          GraphBLAS::REPLACE);             // replace
 #else
         GraphBLAS::reduce(result,                          // W
                           GraphBLAS::NoMask(),             // Mask
                           GraphBLAS::NoAccumulate(),       // Accum
                           GraphBLAS::Plus<float>(),        // Op
                           GraphBLAS::transpose(BCu),       // A, transpose make col reduce
-                          GraphBLAS::REPLACE);                           // replace
+                          GraphBLAS::REPLACE);             // replace
 
-        // Replace following with apply with binary op and scalar
-        GraphBLAS::BinaryOp_Bind2nd<float, GraphBLAS::Minus<float>>
-            subtract_nsver(static_cast<float>(nsver));
-
+        // subtract nsver from each value in result
+        //GraphBLAS::apply(result,
+        //                 GraphBLAS::NoMask(),
+        //                 GraphBLAS::NoAccumulate(),
+        //                 GraphBLAS::Minus<float>(),
+        //                 result,
+        //                 static_cast<float>(nsver),
+        //                 GraphBLAS::REPLACE);
         GraphBLAS::apply(result,
                          GraphBLAS::NoMask(),
                          GraphBLAS::NoAccumulate(),
-                         subtract_nsver,
+                         std::bind(GraphBLAS::Minus<float>(),
+                                   std::placeholders::_1,
+                                   static_cast<float>(nsver)),
                          result,
                          GraphBLAS::REPLACE);
 #endif

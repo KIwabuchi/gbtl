@@ -205,14 +205,12 @@ namespace algorithms
 
         // REMOVE THE FOLLOWING SUBTRACTION WHEN STRUCTURE ONLY MASKS IMPL'ED
         // Restore zero-based indices by subtracting 1 from all stored values
-        GraphBLAS::BinaryOp_Bind2nd<unsigned int,
-                                    GraphBLAS::Minus<unsigned int>>
-            subtract_1(1);
-
         GraphBLAS::apply(parent_list,
                          GraphBLAS::NoMask(),
                          GraphBLAS::NoAccumulate(),
-                         subtract_1,
+                         std::bind(GraphBLAS::Minus<unsigned int>(),
+                                   std::placeholders::_1,
+                                   1U),
                          parent_list,
                          GraphBLAS::REPLACE);
     }
@@ -301,14 +299,12 @@ namespace algorithms
         }
 
         // Restore zero-based indices by subtracting 1 from all stored values
-        GraphBLAS::BinaryOp_Bind2nd<unsigned int,
-                                    GraphBLAS::Minus<unsigned int>>
-            subtract_1(1);
-
         GraphBLAS::apply(parent_list,
                          GraphBLAS::NoMask(),
                          GraphBLAS::NoAccumulate(),
-                         subtract_1,
+                         std::bind(GraphBLAS::Minus<unsigned int>(),
+                                   std::placeholders::_1,
+                                   1U),
                          parent_list,
                          GraphBLAS::REPLACE);
     }
@@ -395,14 +391,12 @@ namespace algorithms
         }
 
         // Restore zero-based indices by subtracting 1 from all stored values
-        GraphBLAS::BinaryOp_Bind2nd<unsigned int,
-                                    GraphBLAS::Minus<unsigned int>>
-            subtract_1(1);
-
         GraphBLAS::apply(parent_list,
                          GraphBLAS::NoMask(),
                          GraphBLAS::NoAccumulate(),
-                         subtract_1,
+                         std::bind(GraphBLAS::Minus<unsigned int>(),
+                                   std::placeholders::_1,
+                                   1U),
                          parent_list,
                          GraphBLAS::REPLACE);
     }
@@ -440,14 +434,14 @@ namespace algorithms
             // Increment the level
             ++depth;
 
-            GraphBLAS::BinaryOp_Bind2nd<
-                GraphBLAS::IndexType, GraphBLAS::Times<GraphBLAS::IndexType> >
-                    apply_depth(depth);
-
             // Apply the level to all newly visited nodes
             GraphBLAS::apply(levels, GraphBLAS::NoMask(),
                              GraphBLAS::Plus<GraphBLAS::IndexType>(),
-                             apply_depth, wavefront);
+                             //[depth](auto arg) { return arg * depth; },
+                             std::bind(GraphBLAS::Times<GraphBLAS::IndexType>(),
+                                       depth,
+                                       std::placeholders::_1),
+                             wavefront);
 
             GraphBLAS::mxv(wavefront, complement(levels),
                            GraphBLAS::NoAccumulate(),
@@ -491,14 +485,12 @@ namespace algorithms
             ++depth;
 
             // Apply the level to all newly visited nodes
-            GraphBLAS::BinaryOp_Bind2nd<unsigned int,
-                                        GraphBLAS::Times<unsigned int> >
-                    apply_depth(depth);
-
             GraphBLAS::apply(levels,
                              GraphBLAS::NoMask(),
                              GraphBLAS::Plus<unsigned int>(),
-                             apply_depth,
+                             std::bind(GraphBLAS::Times<unsigned int>(),
+                                       depth,
+                                       std::placeholders::_1),
                              wavefront,
                              GraphBLAS::REPLACE);
 
@@ -568,14 +560,12 @@ namespace algorithms
             ++depth;
 
             // Apply the level to all newly visited nodes
-            GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::IndexType,
-                                        GraphBLAS::Times<GraphBLAS::IndexType> >
-                    apply_depth(depth);
-
             GraphBLAS::apply(levels,
                              GraphBLAS::NoMask(),
                              GraphBLAS::Plus<unsigned int>(),
-                             apply_depth,
+                             std::bind(GraphBLAS::Times<GraphBLAS::IndexType>(),
+                                       depth,
+                                       std::placeholders::_1),
                              wavefront,
                              GraphBLAS::REPLACE);
 
@@ -634,14 +624,12 @@ namespace algorithms
             ++depth;
 
             // Apply the level to all newly visited nodes
-            GraphBLAS::BinaryOp_Bind2nd<GraphBLAS::IndexType,
-                                        GraphBLAS::Times<GraphBLAS::IndexType> >
-                    apply_depth(depth);
-
             GraphBLAS::apply(levels,
                              GraphBLAS::NoMask(),
                              GraphBLAS::Plus<unsigned int>(),
-                             apply_depth,
+                             std::bind(GraphBLAS::Times<GraphBLAS::IndexType>(),
+                                       depth,
+                                       std::placeholders::_1),
                              wavefronts,
                              GraphBLAS::REPLACE);
 
