@@ -46,24 +46,51 @@ BOOST_AUTO_TEST_SUITE(BOOST_TEST_MODULE)
 // Misc tests from deprecated test_math.cpp file
 BOOST_AUTO_TEST_CASE(misc_math_tests)
 {
-    BOOST_CHECK_EQUAL(Power<double>()(2, 5), 32.0);
+    Identity<float, int> op;
+    BOOST_CHECK_EQUAL(op(2.5), 2);
+    BOOST_CHECK_EQUAL(Abs<float>()(-2.5), 2.5);
+    BOOST_CHECK_EQUAL(Abs<int>()(-2), 2);
     BOOST_CHECK_EQUAL(AdditiveInverse<double>()(-10), 10);
     BOOST_CHECK_EQUAL(AdditiveInverse<double>()(500), -500);
     BOOST_CHECK_EQUAL(MultiplicativeInverse<double>()(5), 1./5);
+    BOOST_CHECK_EQUAL(LogicalNot<int>()(1), false);
+    BOOST_CHECK_EQUAL(BitwiseNot<unsigned int>()(1), 0xfffffffe);
+
+    BOOST_CHECK_EQUAL(LogicalOr<bool>()(true, false), true);
+    BOOST_CHECK_EQUAL(LogicalAnd<bool>()(false, true), false);
+    BOOST_CHECK_EQUAL(LogicalXor<bool>()(false, true), true);
+    BOOST_CHECK_EQUAL(LogicalXnor<bool>()(false, true), false);
+
+    BOOST_CHECK_EQUAL(BitwiseOr<unsigned int>()(0x00ff, 0x0f0f), 0x0fff);
+    BOOST_CHECK_EQUAL(BitwiseAnd<unsigned int>()(0x00ff, 0x0f0f), 0x000f);
+    BOOST_CHECK_EQUAL(BitwiseXor<unsigned int>()(0x00ff, 0x0f0f), 0x0ff0);
+    BOOST_CHECK_EQUAL(BitwiseXnor<unsigned int>()(0x00ff, 0x0f0f), 0xf00f);
+
+    BOOST_CHECK_EQUAL(Equal<double>()(1, 1), true);
+    BOOST_CHECK_EQUAL(Equal<double>()(0xC0FFEE, 0xCAFE), false);
+    BOOST_CHECK_EQUAL(NotEqual<double>()(1, 1), false);
+    BOOST_CHECK_EQUAL(NotEqual<double>()(0xC0FFEE, 0xCAFE), true);
+
+    BOOST_CHECK_EQUAL(GreaterThan<double>()(1, 2), false);
+    BOOST_CHECK_EQUAL(LessThan<double>()(1, 2), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<double>()(1, 2), false);
+    BOOST_CHECK_EQUAL(LessEqual<double>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(First<double>()(5, 1337), 5);
+    BOOST_CHECK_EQUAL(Second<double>()(5, 1337), 1337);
+
+    BOOST_CHECK_EQUAL(Min<double>()(0, 1000000), 0);
+    BOOST_CHECK_EQUAL(Min<double>()(-5, 0), -5);
+    BOOST_CHECK_EQUAL(Min<double>()(7, 3), 3);
+    BOOST_CHECK_EQUAL(Max<double>()(0, 1000000), 1000000);
+    BOOST_CHECK_EQUAL(Max<double>()(-5, 0), 0);
+    BOOST_CHECK_EQUAL(Max<double>()(7, 3), 7);
+
     BOOST_CHECK_EQUAL(Plus<double>()(2, 6), 8);
     BOOST_CHECK_EQUAL(Minus<double>()(2, 6), -4);
     BOOST_CHECK_EQUAL(Times<double>()(3, 10), 30);
     BOOST_CHECK_EQUAL(Div<double>()(500, 5), 100);
-    BOOST_CHECK_EQUAL(Min<double>()(0, 1000000), 0);
-    BOOST_CHECK_EQUAL(Min<double>()(-5, 0), -5);
-    BOOST_CHECK_EQUAL(Min<double>()(7, 3), 3);
-    BOOST_CHECK_EQUAL(Second<double>()(5, 1337), 1337);
-    BOOST_CHECK_EQUAL(Equal<double>()(1, 1), true);
-    BOOST_CHECK_EQUAL(Equal<double>()(0xC0FFEE, 0xCAFE), false);
-    BOOST_CHECK_EQUAL(Xor<int>()(1, 2), 3);
-    BOOST_CHECK_EQUAL(LogicalOr<int>()(1, 0), true);
-    BOOST_CHECK_EQUAL(LogicalAnd<int>()(0, 2), false);
-    BOOST_CHECK_EQUAL(LogicalNot<int>()(1), false);
+    BOOST_CHECK_EQUAL(Power<double>()(2, 5), 32.0);
 }
 
 //****************************************************************************

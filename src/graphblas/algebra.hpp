@@ -119,7 +119,9 @@ namespace GraphBLAS
         inline D2 operator()(D1 input) const { return !input; }
     };
 
-    template <typename I1 = uint64_t, typename I2 = I1>
+    template <typename I1 = uint64_t, typename I2 = I1,
+              typename = std::enable_if_t<std::is_integral_v<I1> &&
+                                          std::is_integral_v<I2>, int> = 0>
     struct BitwiseNot
     {
         inline I2 operator()(I1 input) const { return ~input; }
@@ -182,6 +184,57 @@ namespace GraphBLAS
         }
     };
 
+    template <typename D1 = bool, typename D2 = D1, typename D3 = D1>
+    struct LogicalXnor
+    {
+        // ((bool)lhs) != ((bool)rhs)
+        // inline D3 operator()(D1 lhs, D2 rhs) const { return !(lhs ^ rhs); }
+        inline D3 operator()(D1 lhs, D2 rhs) const
+        {
+            return ((lhs && rhs) || (!lhs && !rhs));
+        }
+    };
+
+    //-------------------------------------------------------------------------
+
+    template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
+              typename = std::enable_if_t<std::is_integral<I1> &&
+                                          std::is_integral<I2> &&
+                                          std::is_integral<I3>, int> = 0>
+    struct BitwiseOr
+    {
+        inline I3 operator()(I1 lhs, I2 rhs) const { return lhs | rhs; }
+    };
+
+    template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
+              typename = std::enable_if_t<std::is_integral<I1> &&
+                                          std::is_integral<I2> &&
+                                          std::is_integral<I3>, int> = 0>
+    struct BitwiseAnd
+    {
+        inline I3 operator()(I1 lhs, I2 rhs) const { return lhs & rhs; }
+    };
+
+    template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
+              typename = std::enable_if_t<std::is_integral<I1> &&
+                                          std::is_integral<I2> &&
+                                          std::is_integral<I3>, int> = 0>
+    struct BitwiseXor
+    {
+        inline I3 operator()(I1 lhs, I2 rhs) const { return lhs ^ rhs; }
+    };
+
+    template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
+              typename = std::enable_if_t<std::is_integral<I1> &&
+                                          std::is_integral<I2> &&
+                                          std::is_integral<I3>, int> = 0>
+    struct BitwiseXnor
+    {
+        inline I3 operator()(I1 lhs, I2 rhs) const { return ~(lhs ^ rhs); }
+    };
+
+    //-------------------------------------------------------------------------
+
     template <typename D1, typename D2 = D1, typename D3 = bool>
     struct Equal
     {
@@ -218,6 +271,8 @@ namespace GraphBLAS
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs <= rhs; }
     };
 
+    //-------------------------------------------------------------------------
+
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct First
     {
@@ -230,6 +285,8 @@ namespace GraphBLAS
         inline D3 operator()(D1 lhs, D2 rhs) const { return rhs; }
     };
 
+    //-------------------------------------------------------------------------
+
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Min
     {
@@ -241,6 +298,8 @@ namespace GraphBLAS
     {
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs < rhs ? rhs : lhs; }
     };
+
+    //-------------------------------------------------------------------------
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Plus
@@ -272,18 +331,13 @@ namespace GraphBLAS
         inline D3 operator()(D1 lhs, D2 rhs) const { return std::pow(lhs, rhs); }
     };
 
-    template<typename D1, typename D2 = D1, typename D3 = D1>
-    struct Xor
-    {
-        inline D3 operator()(D1 lhs, D2 rhs) const { return (lhs ^ rhs); }
-    };
-
 } // namespace GraphBLAS
 
 
 typedef GraphBLAS::LogicalOr<bool>    GrB_LOR;
 typedef GraphBLAS::LogicalAnd<bool>   GrB_LAND;
 typedef GraphBLAS::LogicalXor<bool>   GrB_LXOR;
+typedef GraphBLAS::LogicalXnor<bool>  GrB_LXNOR;
 
 //****************************************************************************
 // Monoids
