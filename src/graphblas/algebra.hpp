@@ -113,6 +113,7 @@ namespace GraphBLAS
     };
 
 
+    /// @todo should D2 default to bool
     template <typename D1 = bool, typename D2 = D1>
     struct LogicalNot
     {
@@ -120,8 +121,8 @@ namespace GraphBLAS
     };
 
     template <typename I1 = uint64_t, typename I2 = I1,
-              typename = std::enable_if_t<std::is_integral_v<I1> &&
-                                          std::is_integral_v<I2>, int> = 0>
+              typename std::enable_if_t<std::is_integral_v<I1> &&
+                                        std::is_integral_v<I2>, int> = 0>
     struct BitwiseNot
     {
         inline I2 operator()(I1 input) const { return ~input; }
@@ -196,38 +197,37 @@ namespace GraphBLAS
     };
 
     //-------------------------------------------------------------------------
-
     template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
-              typename = std::enable_if_t<std::is_integral<I1> &&
-                                          std::is_integral<I2> &&
-                                          std::is_integral<I3>, int> = 0>
+              typename std::enable_if_t<std::is_integral_v<I1> &&
+                                        std::is_integral_v<I2> &&
+                                        std::is_integral_v<I3>, int> = 0>
     struct BitwiseOr
     {
         inline I3 operator()(I1 lhs, I2 rhs) const { return lhs | rhs; }
     };
 
     template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
-              typename = std::enable_if_t<std::is_integral<I1> &&
-                                          std::is_integral<I2> &&
-                                          std::is_integral<I3>, int> = 0>
+              typename std::enable_if_t<std::is_integral_v<I1> &&
+                                        std::is_integral_v<I2> &&
+                                        std::is_integral_v<I3>, int> = 0>
     struct BitwiseAnd
     {
         inline I3 operator()(I1 lhs, I2 rhs) const { return lhs & rhs; }
     };
 
     template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
-              typename = std::enable_if_t<std::is_integral<I1> &&
-                                          std::is_integral<I2> &&
-                                          std::is_integral<I3>, int> = 0>
+              typename std::enable_if_t<std::is_integral_v<I1> &&
+                                        std::is_integral_v<I2> &&
+                                        std::is_integral_v<I3>, int> = 0>
     struct BitwiseXor
     {
         inline I3 operator()(I1 lhs, I2 rhs) const { return lhs ^ rhs; }
     };
 
     template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
-              typename = std::enable_if_t<std::is_integral<I1> &&
-                                          std::is_integral<I2> &&
-                                          std::is_integral<I3>, int> = 0>
+              typename std::enable_if_t<std::is_integral_v<I1> &&
+                                        std::is_integral_v<I2> &&
+                                        std::is_integral_v<I3>, int> = 0>
     struct BitwiseXnor
     {
         inline I3 operator()(I1 lhs, I2 rhs) const { return ~(lhs ^ rhs); }

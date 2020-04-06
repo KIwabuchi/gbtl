@@ -43,11 +43,15 @@ using namespace GraphBLAS;
 BOOST_AUTO_TEST_SUITE(BOOST_TEST_MODULE)
 
 //****************************************************************************
-// Misc tests from deprecated test_math.cpp file
+// Summary
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(misc_math_tests)
 {
+    /// @todo Boost Test Framework does not handle commas in template
+    ///       parameter lists without extra parentheses
     Identity<float, int> op;
-    BOOST_CHECK_EQUAL(op(2.5), 2);
+    BOOST_CHECK_EQUAL((Identity<float, int>()(2.5)), 2);
+
     BOOST_CHECK_EQUAL(Abs<float>()(-2.5), 2.5);
     BOOST_CHECK_EQUAL(Abs<int>()(-2), 2);
     BOOST_CHECK_EQUAL(AdditiveInverse<double>()(-10), 10);
@@ -55,16 +59,17 @@ BOOST_AUTO_TEST_CASE(misc_math_tests)
     BOOST_CHECK_EQUAL(MultiplicativeInverse<double>()(5), 1./5);
     BOOST_CHECK_EQUAL(LogicalNot<int>()(1), false);
     BOOST_CHECK_EQUAL(BitwiseNot<unsigned int>()(1), 0xfffffffe);
+    //BOOST_CHECK_EQUAL(BitwiseNot<float>()(1.0), 0xfffffffe);  // does not compile
 
     BOOST_CHECK_EQUAL(LogicalOr<bool>()(true, false), true);
     BOOST_CHECK_EQUAL(LogicalAnd<bool>()(false, true), false);
     BOOST_CHECK_EQUAL(LogicalXor<bool>()(false, true), true);
     BOOST_CHECK_EQUAL(LogicalXnor<bool>()(false, true), false);
 
-    BOOST_CHECK_EQUAL(BitwiseOr<unsigned int>()(0x00ff, 0x0f0f), 0x0fff);
-    BOOST_CHECK_EQUAL(BitwiseAnd<unsigned int>()(0x00ff, 0x0f0f), 0x000f);
-    BOOST_CHECK_EQUAL(BitwiseXor<unsigned int>()(0x00ff, 0x0f0f), 0x0ff0);
-    BOOST_CHECK_EQUAL(BitwiseXnor<unsigned int>()(0x00ff, 0x0f0f), 0xf00f);
+    BOOST_CHECK_EQUAL(BitwiseOr<unsigned short>()(0x00ff, 0x0f0f), 0x0fff);
+    BOOST_CHECK_EQUAL(BitwiseAnd<unsigned short>()(0x00ff, 0x0f0f), 0x000f);
+    BOOST_CHECK_EQUAL(BitwiseXor<unsigned short>()(0x00ff, 0x0f0f), 0x0ff0);
+    BOOST_CHECK_EQUAL(BitwiseXnor<unsigned short>()(0x00ff, 0x0f0f), 0xf00f);
 
     BOOST_CHECK_EQUAL(Equal<double>()(1, 1), true);
     BOOST_CHECK_EQUAL(Equal<double>()(0xC0FFEE, 0xCAFE), false);
@@ -94,32 +99,149 @@ BOOST_AUTO_TEST_CASE(misc_math_tests)
 }
 
 //****************************************************************************
+// Test Unary Operators
+//****************************************************************************
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(Identity_test)
 {
     int8_t  i8  = 3;
     int16_t i16 = -400;
     int32_t i32 = -1001000;
     int64_t i64 = 5123123123;
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<int8_t>()(i8),  i8);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<int16_t>()(i16), i16);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<int32_t>()(i32), i32);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<int64_t>()(i64), i64);
+    BOOST_CHECK_EQUAL(Identity<int8_t>()(i8),  i8);
+    BOOST_CHECK_EQUAL(Identity<int16_t>()(i8),  i8);
+    BOOST_CHECK_EQUAL(Identity<int32_t>()(i8),  i8);
+    BOOST_CHECK_EQUAL(Identity<int64_t>()(i8),  i8);
+
+    BOOST_CHECK_EQUAL(Identity<int16_t>()(i16), i16);
+    BOOST_CHECK_EQUAL(Identity<int32_t>()(i32), i32);
+    BOOST_CHECK_EQUAL(Identity<int64_t>()(i64), i64);
 
     uint8_t  ui8  = 3;
     uint16_t ui16 = 400;
     uint32_t ui32 = 1001000;
     uint64_t ui64 = 5123123123;
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<uint8_t>()(ui8),  ui8);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<uint16_t>()(ui16), ui16);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<uint32_t>()(ui32), ui32);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<uint64_t>()(ui64), ui64);
+    BOOST_CHECK_EQUAL(Identity<uint8_t>()(ui8),  ui8);
+    BOOST_CHECK_EQUAL(Identity<uint16_t>()(ui16), ui16);
+    BOOST_CHECK_EQUAL(Identity<uint32_t>()(ui32), ui32);
+    BOOST_CHECK_EQUAL(Identity<uint64_t>()(ui64), ui64);
 
     float   f32 = 3.14159;
     double  f64 = 2.718832654;
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<float>()(f32), f32);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<double>()(f64), f64);
+    BOOST_CHECK_EQUAL(Identity<float>()(f32), f32);
+    BOOST_CHECK_EQUAL(Identity<double>()(f64), f64);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<uint32_t>()(f32), 3U);
+    BOOST_CHECK_EQUAL(Identity<uint32_t>()(f32), 3U);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(identity_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(Identity<double>()(2.2), 2.2);
+    BOOST_CHECK_EQUAL(Identity<float>()(2.2f), 2.2f);
+
+    BOOST_CHECK_EQUAL(Identity<uint64_t>()(2UL), 2UL);
+    BOOST_CHECK_EQUAL(Identity<uint32_t>()(2U), 2U);
+    BOOST_CHECK_EQUAL(Identity<uint16_t>()(2), 2);
+    BOOST_CHECK_EQUAL(Identity<uint8_t>()(2), 2);
+
+    BOOST_CHECK_EQUAL(Identity<int64_t>()(-2L), -2L);
+    BOOST_CHECK_EQUAL(Identity<int32_t>()(-2), -2);
+    BOOST_CHECK_EQUAL(Identity<int16_t>()(-2), -2);
+    BOOST_CHECK_EQUAL(Identity<int8_t>()(-2), -2);
+
+    BOOST_CHECK_EQUAL(Identity<bool>()(false), false);
+    BOOST_CHECK_EQUAL(Identity<bool>()(true), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(identity_different_domain_test)
+{
+    /// @todo this is an incomplete set of pairs and does not cover the
+    /// corner cases at the numeric limits that actually vary by platform
+    BOOST_CHECK_EQUAL((Identity<double,float>()(2.2)), 2.2f);
+    BOOST_CHECK_EQUAL((Identity<double,uint64_t>()(2.2)), 2UL);
+    BOOST_CHECK_EQUAL((Identity<double,int64_t>()(-2.2)), -2UL);
+    BOOST_CHECK_EQUAL((Identity<double,bool>()(2.2)), true);
+    BOOST_CHECK_EQUAL((Identity<double,bool>()(0.0)), false);
+
+    BOOST_CHECK_EQUAL((Identity<float,double>()(2.2f)), static_cast<double>(2.2f));
+    BOOST_CHECK_EQUAL((Identity<float,uint32_t>()(2.2f)), 2U);
+    BOOST_CHECK_EQUAL((Identity<float,int32_t>()(-2.2f)), -2);
+    BOOST_CHECK_EQUAL((Identity<float,bool>()(2.2f)), true);
+    BOOST_CHECK_EQUAL((Identity<float,bool>()(0.0f)), false);
+
+    BOOST_CHECK_EQUAL((Identity<uint64_t, double>()(2UL)), 2.0);
+    BOOST_CHECK_EQUAL((Identity<uint64_t, float>()(2UL)), 2.0f);
+    BOOST_CHECK_EQUAL((Identity<uint64_t, int64_t>()(2UL)), 2UL);
+    BOOST_CHECK_EQUAL((Identity<uint64_t,uint32_t>()(2UL)), 2UL);
+    BOOST_CHECK_EQUAL((Identity<uint64_t,bool>()(2UL)), true);
+    BOOST_CHECK_EQUAL((Identity<uint64_t,bool>()(0UL)), false);
+
+    BOOST_CHECK_EQUAL((Identity<uint32_t, double>()(2U)), 2.0);
+    BOOST_CHECK_EQUAL((Identity<uint32_t, float>()(2U)), 2.0f);
+    BOOST_CHECK_EQUAL((Identity<uint32_t,uint64_t>()(2U)), 2UL);
+    BOOST_CHECK_EQUAL((Identity<uint32_t, int64_t>()(2U)), 2L);
+    BOOST_CHECK_EQUAL((Identity<uint32_t, int32_t>()(2U)), 2U);
+    BOOST_CHECK_EQUAL((Identity<uint32_t,uint16_t>()(2U)), 2U);
+    BOOST_CHECK_EQUAL((Identity<uint32_t, int16_t>()(2U)), 2);
+    BOOST_CHECK_EQUAL((Identity<uint32_t,bool>()(2U)), true);
+    BOOST_CHECK_EQUAL((Identity<uint32_t,bool>()(0U)), false);
+
+    BOOST_CHECK_EQUAL((Identity<uint16_t, double>()(2U)), 2.0);
+    BOOST_CHECK_EQUAL((Identity<uint16_t, float>()(2U)), 2.0f);
+    BOOST_CHECK_EQUAL((Identity<uint16_t,uint32_t>()(2U)), 2U);
+    BOOST_CHECK_EQUAL((Identity<uint16_t, int32_t>()(2U)), 2);
+    BOOST_CHECK_EQUAL((Identity<uint16_t, int16_t>()(2)), 2);
+    BOOST_CHECK_EQUAL((Identity<uint16_t,uint8_t>()(2)), 2);
+    BOOST_CHECK_EQUAL((Identity<uint16_t, int8_t>()(2)), 2);
+    BOOST_CHECK_EQUAL((Identity<uint16_t,bool>()(2U)), true);
+    BOOST_CHECK_EQUAL((Identity<uint16_t,bool>()(0U)), false);
+
+    BOOST_CHECK_EQUAL((Identity<uint8_t,double>()(2U)), 2.0);
+    BOOST_CHECK_EQUAL((Identity<uint8_t,float>()(2U)), 2.0f);
+    BOOST_CHECK_EQUAL((Identity<uint8_t,int8_t>()(2)), 2);
+    BOOST_CHECK_EQUAL((Identity<uint8_t,uint16_t>()(2)), 2);
+    BOOST_CHECK_EQUAL((Identity<uint8_t,int16_t>()(2)), 2);
+    BOOST_CHECK_EQUAL((Identity<uint8_t,bool>()(2U)), true);
+    BOOST_CHECK_EQUAL((Identity<uint8_t,bool>()(0U)), false);
+
+    BOOST_CHECK_EQUAL((Identity<int64_t,double>()(-2L)), -2.0);
+    BOOST_CHECK_EQUAL((Identity<int64_t,float>()(-2L)), -2.0f);
+    BOOST_CHECK_EQUAL((Identity<int64_t,int32_t>()(-2L)), -2);
+    BOOST_CHECK_EQUAL((Identity<int64_t,int16_t>()(-2L)), -2);
+    BOOST_CHECK_EQUAL((Identity<int64_t,bool>()(-2L)), true);
+    BOOST_CHECK_EQUAL((Identity<int64_t,bool>()(0L)), false);
+
+    BOOST_CHECK_EQUAL((Identity<int32_t,double>()(-2)), -2.0);
+    BOOST_CHECK_EQUAL((Identity<int32_t,float>()(-2)), -2.0f);
+    BOOST_CHECK_EQUAL((Identity<int32_t,int64_t>()(-2)), -2);
+    BOOST_CHECK_EQUAL((Identity<int32_t,int16_t>()(-2)), -2);
+    BOOST_CHECK_EQUAL((Identity<int32_t,bool>()(-2)), true);
+    BOOST_CHECK_EQUAL((Identity<int32_t,bool>()(0)), false);
+
+    BOOST_CHECK_EQUAL((Identity<int16_t,double>()(-2)), -2.0);
+    BOOST_CHECK_EQUAL((Identity<int16_t,float>()(-2)), -2.0f);
+    BOOST_CHECK_EQUAL((Identity<int16_t,int32_t>()(-2)), -2);
+    BOOST_CHECK_EQUAL((Identity<int16_t,int8_t>()(-2)), -2);
+    BOOST_CHECK_EQUAL((Identity<int16_t,bool>()(-2)), true);
+    BOOST_CHECK_EQUAL((Identity<int16_t,bool>()(0)), false);
+
+    BOOST_CHECK_EQUAL((Identity<int8_t,double>()(-2)), -2.0);
+    BOOST_CHECK_EQUAL((Identity<int8_t,float>()(-2)), -2.0f);
+    BOOST_CHECK_EQUAL((Identity<int8_t,int16_t>()(-2)), -2);
+    BOOST_CHECK_EQUAL((Identity<int8_t,bool>()(-2)), true);
+    BOOST_CHECK_EQUAL((Identity<int8_t,bool>()(0)), false);
+
+    BOOST_CHECK_EQUAL((Identity<bool,double>()(false)), 0.0);
+    BOOST_CHECK_EQUAL((Identity<bool,double>()(true)), 1.0);
+    BOOST_CHECK_EQUAL((Identity<bool,float>()(false)), 0.0f);
+    BOOST_CHECK_EQUAL((Identity<bool,float>()(true)), 1.0f);
+    BOOST_CHECK_EQUAL((Identity<bool,uint32_t>()(false)), 0U);
+    BOOST_CHECK_EQUAL((Identity<bool,uint32_t>()(true)), 1U);
+    BOOST_CHECK_EQUAL((Identity<bool,int32_t>()(false)), 0);
+    BOOST_CHECK_EQUAL((Identity<bool,int32_t>()(true)), 1);
 }
 
 //****************************************************************************
@@ -148,38 +270,282 @@ BOOST_AUTO_TEST_CASE(Abs_test)
     float f = -45.45f;
     double d = -1048.36;
 
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int8_t>()(i8),   abs(i8));
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int16_t>()(i16), abs(i16));
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int32_t>()(i32), abs(i32));
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int64_t>()(i64), labs(i64));
+    BOOST_CHECK_EQUAL(Abs<int8_t>()(i8),   abs(i8));
+    BOOST_CHECK_EQUAL(Abs<int16_t>()(i16), abs(i16));
+    BOOST_CHECK_EQUAL(Abs<int32_t>()(i32), abs(i32));
+    BOOST_CHECK_EQUAL(Abs<int64_t>()(i64), labs(i64));
 
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<char>()(ci),     abs(ci));
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<short>()(si),    abs(si));
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<int>()(i),       abs(i));
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<long int>()(li), labs(li));
+    BOOST_CHECK_EQUAL(Abs<char>()(ci),     abs(ci));
+    BOOST_CHECK_EQUAL(Abs<short>()(si),    abs(si));
+    BOOST_CHECK_EQUAL(Abs<int>()(i),       abs(i));
+    BOOST_CHECK_EQUAL(Abs<long int>()(li), labs(li));
 
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<uint8_t>()(ui8),   ui8);
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<uint16_t>()(ui16), ui16);
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<uint32_t>()(ui32), ui32);
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<uint64_t>()(ui64), ui64);
+    BOOST_CHECK_EQUAL(Abs<uint8_t>()(ui8),   ui8);
+    BOOST_CHECK_EQUAL(Abs<uint16_t>()(ui16), ui16);
+    BOOST_CHECK_EQUAL(Abs<uint32_t>()(ui32), ui32);
+    BOOST_CHECK_EQUAL(Abs<uint64_t>()(ui64), ui64);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<bool>()(true), true);
+    BOOST_CHECK_EQUAL(Abs<bool>()(true), true);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned char>()(uci),  uci);
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned short>()(usi), usi);
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned int>()(ui),    ui);
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned long>()(uli),  uli);
+    BOOST_CHECK_EQUAL(Abs<unsigned char>()(uci),  uci);
+    BOOST_CHECK_EQUAL(Abs<unsigned short>()(usi), usi);
+    BOOST_CHECK_EQUAL(Abs<unsigned int>()(ui),    ui);
+    BOOST_CHECK_EQUAL(Abs<unsigned long>()(uli),  uli);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<unsigned int>()(ui),   ui);
+    BOOST_CHECK_EQUAL(Abs<unsigned int>()(ui),   ui);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<float>()(f), fabsf(f));
-    BOOST_CHECK_EQUAL(GraphBLAS::Abs<double>()(d), fabs(d));
+    BOOST_CHECK_EQUAL(Abs<float>()(f), fabsf(f));
+    BOOST_CHECK_EQUAL(Abs<double>()(d), fabs(d));
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(LogicalNot_test)
+BOOST_AUTO_TEST_CASE(additive_inverse_test)
 {
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<bool>()(true), false);
+    BOOST_CHECK_EQUAL(AdditiveInverse<double>()(2.2), -2.2);
+    BOOST_CHECK_EQUAL(AdditiveInverse<double>()(0.0), 0.0);
+    BOOST_CHECK_EQUAL(AdditiveInverse<double>()(-2.0), 2.0);
+
+    BOOST_CHECK_EQUAL(AdditiveInverse<float>()(2.2f), -2.2f);
+    BOOST_CHECK_EQUAL(AdditiveInverse<float>()(0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(AdditiveInverse<float>()(-2.2f), 2.2f);
+
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint64_t>()(2UL), static_cast<uint64_t>(-2L));
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint64_t>()(0UL), 0UL);
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint64_t>()(-2), 2UL);
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint32_t>()(2U), static_cast<uint32_t>(-2));
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint32_t>()(0U), 0U);
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint32_t>()(-2), 2U);
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint16_t>()(2), static_cast<uint16_t>(-2));
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint16_t>()(0), 0);
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint16_t>()(-2), 2);
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint8_t>()(2), static_cast<uint8_t>(-2));
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint8_t>()(0), 0);
+    BOOST_CHECK_EQUAL(AdditiveInverse<uint8_t>()(-2), 2);
+
+    BOOST_CHECK_EQUAL(AdditiveInverse<int64_t>()(-2L), 2L);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int64_t>()(0L), 0L);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int64_t>()(2L), -2L);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int32_t>()(-2), 2);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int32_t>()(0), 0);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int32_t>()(2), -2);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int16_t>()(-2), 2);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int16_t>()(0), 0);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int16_t>()(2), -2);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int8_t>()(-2), 2);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int8_t>()(0), 0);
+    BOOST_CHECK_EQUAL(AdditiveInverse<int8_t>()(2), -2);
+
+    BOOST_CHECK_EQUAL(AdditiveInverse<bool>()(false), false);
+    BOOST_CHECK_EQUAL(AdditiveInverse<bool>()(true), true);
+
+    // different domain tests
+
+    BOOST_CHECK_EQUAL((AdditiveInverse<double, int>()(2.2)), -2);
+    BOOST_CHECK_EQUAL((AdditiveInverse<double, int>()(0.0)),  0);
+    BOOST_CHECK_EQUAL((AdditiveInverse<double, int>()(-2.0)), 2);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(multiplicative_inverse_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<double>()(2.2), 1./2.2);
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<double>()(-2.2), -1./2.2);
+
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<float>()(2.2f), 1.f/2.2f);
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<float>()(-2.2f), -1.f/2.2f);
+
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<uint64_t>()(2UL), 0UL);
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<uint32_t>()(2U), 0U);
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<uint16_t>()(2), 0);
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<uint8_t>()(2), 0);
+
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<int64_t>()(-2L), 0L);
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<int32_t>()(-2), 0);
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<int16_t>()(-2), 0);
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<int8_t>()(-2), 0);
+
+    BOOST_CHECK_EQUAL(MultiplicativeInverse<bool>()(true), true);
+
+    // divide by zero exception:
+    //BOOST_CHECK_EQUAL(MultiplicativeInverse<bool>()(false), false);
+
+    // different domain tests
+
+    BOOST_CHECK_EQUAL((MultiplicativeInverse<int,double>()(2)),   0.5);
+    BOOST_CHECK_EQUAL((MultiplicativeInverse<int,double>()(1)),   1.0);
+    BOOST_CHECK_EQUAL((MultiplicativeInverse<int,double>()(-3)), -1./3.);
+
+    BOOST_CHECK_EQUAL((MultiplicativeInverse<double,int>()(0.5)),      2);
+    BOOST_CHECK_EQUAL((MultiplicativeInverse<double,int>()(1.)),       1);
+    BOOST_CHECK_EQUAL((MultiplicativeInverse<double,int>()(-0.3333)), -3);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_not_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(LogicalNot<double>()(2.2), 0.0);
+    BOOST_CHECK_EQUAL(LogicalNot<double>()(0.0), 1.0);
+
+    BOOST_CHECK_EQUAL(LogicalNot<float>()(2.2f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalNot<float>()(1.0f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalNot<float>()(0.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(LogicalNot<uint64_t>()(2UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalNot<uint64_t>()(0UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalNot<uint32_t>()(2U), 0U);
+    BOOST_CHECK_EQUAL(LogicalNot<uint32_t>()(0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalNot<uint16_t>()(2), 0);
+    BOOST_CHECK_EQUAL(LogicalNot<uint16_t>()(0), 1);
+    BOOST_CHECK_EQUAL(LogicalNot<uint8_t>()(2), 0);
+    BOOST_CHECK_EQUAL(LogicalNot<uint8_t>()(0), 1);
+
+    BOOST_CHECK_EQUAL(LogicalNot<int64_t>()(-2L), 0L);
+    BOOST_CHECK_EQUAL(LogicalNot<int64_t>()(0L), 1L);
+    BOOST_CHECK_EQUAL(LogicalNot<int32_t>()(-2), 0);
+    BOOST_CHECK_EQUAL(LogicalNot<int32_t>()(0), 1);
+    BOOST_CHECK_EQUAL(LogicalNot<int16_t>()(-2), 0);
+    BOOST_CHECK_EQUAL(LogicalNot<int16_t>()(0), 1);
+    BOOST_CHECK_EQUAL(LogicalNot<int8_t>()(-2), 0);
+    BOOST_CHECK_EQUAL(LogicalNot<int8_t>()(0), 1);
+
+    BOOST_CHECK_EQUAL(LogicalNot<int>()(1), 0);
+    BOOST_CHECK_EQUAL(LogicalNot<int>()(0), 1);
+
+    BOOST_CHECK_EQUAL(LogicalNot<bool>()(false), true);
+    BOOST_CHECK_EQUAL(LogicalNot<bool>()(true), false);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_not_different_domain_test)
+{
+    /// @todo this is an incomplete set of pairs and does not cover the
+    /// corner cases at the numeric limits that actually vary by platform
+    BOOST_CHECK_EQUAL((LogicalNot<double,float>()(2.2)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<double,float>()(0.0)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<double,uint64_t>()(2.2)), 0UL);
+    BOOST_CHECK_EQUAL((LogicalNot<double,uint64_t>()(0.0)), 1UL);
+    BOOST_CHECK_EQUAL((LogicalNot<double,int64_t>()(-2.2)), 0L);
+    BOOST_CHECK_EQUAL((LogicalNot<double,int64_t>()(0.0)), 1L);
+    BOOST_CHECK_EQUAL((LogicalNot<double,bool>()(2.2)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<double,bool>()(0.0)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<float,double>()(2.2f)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<float,double>()(0.0f)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<float,uint32_t>()(2.2f)), 0U);
+    BOOST_CHECK_EQUAL((LogicalNot<float,uint32_t>()(0.0f)), 1U);
+    BOOST_CHECK_EQUAL((LogicalNot<float,int32_t>()(-2.2f)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<float,int32_t>()( 0.0f)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<float,bool>()(2.2f)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<float,bool>()(0.0f)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t, double>()(2UL)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t, double>()(0UL)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t, float>()(2UL)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t, float>()(0UL)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t, int64_t>()(2UL)), 0L);
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t, int64_t>()(0UL)), 1L);
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t,uint32_t>()(2UL)), 0UL);
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t,uint32_t>()(0UL)), 1UL);
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t,bool>()(2UL)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<uint64_t,bool>()(0UL)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, double>()(2U)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, double>()(0U)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, float>()(2U)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, float>()(0U)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t,uint64_t>()(2U)), 0UL);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t,uint64_t>()(0U)), 1UL);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, int64_t>()(2U)), 0L);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, int64_t>()(0U)), 1L);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, int32_t>()(2U)), 0U);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, int32_t>()(0U)), 1U);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t,uint16_t>()(2U)), 0U);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t,uint16_t>()(0U)), 1U);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, int16_t>()(2U)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t, int16_t>()(0U)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t,bool>()(2U)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<uint32_t,bool>()(0U)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, double>()(2U)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, double>()(0U)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, float>()(2U)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, float>()(0U)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t,uint32_t>()(2U)), 0U);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t,uint32_t>()(0U)), 1U);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, int32_t>()(2U)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, int32_t>()(0U)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, int16_t>()(2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, int16_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t,uint8_t>()(2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t,uint8_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, int8_t>()(2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t, int8_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t,bool>()(2U)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<uint16_t,bool>()(0U)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,double>()(2U)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,double>()(0U)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,float>()(2U)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,float>()(0U)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,int8_t>()(2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,int8_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,uint16_t>()(2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,uint16_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,int16_t>()(2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,int16_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,bool>()(2U)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<uint8_t,bool>()(0U)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,double>()(-2L)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,double>()(0L)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,float>()(-2L)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,float>()(0L)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,int32_t>()(-2L)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,int32_t>()(0L)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,int16_t>()(-2L)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,int16_t>()(0L)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,bool>()(-2L)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<int64_t,bool>()(0L)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,double>()(-2)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,double>()(0)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,float>()(-2)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,float>()(0)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,int64_t>()(-2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,int64_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,int16_t>()(-2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,int16_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,bool>()(-2)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<int32_t,bool>()(0)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,double>()(-2)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,double>()(0)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,float>()(-2)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,float>()(0)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,int32_t>()(-2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,int32_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,int8_t>()(-2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,int8_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,bool>()(-2)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<int16_t,bool>()(0)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<int8_t,double>()(-2)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<int8_t,double>()(0)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<int8_t,float>()(-2)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<int8_t,float>()(0)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<int8_t,int16_t>()(-2)), 0);
+    BOOST_CHECK_EQUAL((LogicalNot<int8_t,int16_t>()(0)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<int8_t,bool>()(-2)), false);
+    BOOST_CHECK_EQUAL((LogicalNot<int8_t,bool>()(0)), true);
+
+    BOOST_CHECK_EQUAL((LogicalNot<bool,double>()(false)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalNot<bool,double>()(true)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalNot<bool,float>()(false)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<bool,float>()(true)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalNot<bool,uint32_t>()(false)), 1U);
+    BOOST_CHECK_EQUAL((LogicalNot<bool,uint32_t>()(true)), 0U);
+    BOOST_CHECK_EQUAL((LogicalNot<bool,int32_t>()(false)), 1);
+    BOOST_CHECK_EQUAL((LogicalNot<bool,int32_t>()(true)), 0);
 }
 
 //****************************************************************************
@@ -198,17 +564,1268 @@ BOOST_AUTO_TEST_CASE(BitwiseNot_test)
     uint64_t ui64 = 64;
 
     // odd result for bool (but correct)
-    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<bool>()(b), true);
+    BOOST_CHECK_EQUAL(BitwiseNot<bool>()(b), true);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<int8_t>()(i8), 7);
-    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<int16_t>()(i16), 15);
-    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<int32_t>()(i32), 31);
-    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<int64_t>()(i64), 63);
-    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<uint8_t>()(ui8),   0xf7);
-    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<uint16_t>()(ui16), 0xffef);
-    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<uint32_t>()(ui32), 0xffffffdf);
-    BOOST_CHECK_EQUAL(GraphBLAS::BitwiseNot<uint64_t>()(ui64),
+    BOOST_CHECK_EQUAL(BitwiseNot<int8_t>()(i8), 7);
+    BOOST_CHECK_EQUAL(BitwiseNot<int16_t>()(i16), 15);
+    BOOST_CHECK_EQUAL(BitwiseNot<int32_t>()(i32), 31);
+    BOOST_CHECK_EQUAL(BitwiseNot<int64_t>()(i64), 63);
+    BOOST_CHECK_EQUAL(BitwiseNot<uint8_t>()(ui8),   0xf7);
+    BOOST_CHECK_EQUAL(BitwiseNot<uint16_t>()(ui16), 0xffef);
+    BOOST_CHECK_EQUAL(BitwiseNot<uint32_t>()(ui32), 0xffffffdf);
+    BOOST_CHECK_EQUAL(BitwiseNot<uint64_t>()(ui64),
                       0xffffffffffffffbf);
+    BOOST_CHECK_EQUAL((BitwiseNot<uint64_t,uint32_t>()(ui64)),
+                      0xffffffbf);
+    BOOST_CHECK_EQUAL((BitwiseNot<uint64_t,uint16_t>()(ui64)),
+                      0xffbf);
+    BOOST_CHECK_EQUAL((BitwiseNot<uint64_t,uint8_t>()(ui64)),
+                      0xbf);
+}
+
+//****************************************************************************
+// Binary Operator tests
+//****************************************************************************
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_or_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(LogicalOr<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(LogicalOr<double>()(1.0, 0.0), 1.0);
+    BOOST_CHECK_EQUAL(LogicalOr<double>()(0.0, 1.0), 1.0);
+    BOOST_CHECK_EQUAL(LogicalOr<double>()(1.0, 1.0), 1.0);
+
+    BOOST_CHECK_EQUAL(LogicalOr<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalOr<float>()(1.0f, 0.0f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalOr<float>()(0.0f, 1.0f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalOr<float>()(1.0f, 1.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(LogicalOr<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOr<uint64_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<uint64_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<uint64_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalOr<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOr<uint32_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<uint32_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<uint32_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalOr<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOr<uint16_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<uint16_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<uint16_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalOr<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOr<uint8_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<uint8_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<uint8_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalOr<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOr<int64_t>()(-1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<int64_t>()(0, -1), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<int64_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalOr<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOr<int32_t>()(-1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<int32_t>()(0, -1), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<int32_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalOr<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOr<int16_t>()(-1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<int16_t>()(0, -1), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<int16_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalOr<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOr<int8_t>()(-1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<int8_t>()(0, -1), 1);
+    BOOST_CHECK_EQUAL(LogicalOr<int8_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalOr<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(LogicalOr<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(LogicalOr<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(LogicalOr<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_and_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(LogicalAnd<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(LogicalAnd<double>()(1.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(LogicalAnd<double>()(0.0, 1.0), 0.0);
+    BOOST_CHECK_EQUAL(LogicalAnd<double>()(1.0, 1.0), 1.0);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalAnd<float>()(1.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalAnd<float>()(0.0f, 1.0f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalAnd<float>()(1.0f, 1.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint64_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint64_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint64_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint32_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint32_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint32_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint16_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint16_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint16_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint8_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint8_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<uint8_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int64_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int64_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int64_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int32_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int32_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int32_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int16_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int16_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int16_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int8_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int8_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(LogicalAnd<int8_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAnd<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(LogicalAnd<bool>()(false, true),  false);
+    BOOST_CHECK_EQUAL(LogicalAnd<bool>()(true, false),  false);
+    BOOST_CHECK_EQUAL(LogicalAnd<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_xor_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(LogicalXor<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(LogicalXor<double>()(1.0, 0.0), 1.0);
+    BOOST_CHECK_EQUAL(LogicalXor<double>()(0.0, 1.0), 1.0);
+    BOOST_CHECK_EQUAL(LogicalXor<double>()(1.0, 1.0), 0.0);
+
+    BOOST_CHECK_EQUAL(LogicalXor<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalXor<float>()(1.0f, 0.0f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalXor<float>()(0.0f, 1.0f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalXor<float>()(1.0f, 1.0f), 0.0f);
+
+    BOOST_CHECK_EQUAL(LogicalXor<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXor<uint64_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<uint64_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<uint64_t>()(1, 1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXor<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXor<uint32_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<uint32_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<uint32_t>()(1, 1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXor<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXor<uint16_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<uint16_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<uint16_t>()(1, 1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXor<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXor<uint8_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<uint8_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<uint8_t>()(1, 1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXor<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXor<int64_t>()(-1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<int64_t>()(0, -1), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<int64_t>()(-1, -1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXor<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXor<int32_t>()(-1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<int32_t>()(0, -1), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<int32_t>()(-1, -1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXor<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXor<int16_t>()(-1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<int16_t>()(0, -1), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<int16_t>()(-1, -1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXor<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXor<int8_t>()(-1, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<int8_t>()(0, -1), 1);
+    BOOST_CHECK_EQUAL(LogicalXor<int8_t>()(-1, -1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXor<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(LogicalXor<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(LogicalXor<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(LogicalXor<bool>()(true, true),   false);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_xnor_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(LogicalXnor<double>()(0.0, 0.0), 1.0);
+    BOOST_CHECK_EQUAL(LogicalXnor<double>()(1.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(LogicalXnor<double>()(0.0, 1.0), 0.0);
+    BOOST_CHECK_EQUAL(LogicalXnor<double>()(1.0, 1.0), 1.0);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<float>()(0.0f, 0.0f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalXnor<float>()(1.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalXnor<float>()(0.0f, 1.0f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalXnor<float>()(1.0f, 1.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<uint64_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint64_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint64_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint64_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<uint32_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint32_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint32_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint32_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<uint16_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint16_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint16_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint16_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<uint8_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint8_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint8_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<uint8_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<int64_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnor<int64_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<int64_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<int64_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<int32_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnor<int32_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<int32_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<int32_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<int16_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnor<int16_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<int16_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<int16_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<int8_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnor<int8_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<int8_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnor<int8_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnor<bool>()(false, false), true);
+    BOOST_CHECK_EQUAL(LogicalXnor<bool>()(false, true), false);
+    BOOST_CHECK_EQUAL(LogicalXnor<bool>()(true, false), false);
+    BOOST_CHECK_EQUAL(LogicalXnor<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(equal_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(Equal<double>()(0.0, 0.0), true);
+    BOOST_CHECK_EQUAL(Equal<double>()(1.0, 0.0), false);
+    BOOST_CHECK_EQUAL(Equal<double>()(0.0, 1.0), false);
+    BOOST_CHECK_EQUAL(Equal<double>()(1.0, 1.0), true);
+
+    BOOST_CHECK_EQUAL(Equal<float>()(0.0f, 0.0f), true);
+    BOOST_CHECK_EQUAL(Equal<float>()(1.0f, 0.0f), false);
+    BOOST_CHECK_EQUAL(Equal<float>()(0.0f, 1.0f), false);
+    BOOST_CHECK_EQUAL(Equal<float>()(1.0f, 1.0f), true);
+
+    BOOST_CHECK_EQUAL(Equal<uint64_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(Equal<uint64_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(Equal<uint64_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(Equal<uint64_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(Equal<uint32_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(Equal<uint32_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(Equal<uint32_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(Equal<uint32_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(Equal<uint16_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(Equal<uint16_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(Equal<uint16_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(Equal<uint16_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(Equal<uint8_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(Equal<uint8_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(Equal<uint8_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(Equal<uint8_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(Equal<int64_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(Equal<int64_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(Equal<int64_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(Equal<int64_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(Equal<int32_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(Equal<int32_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(Equal<int32_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(Equal<int32_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(Equal<int16_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(Equal<int16_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(Equal<int16_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(Equal<int16_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(Equal<int8_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(Equal<int8_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(Equal<int8_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(Equal<int8_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(Equal<bool>()(false, false), true);
+    BOOST_CHECK_EQUAL(Equal<bool>()(false, true),  false);
+    BOOST_CHECK_EQUAL(Equal<bool>()(true, false),  false);
+    BOOST_CHECK_EQUAL(Equal<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(not_equal_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(NotEqual<double>()(0.0, 0.0), false);
+    BOOST_CHECK_EQUAL(NotEqual<double>()(1.0, 0.0), true);
+    BOOST_CHECK_EQUAL(NotEqual<double>()(0.0, 1.0), true);
+    BOOST_CHECK_EQUAL(NotEqual<double>()(1.0, 1.0), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<float>()(0.0f, 0.0f), false);
+    BOOST_CHECK_EQUAL(NotEqual<float>()(1.0f, 0.0f), true);
+    BOOST_CHECK_EQUAL(NotEqual<float>()(0.0f, 1.0f), true);
+    BOOST_CHECK_EQUAL(NotEqual<float>()(1.0f, 1.0f), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<uint64_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(NotEqual<uint64_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(NotEqual<uint64_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(NotEqual<uint64_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<uint32_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(NotEqual<uint32_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(NotEqual<uint32_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(NotEqual<uint32_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<uint16_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(NotEqual<uint16_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(NotEqual<uint16_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(NotEqual<uint16_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<uint8_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(NotEqual<uint8_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(NotEqual<uint8_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(NotEqual<uint8_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<int64_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(NotEqual<int64_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(NotEqual<int64_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(NotEqual<int64_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<int32_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(NotEqual<int32_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(NotEqual<int32_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(NotEqual<int32_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<int16_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(NotEqual<int16_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(NotEqual<int16_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(NotEqual<int16_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<int8_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(NotEqual<int8_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(NotEqual<int8_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(NotEqual<int8_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(NotEqual<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(NotEqual<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(NotEqual<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(NotEqual<bool>()(true, true),   false);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(greater_than_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(GreaterThan<double>()(0.0, 0.0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<double>()(1.0, 0.0), true);
+    BOOST_CHECK_EQUAL(GreaterThan<double>()(0.0, 1.0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<double>()(1.0, 1.0), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<float>()(0.0f, 0.0f), false);
+    BOOST_CHECK_EQUAL(GreaterThan<float>()(1.0f, 0.0f), true);
+    BOOST_CHECK_EQUAL(GreaterThan<float>()(0.0f, 1.0f), false);
+    BOOST_CHECK_EQUAL(GreaterThan<float>()(1.0f, 1.0f), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<uint64_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<uint64_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(GreaterThan<uint64_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(GreaterThan<uint64_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<uint32_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<uint32_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(GreaterThan<uint32_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(GreaterThan<uint32_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<uint16_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<uint16_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(GreaterThan<uint16_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(GreaterThan<uint16_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<uint8_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<uint8_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(GreaterThan<uint8_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(GreaterThan<uint8_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<int64_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<int64_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<int64_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(GreaterThan<int64_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<int32_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<int32_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<int32_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(GreaterThan<int32_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<int16_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<int16_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<int16_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(GreaterThan<int16_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<int8_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<int8_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(GreaterThan<int8_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(GreaterThan<int8_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(GreaterThan<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(GreaterThan<bool>()(false, true),  false);
+    BOOST_CHECK_EQUAL(GreaterThan<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(GreaterThan<bool>()(true, true),   false);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(less_than_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(LessThan<double>()(0.0, 0.0), false);
+    BOOST_CHECK_EQUAL(LessThan<double>()(1.0, 0.0), false);
+    BOOST_CHECK_EQUAL(LessThan<double>()(0.0, 1.0), true);
+    BOOST_CHECK_EQUAL(LessThan<double>()(1.0, 1.0), false);
+
+    BOOST_CHECK_EQUAL(LessThan<float>()(0.0f, 0.0f), false);
+    BOOST_CHECK_EQUAL(LessThan<float>()(1.0f, 0.0f), false);
+    BOOST_CHECK_EQUAL(LessThan<float>()(0.0f, 1.0f), true);
+    BOOST_CHECK_EQUAL(LessThan<float>()(1.0f, 1.0f), false);
+
+    BOOST_CHECK_EQUAL(LessThan<uint64_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<uint64_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<uint64_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(LessThan<uint64_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(LessThan<uint32_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<uint32_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<uint32_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(LessThan<uint32_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(LessThan<uint16_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<uint16_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<uint16_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(LessThan<uint16_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(LessThan<uint8_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<uint8_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<uint8_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(LessThan<uint8_t>()(1, 1), false);
+
+    BOOST_CHECK_EQUAL(LessThan<int64_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<int64_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(LessThan<int64_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(LessThan<int64_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(LessThan<int32_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<int32_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(LessThan<int32_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(LessThan<int32_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(LessThan<int16_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<int16_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(LessThan<int16_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(LessThan<int16_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(LessThan<int8_t>()(0, 0), false);
+    BOOST_CHECK_EQUAL(LessThan<int8_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(LessThan<int8_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(LessThan<int8_t>()(-1, -1), false);
+
+    BOOST_CHECK_EQUAL(LessThan<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(LessThan<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(LessThan<bool>()(true, false),  false);
+    BOOST_CHECK_EQUAL(LessThan<bool>()(true, true),   false);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(greater_equal_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(GreaterEqual<double>()(0.0, 0.0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<double>()(1.0, 0.0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<double>()(0.0, 1.0), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<double>()(1.0, 1.0), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<float>()(0.0f, 0.0f), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<float>()(1.0f, 0.0f), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<float>()(0.0f, 1.0f), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<float>()(1.0f, 1.0f), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<uint64_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint64_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint64_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint64_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<uint32_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint32_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint32_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint32_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<uint16_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint16_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint16_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint16_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<uint8_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint8_t>()(1, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint8_t>()(0, 1), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<uint8_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<int64_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<int64_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<int64_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<int64_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<int32_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<int32_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<int32_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<int32_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<int16_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<int16_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<int16_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<int16_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<int8_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<int8_t>()(-1, 0), false);
+    BOOST_CHECK_EQUAL(GreaterEqual<int8_t>()(0, -1), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<int8_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(GreaterEqual<bool>()(false, false), true);
+    BOOST_CHECK_EQUAL(GreaterEqual<bool>()(false, true),  false);
+    BOOST_CHECK_EQUAL(GreaterEqual<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(GreaterEqual<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(less_equal_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(LessEqual<double>()(0.0, 0.0), true);
+    BOOST_CHECK_EQUAL(LessEqual<double>()(1.0, 0.0), false);
+    BOOST_CHECK_EQUAL(LessEqual<double>()(0.0, 1.0), true);
+    BOOST_CHECK_EQUAL(LessEqual<double>()(1.0, 1.0), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<float>()(0.0f, 0.0f), true);
+    BOOST_CHECK_EQUAL(LessEqual<float>()(1.0f, 0.0f), false);
+    BOOST_CHECK_EQUAL(LessEqual<float>()(0.0f, 1.0f), true);
+    BOOST_CHECK_EQUAL(LessEqual<float>()(1.0f, 1.0f), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<uint64_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<uint64_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(LessEqual<uint64_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(LessEqual<uint64_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<uint32_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<uint32_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(LessEqual<uint32_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(LessEqual<uint32_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<uint16_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<uint16_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(LessEqual<uint16_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(LessEqual<uint16_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<uint8_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<uint8_t>()(1, 0), false);
+    BOOST_CHECK_EQUAL(LessEqual<uint8_t>()(0, 1), true);
+    BOOST_CHECK_EQUAL(LessEqual<uint8_t>()(1, 1), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<int64_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<int64_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<int64_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(LessEqual<int64_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<int32_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<int32_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<int32_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(LessEqual<int32_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<int16_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<int16_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<int16_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(LessEqual<int16_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<int8_t>()(0, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<int8_t>()(-1, 0), true);
+    BOOST_CHECK_EQUAL(LessEqual<int8_t>()(0, -1), false);
+    BOOST_CHECK_EQUAL(LessEqual<int8_t>()(-1, -1), true);
+
+    BOOST_CHECK_EQUAL(LessEqual<bool>()(false, false), true);
+    BOOST_CHECK_EQUAL(LessEqual<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(LessEqual<bool>()(true, false),  false);
+    BOOST_CHECK_EQUAL(LessEqual<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(first_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(First<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(First<double>()(1.0, 0.0), 1.0);
+    BOOST_CHECK_EQUAL(First<double>()(0.0, 1.0), 0.0);
+    BOOST_CHECK_EQUAL(First<double>()(1.0, 1.0), 1.0);
+
+    BOOST_CHECK_EQUAL(First<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(First<float>()(1.0f, 0.0f), 1.0f);
+    BOOST_CHECK_EQUAL(First<float>()(0.0f, 1.0f), 0.0f);
+    BOOST_CHECK_EQUAL(First<float>()(1.0f, 1.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(First<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(First<uint64_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(First<uint64_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(First<uint64_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(First<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(First<uint32_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(First<uint32_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(First<uint32_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(First<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(First<uint16_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(First<uint16_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(First<uint16_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(First<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(First<uint8_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(First<uint8_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(First<uint8_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(First<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(First<int64_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(First<int64_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(First<int64_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(First<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(First<int32_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(First<int32_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(First<int32_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(First<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(First<int16_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(First<int16_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(First<int16_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(First<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(First<int8_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(First<int8_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(First<int8_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(First<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(First<bool>()(false, true),  false);
+    BOOST_CHECK_EQUAL(First<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(First<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(second_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(Second<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(Second<double>()(1.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(Second<double>()(0.0, 1.0), 1.0);
+    BOOST_CHECK_EQUAL(Second<double>()(1.0, 1.0), 1.0);
+
+    BOOST_CHECK_EQUAL(Second<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Second<float>()(1.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Second<float>()(0.0f, 1.0f), 1.0f);
+    BOOST_CHECK_EQUAL(Second<float>()(1.0f, 1.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(Second<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Second<uint64_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Second<uint64_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Second<uint64_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Second<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Second<uint32_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Second<uint32_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Second<uint32_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Second<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Second<uint16_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Second<uint16_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Second<uint16_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Second<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Second<uint8_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Second<uint8_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Second<uint8_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Second<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Second<int64_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Second<int64_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Second<int64_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Second<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Second<int32_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Second<int32_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Second<int32_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Second<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Second<int16_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Second<int16_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Second<int16_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Second<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Second<int8_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Second<int8_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Second<int8_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Second<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(Second<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(Second<bool>()(true, false),  false);
+    BOOST_CHECK_EQUAL(Second<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(min_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(Min<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(Min<double>()(1.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(Min<double>()(0.0, 1.0), 0.0);
+    BOOST_CHECK_EQUAL(Min<double>()(1.0, 1.0), 1.0);
+
+    BOOST_CHECK_EQUAL(Min<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Min<float>()(1.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Min<float>()(0.0f, 1.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Min<float>()(1.0f, 1.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(Min<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Min<uint64_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Min<uint64_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Min<uint64_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Min<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Min<uint32_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Min<uint32_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Min<uint32_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Min<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Min<uint16_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Min<uint16_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Min<uint16_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Min<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Min<uint8_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Min<uint8_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Min<uint8_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Min<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Min<int64_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Min<int64_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Min<int64_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Min<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Min<int32_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Min<int32_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Min<int32_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Min<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Min<int16_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Min<int16_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Min<int16_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Min<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Min<int8_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Min<int8_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Min<int8_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Min<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(Min<bool>()(false, true),  false);
+    BOOST_CHECK_EQUAL(Min<bool>()(true, false),  false);
+    BOOST_CHECK_EQUAL(Min<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(max_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(Max<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(Max<double>()(1.0, 0.0), 1.0);
+    BOOST_CHECK_EQUAL(Max<double>()(0.0, 1.0), 1.0);
+    BOOST_CHECK_EQUAL(Max<double>()(1.0, 1.0), 1.0);
+
+    BOOST_CHECK_EQUAL(Max<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Max<float>()(1.0f, 0.0f), 1.0f);
+    BOOST_CHECK_EQUAL(Max<float>()(0.0f, 1.0f), 1.0f);
+    BOOST_CHECK_EQUAL(Max<float>()(1.0f, 1.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(Max<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Max<uint64_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Max<uint64_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Max<uint64_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Max<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Max<uint32_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Max<uint32_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Max<uint32_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Max<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Max<uint16_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Max<uint16_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Max<uint16_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Max<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Max<uint8_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Max<uint8_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Max<uint8_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Max<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Max<int64_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Max<int64_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(Max<int64_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Max<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Max<int32_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Max<int32_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(Max<int32_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Max<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Max<int16_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Max<int16_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(Max<int16_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Max<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Max<int8_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Max<int8_t>()(0, -1), 0);
+    BOOST_CHECK_EQUAL(Max<int8_t>()(-1, -1), -1);
+
+    BOOST_CHECK_EQUAL(Max<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(Max<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(Max<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(Max<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(plus_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(Plus<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(Plus<double>()(1.0, 0.0), 1.0);
+    BOOST_CHECK_EQUAL(Plus<double>()(0.0, 1.0), 1.0);
+    BOOST_CHECK_EQUAL(Plus<double>()(1.0, 1.0), 2.0);
+
+    BOOST_CHECK_EQUAL(Plus<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Plus<float>()(1.0f, 0.0f), 1.0f);
+    BOOST_CHECK_EQUAL(Plus<float>()(0.0f, 1.0f), 1.0f);
+    BOOST_CHECK_EQUAL(Plus<float>()(1.0f, 1.0f), 2.0f);
+
+    BOOST_CHECK_EQUAL(Plus<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Plus<uint64_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Plus<uint64_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Plus<uint64_t>()(1, 1), 2);
+
+    BOOST_CHECK_EQUAL(Plus<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Plus<uint32_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Plus<uint32_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Plus<uint32_t>()(1, 1), 2);
+
+    BOOST_CHECK_EQUAL(Plus<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Plus<uint16_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Plus<uint16_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Plus<uint16_t>()(1, 1), 2);
+
+    BOOST_CHECK_EQUAL(Plus<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Plus<uint8_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Plus<uint8_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(Plus<uint8_t>()(1, 1), 2);
+
+    BOOST_CHECK_EQUAL(Plus<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Plus<int64_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Plus<int64_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Plus<int64_t>()(-1, -1), -2);
+
+    BOOST_CHECK_EQUAL(Plus<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Plus<int32_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Plus<int32_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Plus<int32_t>()(-1, -1), -2);
+
+    BOOST_CHECK_EQUAL(Plus<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Plus<int16_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Plus<int16_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Plus<int16_t>()(-1, -1), -2);
+
+    BOOST_CHECK_EQUAL(Plus<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Plus<int8_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Plus<int8_t>()(0, -1), -1);
+    BOOST_CHECK_EQUAL(Plus<int8_t>()(-1, -1), -2);
+
+    BOOST_CHECK_EQUAL(Plus<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(Plus<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(Plus<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(Plus<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(minus_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(Minus<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(Minus<double>()(1.0, 0.0), 1.0);
+    BOOST_CHECK_EQUAL(Minus<double>()(2.0, 1.0), 1.0);
+    BOOST_CHECK_EQUAL(Minus<double>()(1.0, 1.0), 0.0);
+
+    BOOST_CHECK_EQUAL(Minus<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Minus<float>()(1.0f, 0.0f), 1.0f);
+    BOOST_CHECK_EQUAL(Minus<float>()(2.0f, 1.0f), 1.0f);
+    BOOST_CHECK_EQUAL(Minus<float>()(1.0f, 1.0f), 0.0f);
+
+    BOOST_CHECK_EQUAL(Minus<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Minus<uint64_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Minus<uint64_t>()(2, 1), 1);
+    BOOST_CHECK_EQUAL(Minus<uint64_t>()(1, 1), 0);
+
+    BOOST_CHECK_EQUAL(Minus<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Minus<uint32_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Minus<uint32_t>()(2, 1), 1);
+    BOOST_CHECK_EQUAL(Minus<uint32_t>()(1, 1), 0);
+
+    BOOST_CHECK_EQUAL(Minus<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Minus<uint16_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Minus<uint16_t>()(2, 1), 1);
+    BOOST_CHECK_EQUAL(Minus<uint16_t>()(1, 1), 0);
+
+    BOOST_CHECK_EQUAL(Minus<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Minus<uint8_t>()(1, 0), 1);
+    BOOST_CHECK_EQUAL(Minus<uint8_t>()(2, 1), 1);
+    BOOST_CHECK_EQUAL(Minus<uint8_t>()(1, 1), 0);
+
+    BOOST_CHECK_EQUAL(Minus<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Minus<int64_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Minus<int64_t>()(-2, -1), -1);
+    BOOST_CHECK_EQUAL(Minus<int64_t>()(-1, -1), 0);
+
+    BOOST_CHECK_EQUAL(Minus<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Minus<int32_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Minus<int32_t>()(-2, -1), -1);
+    BOOST_CHECK_EQUAL(Minus<int32_t>()(-1, -1), 0);
+
+    BOOST_CHECK_EQUAL(Minus<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Minus<int16_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Minus<int16_t>()(-2, -1), -1);
+    BOOST_CHECK_EQUAL(Minus<int16_t>()(-1, -1), 0);
+
+    BOOST_CHECK_EQUAL(Minus<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Minus<int8_t>()(-1, 0), -1);
+    BOOST_CHECK_EQUAL(Minus<int8_t>()(-2, -1), -1);
+    BOOST_CHECK_EQUAL(Minus<int8_t>()(-1, -1), 0);
+
+    BOOST_CHECK_EQUAL(Minus<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(Minus<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(Minus<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(Minus<bool>()(true, true),   false);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(times_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(Times<double>()(0.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(Times<double>()(1.0, 0.0), 0.0);
+    BOOST_CHECK_EQUAL(Times<double>()(2.0, 1.0), 2.0);
+    BOOST_CHECK_EQUAL(Times<double>()(1.0, 1.0), 1.0);
+
+    BOOST_CHECK_EQUAL(Times<float>()(0.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Times<float>()(1.0f, 0.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Times<float>()(2.0f, 1.0f), 2.0f);
+    BOOST_CHECK_EQUAL(Times<float>()(1.0f, 1.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(Times<uint64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Times<uint64_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Times<uint64_t>()(2, 1), 2);
+    BOOST_CHECK_EQUAL(Times<uint64_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Times<uint32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Times<uint32_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Times<uint32_t>()(2, 1), 2);
+    BOOST_CHECK_EQUAL(Times<uint32_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Times<uint16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Times<uint16_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Times<uint16_t>()(2, 1), 2);
+    BOOST_CHECK_EQUAL(Times<uint16_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Times<uint8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Times<uint8_t>()(1, 0), 0);
+    BOOST_CHECK_EQUAL(Times<uint8_t>()(2, 1), 2);
+    BOOST_CHECK_EQUAL(Times<uint8_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Times<int64_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Times<int64_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Times<int64_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(Times<int64_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(Times<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Times<int32_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Times<int32_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(Times<int32_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(Times<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Times<int16_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Times<int16_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(Times<int16_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(Times<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(Times<int8_t>()(-1, 0), 0);
+    BOOST_CHECK_EQUAL(Times<int8_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(Times<int8_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(Times<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(Times<bool>()(false, true),  false);
+    BOOST_CHECK_EQUAL(Times<bool>()(true, false),  false);
+    BOOST_CHECK_EQUAL(Times<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(div_same_domain_test)
+{
+    BOOST_CHECK_EQUAL(Div<double>()(0.0, 1.0), 0.0);
+    BOOST_CHECK_EQUAL(Div<double>()(1.0, 2.0), 0.5);
+    BOOST_CHECK_EQUAL(Div<double>()(2.0, 1.0), 2.0);
+    BOOST_CHECK_EQUAL(Div<double>()(1.0, 1.0), 1.0);
+
+    BOOST_CHECK_EQUAL(Div<float>()(0.0f, 1.0f), 0.0f);
+    BOOST_CHECK_EQUAL(Div<float>()(1.0f, 2.0f), 0.5f);
+    BOOST_CHECK_EQUAL(Div<float>()(2.0f, 1.0f), 2.0f);
+    BOOST_CHECK_EQUAL(Div<float>()(1.0f, 1.0f), 1.0f);
+
+    BOOST_CHECK_EQUAL(Div<uint64_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Div<uint64_t>()(1, 2), 0);
+    BOOST_CHECK_EQUAL(Div<uint64_t>()(2, 1), 2);
+    BOOST_CHECK_EQUAL(Div<uint64_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Div<uint32_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Div<uint32_t>()(1, 2), 0);
+    BOOST_CHECK_EQUAL(Div<uint32_t>()(2, 1), 2);
+    BOOST_CHECK_EQUAL(Div<uint32_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Div<uint16_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Div<uint16_t>()(1, 2), 0);
+    BOOST_CHECK_EQUAL(Div<uint16_t>()(2, 1), 2);
+    BOOST_CHECK_EQUAL(Div<uint16_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Div<uint8_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Div<uint8_t>()(1, 2), 0);
+    BOOST_CHECK_EQUAL(Div<uint8_t>()(2, 1), 2);
+    BOOST_CHECK_EQUAL(Div<uint8_t>()(1, 1), 1);
+
+    BOOST_CHECK_EQUAL(Div<int64_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Div<int64_t>()(-1, 2), 0);
+    BOOST_CHECK_EQUAL(Div<int64_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(Div<int64_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(Div<int32_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Div<int32_t>()(-1, 2), 0);
+    BOOST_CHECK_EQUAL(Div<int32_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(Div<int32_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(Div<int16_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Div<int16_t>()(-1, 2), 0);
+    BOOST_CHECK_EQUAL(Div<int16_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(Div<int16_t>()(-1, -1), 1);
+
+    BOOST_CHECK_EQUAL(Div<int8_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(Div<int8_t>()(-1, 2), 0);
+    BOOST_CHECK_EQUAL(Div<int8_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(Div<int8_t>()(-1, -1), 1);
+
+    //BOOST_CHECK_EQUAL(Div<bool>()(false, false), ?);
+    BOOST_CHECK_EQUAL(Div<bool>()(false, true),  false);
+    //BOOST_CHECK_EQUAL(Div<bool>()(true, false),  ?);
+    BOOST_CHECK_EQUAL(Div<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+// Monoid tests
+//****************************************************************************
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(plus_monoid_test)
+{
+    BOOST_CHECK_EQUAL(PlusMonoid<double>().identity(), 0.0);
+    BOOST_CHECK_EQUAL(PlusMonoid<double>()(-2., 1.), -1.0);
+    BOOST_CHECK_EQUAL(PlusMonoid<float>().identity(), 0.0f);
+    BOOST_CHECK_EQUAL(PlusMonoid<float>()(-2.f, 1.f), -1.0f);
+
+    BOOST_CHECK_EQUAL(PlusMonoid<uint64_t>().identity(), 0UL);
+    BOOST_CHECK_EQUAL(PlusMonoid<uint64_t>()(2UL, 1UL), 3UL);
+    BOOST_CHECK_EQUAL(PlusMonoid<uint32_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(PlusMonoid<uint32_t>()(2U, 1U), 3U);
+    BOOST_CHECK_EQUAL(PlusMonoid<uint16_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(PlusMonoid<uint16_t>()(2U, 1U), 3U);
+    BOOST_CHECK_EQUAL(PlusMonoid<uint8_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(PlusMonoid<uint8_t>()(2U, 1U), 3U);
+
+    BOOST_CHECK_EQUAL(PlusMonoid<int64_t>().identity(), 0L);
+    BOOST_CHECK_EQUAL(PlusMonoid<int64_t>()(-2L, 1L), -1L);
+    BOOST_CHECK_EQUAL(PlusMonoid<int32_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(PlusMonoid<int32_t>()(-2, 1), -1);
+    BOOST_CHECK_EQUAL(PlusMonoid<int16_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(PlusMonoid<int16_t>()(-2, 1), -1);
+    BOOST_CHECK_EQUAL(PlusMonoid<int8_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(PlusMonoid<int8_t>()(-2, 1), -1);
+
+    BOOST_CHECK_EQUAL(PlusMonoid<bool>().identity(), false);
+    BOOST_CHECK_EQUAL(PlusMonoid<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(PlusMonoid<bool>()(true, true), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(times_monoid_test)
+{
+    BOOST_CHECK_EQUAL(TimesMonoid<double>().identity(), 1.0);
+    BOOST_CHECK_EQUAL(TimesMonoid<double>()(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(TimesMonoid<float>().identity(), 1.0f);
+    BOOST_CHECK_EQUAL(TimesMonoid<float>()(-2.f, 1.f), -2.0f);
+
+    BOOST_CHECK_EQUAL(TimesMonoid<uint64_t>().identity(), 1UL);
+    BOOST_CHECK_EQUAL(TimesMonoid<uint64_t>()(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(TimesMonoid<uint32_t>().identity(), 1U);
+    BOOST_CHECK_EQUAL(TimesMonoid<uint32_t>()(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(TimesMonoid<uint16_t>().identity(), 1U);
+    BOOST_CHECK_EQUAL(TimesMonoid<uint16_t>()(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(TimesMonoid<uint8_t>().identity(), 1U);
+    BOOST_CHECK_EQUAL(TimesMonoid<uint8_t>()(2U, 1U), 2U);
+
+    BOOST_CHECK_EQUAL(TimesMonoid<int64_t>().identity(), 1L);
+    BOOST_CHECK_EQUAL(TimesMonoid<int64_t>()(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(TimesMonoid<int32_t>().identity(), 1);
+    BOOST_CHECK_EQUAL(TimesMonoid<int32_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(TimesMonoid<int16_t>().identity(), 1);
+    BOOST_CHECK_EQUAL(TimesMonoid<int16_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(TimesMonoid<int8_t>().identity(), 1);
+    BOOST_CHECK_EQUAL(TimesMonoid<int8_t>()(-2, 1), -2);
+
+    BOOST_CHECK_EQUAL(TimesMonoid<bool>().identity(), true);
+    BOOST_CHECK_EQUAL(TimesMonoid<bool>()(false, true), false);
+    BOOST_CHECK_EQUAL(TimesMonoid<bool>()(true, true), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(min_monoid_test)
+{
+    BOOST_CHECK_EQUAL(MinMonoid<double>().identity(),
+                      std::numeric_limits<double>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<double>()(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MinMonoid<float>().identity(),
+                      std::numeric_limits<float>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<float>()(-2.f, 1.f), -2.0f);
+
+    BOOST_CHECK_EQUAL(MinMonoid<uint64_t>().identity(),
+                      std::numeric_limits<uint64_t>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<uint64_t>()(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MinMonoid<uint32_t>().identity(),
+                      std::numeric_limits<uint32_t>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<uint32_t>()(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinMonoid<uint16_t>().identity(),
+                      std::numeric_limits<uint16_t>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<uint16_t>()(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinMonoid<uint8_t>().identity(),
+                      std::numeric_limits<uint8_t>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<uint8_t>()(2U, 1U), 1U);
+
+    BOOST_CHECK_EQUAL(MinMonoid<int64_t>().identity(),
+                      std::numeric_limits<int64_t>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<int64_t>()(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MinMonoid<int32_t>().identity(),
+                      std::numeric_limits<int32_t>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<int32_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinMonoid<int16_t>().identity(),
+                      std::numeric_limits<int16_t>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<int16_t>()(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinMonoid<int8_t>().identity(),
+                      std::numeric_limits<int8_t>::max());
+    BOOST_CHECK_EQUAL(MinMonoid<int8_t>()(-2, 1), -2);
+
+    BOOST_CHECK_EQUAL(MinMonoid<bool>().identity(), true);
+    BOOST_CHECK_EQUAL(MinMonoid<bool>()(false, true), false);
+    BOOST_CHECK_EQUAL(MinMonoid<bool>()(true, true), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(max_monoid_test)
+{
+    BOOST_CHECK_EQUAL(MaxMonoid<double>().identity(), 0.0);
+    BOOST_CHECK_EQUAL(MaxMonoid<double>()(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MaxMonoid<float>().identity(), 0.0f);
+    BOOST_CHECK_EQUAL(MaxMonoid<float>()(-2.f, 1.f), 1.0f);
+
+    BOOST_CHECK_EQUAL(MaxMonoid<uint64_t>().identity(), 0UL);
+    BOOST_CHECK_EQUAL(MaxMonoid<uint64_t>()(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(MaxMonoid<uint32_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(MaxMonoid<uint32_t>()(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxMonoid<uint16_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(MaxMonoid<uint16_t>()(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxMonoid<uint8_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(MaxMonoid<uint8_t>()(2U, 1U), 2U);
+
+    BOOST_CHECK_EQUAL(MaxMonoid<int64_t>().identity(), 0L);
+    BOOST_CHECK_EQUAL(MaxMonoid<int64_t>()(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(MaxMonoid<int32_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(MaxMonoid<int32_t>()(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxMonoid<int16_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(MaxMonoid<int16_t>()(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxMonoid<int8_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(MaxMonoid<int8_t>()(-2, 1), 1);
+
+    BOOST_CHECK_EQUAL(MaxMonoid<bool>().identity(), false);
+    BOOST_CHECK_EQUAL(MaxMonoid<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(MaxMonoid<bool>()(false, true), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_or_monoid_test)
+{
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<double>().identity(), 0.0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<double>()(-2., 0.), 1.0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<double>()(0., 0.), 0.0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<float>().identity(), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<float>()(-2.f, 0.f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<float>()(0.f, 0.f), 0.0f);
+
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint64_t>().identity(), 0UL);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint64_t>()(2UL, 0UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint64_t>()(0UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint32_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint32_t>()(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint32_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint16_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint16_t>()(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint16_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint8_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint8_t>()(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint8_t>()(0U, 0U), 0U);
+
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int64_t>().identity(), 0L);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int64_t>()(-2L, 0L), 1L);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int64_t>()(0L, 0L), 0L);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int32_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int32_t>()(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int16_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int16_t>()(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int8_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int8_t>()(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int8_t>()(0, 0), 0);
+
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<bool>().identity(), false);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<bool>()(false, true), true);
 }
 
 //****************************************************************************
@@ -216,7 +1833,7 @@ BOOST_AUTO_TEST_CASE(PlusMonoid_test)
 {
     uint8_t i8[3]={15, 22, 37};
 
-    GraphBLAS::PlusMonoid<uint8_t> GrB_PLUS_INT8;
+    PlusMonoid<uint8_t> GrB_PLUS_INT8;
     BOOST_CHECK_EQUAL(GrB_PLUS_INT8.identity(), static_cast<uint8_t>(0));
     BOOST_CHECK_EQUAL(GrB_PLUS_INT8(i8[0], i8[1]), i8[2]);
 }
@@ -226,1995 +1843,463 @@ BOOST_AUTO_TEST_CASE(ArithmeticSemiring_test)
 {
     uint32_t i32[]={15, 22, 15+22, 15*22};
 
-    GraphBLAS::ArithmeticSemiring<uint32_t> GrB_PlusTimes_INT32;
+    ArithmeticSemiring<uint32_t> GrB_PlusTimes_INT32;
     BOOST_CHECK_EQUAL(GrB_PlusTimes_INT32.zero(), static_cast<uint32_t>(0));
     BOOST_CHECK_EQUAL(GrB_PlusTimes_INT32.add(i32[0], i32[1]), i32[2]);
     BOOST_CHECK_EQUAL(GrB_PlusTimes_INT32.mult(i32[0], i32[1]), i32[3]);
 }
 
 //****************************************************************************
-// Test Unary Operators
-//****************************************************************************
-
-BOOST_AUTO_TEST_CASE(identity_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<double>()(2.2), 2.2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<float>()(2.2f), 2.2f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<uint64_t>()(2UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<uint32_t>()(2U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<uint16_t>()(2), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<uint8_t>()(2), 2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<int64_t>()(-2L), -2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<int32_t>()(-2), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<int16_t>()(-2), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<int8_t>()(-2), -2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<bool>()(false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Identity<bool>()(true), true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(identity_different_domain_test)
-{
-    /// @todo this is an incomplete set of pairs and does not cover the
-    /// corner cases at the numeric limits that actually vary by platform
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<double,float>()(2.2)), 2.2f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<double,uint64_t>()(2.2)), 2UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<double,int64_t>()(-2.2)), -2UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<double,bool>()(2.2)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<double,bool>()(0.0)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<float,double>()(2.2f)), static_cast<double>(2.2f));
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<float,uint32_t>()(2.2f)), 2U);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<float,int32_t>()(-2.2f)), -2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<float,bool>()(2.2f)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<float,bool>()(0.0f)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint64_t, double>()(2UL)), 2.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint64_t, float>()(2UL)), 2.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint64_t, int64_t>()(2UL)), 2UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint64_t,uint32_t>()(2UL)), 2UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint64_t,bool>()(2UL)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint64_t,bool>()(0UL)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint32_t, double>()(2U)), 2.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint32_t, float>()(2U)), 2.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint32_t,uint64_t>()(2U)), 2UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint32_t, int64_t>()(2U)), 2L);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint32_t, int32_t>()(2U)), 2U);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint32_t,uint16_t>()(2U)), 2U);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint32_t, int16_t>()(2U)), 2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint32_t,bool>()(2U)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint32_t,bool>()(0U)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint16_t, double>()(2U)), 2.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint16_t, float>()(2U)), 2.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint16_t,uint32_t>()(2U)), 2U);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint16_t, int32_t>()(2U)), 2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint16_t, int16_t>()(2)), 2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint16_t,uint8_t>()(2)), 2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint16_t, int8_t>()(2)), 2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint16_t,bool>()(2U)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint16_t,bool>()(0U)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint8_t,double>()(2U)), 2.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint8_t,float>()(2U)), 2.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint8_t,int8_t>()(2)), 2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint8_t,uint16_t>()(2)), 2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint8_t,int16_t>()(2)), 2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint8_t,bool>()(2U)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<uint8_t,bool>()(0U)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int64_t,double>()(-2L)), -2.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int64_t,float>()(-2L)), -2.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int64_t,int32_t>()(-2L)), -2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int64_t,int16_t>()(-2L)), -2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int64_t,bool>()(-2L)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int64_t,bool>()(0L)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int32_t,double>()(-2)), -2.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int32_t,float>()(-2)), -2.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int32_t,int64_t>()(-2)), -2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int32_t,int16_t>()(-2)), -2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int32_t,bool>()(-2)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int32_t,bool>()(0)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int16_t,double>()(-2)), -2.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int16_t,float>()(-2)), -2.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int16_t,int32_t>()(-2)), -2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int16_t,int8_t>()(-2)), -2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int16_t,bool>()(-2)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int16_t,bool>()(0)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int8_t,double>()(-2)), -2.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int8_t,float>()(-2)), -2.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int8_t,int16_t>()(-2)), -2);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int8_t,bool>()(-2)), true);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<int8_t,bool>()(0)), false);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<bool,double>()(false)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<bool,double>()(true)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<bool,float>()(false)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<bool,float>()(true)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<bool,uint32_t>()(false)), 0U);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<bool,uint32_t>()(true)), 1U);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<bool,int32_t>()(false)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::Identity<bool,int32_t>()(true)), 1);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(logical_not_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<double>()(2.2), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<double>()(0.0), 1.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<float>()(2.2f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<float>()(0.0f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<uint64_t>()(2UL), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<uint64_t>()(0UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<uint32_t>()(2U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<uint32_t>()(0U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<uint16_t>()(2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<uint16_t>()(0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<uint8_t>()(2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<uint8_t>()(0), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<int64_t>()(-2L), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<int64_t>()(0L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<int32_t>()(-2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<int32_t>()(0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<int16_t>()(-2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<int16_t>()(0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<int8_t>()(-2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<int8_t>()(0), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<bool>()(false), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalNot<bool>()(true), false);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(logical_not_different_domain_test)
-{
-    /// @todo this is an incomplete set of pairs and does not cover the
-    /// corner cases at the numeric limits that actually vary by platform
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<double,float>()(2.2)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<double,float>()(0.0)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<double,uint64_t>()(2.2)), 0UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<double,uint64_t>()(0.0)), 1UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<double,int64_t>()(-2.2)), 0L);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<double,int64_t>()(0.0)), 1L);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<double,bool>()(2.2)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<double,bool>()(0.0)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<float,double>()(2.2f)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<float,double>()(0.0f)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<float,uint32_t>()(2.2f)), 0U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<float,uint32_t>()(0.0f)), 1U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<float,int32_t>()(-2.2f)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<float,int32_t>()( 0.0f)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<float,bool>()(2.2f)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<float,bool>()(0.0f)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t, double>()(2UL)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t, double>()(0UL)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t, float>()(2UL)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t, float>()(0UL)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t, int64_t>()(2UL)), 0L);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t, int64_t>()(0UL)), 1L);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t,uint32_t>()(2UL)), 0UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t,uint32_t>()(0UL)), 1UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t,bool>()(2UL)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint64_t,bool>()(0UL)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, double>()(2U)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, double>()(0U)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, float>()(2U)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, float>()(0U)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t,uint64_t>()(2U)), 0UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t,uint64_t>()(0U)), 1UL);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, int64_t>()(2U)), 0L);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, int64_t>()(0U)), 1L);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, int32_t>()(2U)), 0U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, int32_t>()(0U)), 1U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t,uint16_t>()(2U)), 0U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t,uint16_t>()(0U)), 1U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, int16_t>()(2U)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t, int16_t>()(0U)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t,bool>()(2U)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint32_t,bool>()(0U)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, double>()(2U)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, double>()(0U)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, float>()(2U)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, float>()(0U)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t,uint32_t>()(2U)), 0U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t,uint32_t>()(0U)), 1U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, int32_t>()(2U)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, int32_t>()(0U)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, int16_t>()(2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, int16_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t,uint8_t>()(2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t,uint8_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, int8_t>()(2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t, int8_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t,bool>()(2U)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint16_t,bool>()(0U)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,double>()(2U)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,double>()(0U)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,float>()(2U)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,float>()(0U)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,int8_t>()(2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,int8_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,uint16_t>()(2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,uint16_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,int16_t>()(2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,int16_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,bool>()(2U)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<uint8_t,bool>()(0U)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,double>()(-2L)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,double>()(0L)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,float>()(-2L)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,float>()(0L)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,int32_t>()(-2L)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,int32_t>()(0L)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,int16_t>()(-2L)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,int16_t>()(0L)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,bool>()(-2L)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int64_t,bool>()(0L)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,double>()(-2)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,double>()(0)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,float>()(-2)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,float>()(0)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,int64_t>()(-2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,int64_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,int16_t>()(-2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,int16_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,bool>()(-2)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int32_t,bool>()(0)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,double>()(-2)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,double>()(0)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,float>()(-2)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,float>()(0)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,int32_t>()(-2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,int32_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,int8_t>()(-2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,int8_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,bool>()(-2)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int16_t,bool>()(0)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int8_t,double>()(-2)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int8_t,double>()(0)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int8_t,float>()(-2)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int8_t,float>()(0)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int8_t,int16_t>()(-2)), 0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int8_t,int16_t>()(0)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int8_t,bool>()(-2)), false);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<int8_t,bool>()(0)), true);
-
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<bool,double>()(false)), 1.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<bool,double>()(true)), 0.0);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<bool,float>()(false)), 1.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<bool,float>()(true)), 0.0f);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<bool,uint32_t>()(false)), 1U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<bool,uint32_t>()(true)), 0U);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<bool,int32_t>()(false)), 1);
-    BOOST_CHECK_EQUAL((GraphBLAS::LogicalNot<bool,int32_t>()(true)), 0);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(additive_inverse_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<double>()(2.2), -2.2);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<double>()(0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<double>()(-2.0), 2.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<float>()(2.2f), -2.2f);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<float>()(0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<float>()(-2.2f), 2.2f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint64_t>()(2UL), static_cast<uint64_t>(-2L));
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint64_t>()(0UL), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint64_t>()(-2), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint32_t>()(2U), static_cast<uint32_t>(-2));
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint32_t>()(0U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint32_t>()(-2), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint16_t>()(2), static_cast<uint16_t>(-2));
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint16_t>()(0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint16_t>()(-2), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint8_t>()(2), static_cast<uint8_t>(-2));
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint8_t>()(0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<uint8_t>()(-2), 2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int64_t>()(-2L), 2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int64_t>()(0L), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int64_t>()(2L), -2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int32_t>()(-2), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int32_t>()(0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int32_t>()(2), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int16_t>()(-2), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int16_t>()(0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int16_t>()(2), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int8_t>()(-2), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int8_t>()(0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<int8_t>()(2), -2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<bool>()(false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::AdditiveInverse<bool>()(true), true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(additive_inverse_different_domain_test)
-{
-    /// @todo
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(multiplicative_inverse_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<double>()(2.2), 1./2.2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<double>()(-2.2), -1./2.2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<float>()(2.2f), 1.f/2.2f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<float>()(-2.2f), -1.f/2.2f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<uint64_t>()(2UL), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<uint32_t>()(2U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<uint16_t>()(2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<uint8_t>()(2), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<int64_t>()(-2L), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<int32_t>()(-2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<int16_t>()(-2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<int8_t>()(-2), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<bool>()(true), true);
-
-    // divide by zero
-    //BOOST_CHECK_EQUAL(GraphBLAS::MultiplicativeInverse<bool>()(false), false);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(multiplicative_inverse_different_domain_test)
-{
-    //// @todo
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(logical_or_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<double>()(1.0, 0.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<double>()(0.0, 1.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<double>()(1.0, 1.0), 1.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<float>()(1.0f, 0.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<float>()(0.0f, 1.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<float>()(1.0f, 1.0f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint64_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint64_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint64_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint32_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint32_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint32_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint16_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint16_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint16_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint8_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint8_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<uint8_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int64_t>()(-1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int64_t>()(0, -1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int64_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int32_t>()(-1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int32_t>()(0, -1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int32_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int16_t>()(-1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int16_t>()(0, -1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int16_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int8_t>()(-1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int8_t>()(0, -1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<int8_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<bool>()(false, true),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<bool>()(true, false),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOr<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(logical_and_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<double>()(1.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<double>()(0.0, 1.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<double>()(1.0, 1.0), 1.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<float>()(1.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<float>()(0.0f, 1.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<float>()(1.0f, 1.0f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint64_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint64_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint64_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint32_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint32_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint32_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint16_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint16_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint16_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint8_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint8_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<uint8_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int64_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int64_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int64_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int32_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int32_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int32_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int16_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int16_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int16_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int8_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int8_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<int8_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<bool>()(false, true),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<bool>()(true, false),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalAnd<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(logical_xor_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<double>()(1.0, 0.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<double>()(0.0, 1.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<double>()(1.0, 1.0), 0.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<float>()(1.0f, 0.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<float>()(0.0f, 1.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<float>()(1.0f, 1.0f), 0.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint64_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint64_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint64_t>()(1, 1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint32_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint32_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint32_t>()(1, 1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint16_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint16_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint16_t>()(1, 1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint8_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint8_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<uint8_t>()(1, 1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int64_t>()(-1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int64_t>()(0, -1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int64_t>()(-1, -1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int32_t>()(-1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int32_t>()(0, -1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int32_t>()(-1, -1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int16_t>()(-1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int16_t>()(0, -1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int16_t>()(-1, -1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int8_t>()(-1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int8_t>()(0, -1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<int8_t>()(-1, -1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<bool>()(false, true),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<bool>()(true, false),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalXor<bool>()(true, true),   false);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(equal_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<double>()(0.0, 0.0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<double>()(1.0, 0.0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<double>()(0.0, 1.0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<double>()(1.0, 1.0), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<float>()(0.0f, 0.0f), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<float>()(1.0f, 0.0f), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<float>()(0.0f, 1.0f), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<float>()(1.0f, 1.0f), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint64_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint64_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint64_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint64_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint32_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint32_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint32_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint32_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint16_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint16_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint16_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint16_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint8_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint8_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint8_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<uint8_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int64_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int64_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int64_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int64_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int32_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int32_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int32_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int32_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int16_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int16_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int16_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int16_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int8_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int8_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int8_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<int8_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<bool>()(false, false), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<bool>()(false, true),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<bool>()(true, false),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Equal<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(not_equal_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<double>()(0.0, 0.0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<double>()(1.0, 0.0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<double>()(0.0, 1.0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<double>()(1.0, 1.0), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<float>()(0.0f, 0.0f), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<float>()(1.0f, 0.0f), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<float>()(0.0f, 1.0f), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<float>()(1.0f, 1.0f), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint64_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint64_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint64_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint64_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint32_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint32_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint32_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint32_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint16_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint16_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint16_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint16_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint8_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint8_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint8_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<uint8_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int64_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int64_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int64_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int64_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int32_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int32_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int32_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int32_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int16_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int16_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int16_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int16_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int8_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int8_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int8_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<int8_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<bool>()(false, true),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<bool>()(true, false),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::NotEqual<bool>()(true, true),   false);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(greater_than_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<double>()(0.0, 0.0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<double>()(1.0, 0.0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<double>()(0.0, 1.0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<double>()(1.0, 1.0), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<float>()(0.0f, 0.0f), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<float>()(1.0f, 0.0f), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<float>()(0.0f, 1.0f), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<float>()(1.0f, 1.0f), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint64_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint64_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint64_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint64_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint32_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint32_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint32_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint32_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint16_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint16_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint16_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint16_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint8_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint8_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint8_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<uint8_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int64_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int64_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int64_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int64_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int32_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int32_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int32_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int32_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int16_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int16_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int16_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int16_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int8_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int8_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int8_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<int8_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<bool>()(false, true),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<bool>()(true, false),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterThan<bool>()(true, true),   false);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(less_than_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<double>()(0.0, 0.0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<double>()(1.0, 0.0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<double>()(0.0, 1.0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<double>()(1.0, 1.0), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<float>()(0.0f, 0.0f), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<float>()(1.0f, 0.0f), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<float>()(0.0f, 1.0f), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<float>()(1.0f, 1.0f), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint64_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint64_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint64_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint64_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint32_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint32_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint32_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint32_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint16_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint16_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint16_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint16_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint8_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint8_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint8_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<uint8_t>()(1, 1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int64_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int64_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int64_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int64_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int32_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int32_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int32_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int32_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int16_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int16_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int16_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int16_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int8_t>()(0, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int8_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int8_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<int8_t>()(-1, -1), false);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<bool>()(false, true),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<bool>()(true, false),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessThan<bool>()(true, true),   false);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(greater_equal_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<double>()(0.0, 0.0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<double>()(1.0, 0.0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<double>()(0.0, 1.0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<double>()(1.0, 1.0), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<float>()(0.0f, 0.0f), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<float>()(1.0f, 0.0f), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<float>()(0.0f, 1.0f), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<float>()(1.0f, 1.0f), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint64_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint64_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint64_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint64_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint32_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint32_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint32_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint32_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint16_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint16_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint16_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint16_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint8_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint8_t>()(1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint8_t>()(0, 1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<uint8_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int64_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int64_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int64_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int64_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int32_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int32_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int32_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int32_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int16_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int16_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int16_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int16_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int8_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int8_t>()(-1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int8_t>()(0, -1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<int8_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<bool>()(false, false), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<bool>()(false, true),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<bool>()(true, false),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::GreaterEqual<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(less_equal_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<double>()(0.0, 0.0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<double>()(1.0, 0.0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<double>()(0.0, 1.0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<double>()(1.0, 1.0), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<float>()(0.0f, 0.0f), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<float>()(1.0f, 0.0f), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<float>()(0.0f, 1.0f), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<float>()(1.0f, 1.0f), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint64_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint64_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint64_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint64_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint32_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint32_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint32_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint32_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint16_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint16_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint16_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint16_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint8_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint8_t>()(1, 0), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint8_t>()(0, 1), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<uint8_t>()(1, 1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int64_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int64_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int64_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int64_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int32_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int32_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int32_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int32_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int16_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int16_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int16_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int16_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int8_t>()(0, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int8_t>()(-1, 0), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int8_t>()(0, -1), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<int8_t>()(-1, -1), true);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<bool>()(false, false), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<bool>()(false, true),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<bool>()(true, false),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LessEqual<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(first_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::First<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<double>()(1.0, 0.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<double>()(0.0, 1.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<double>()(1.0, 1.0), 1.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<float>()(1.0f, 0.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<float>()(0.0f, 1.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<float>()(1.0f, 1.0f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint64_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint64_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint64_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint32_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint32_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint32_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint16_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint16_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint16_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint8_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint8_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<uint8_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int64_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int64_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int64_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int32_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int32_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int32_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int16_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int16_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int16_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int8_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int8_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<int8_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::First<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<bool>()(false, true),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<bool>()(true, false),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::First<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(second_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<double>()(1.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<double>()(0.0, 1.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<double>()(1.0, 1.0), 1.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<float>()(1.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<float>()(0.0f, 1.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<float>()(1.0f, 1.0f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint64_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint64_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint64_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint32_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint32_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint32_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint16_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint16_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint16_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint8_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint8_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<uint8_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int64_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int64_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int64_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int32_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int32_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int32_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int16_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int16_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int16_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int8_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int8_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<int8_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<bool>()(false, true),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<bool>()(true, false),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Second<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(min_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<double>()(1.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<double>()(0.0, 1.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<double>()(1.0, 1.0), 1.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<float>()(1.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<float>()(0.0f, 1.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<float>()(1.0f, 1.0f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint64_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint64_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint64_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint32_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint32_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint32_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint16_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint16_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint16_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint8_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint8_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<uint8_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int64_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int64_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int64_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int32_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int32_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int32_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int16_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int16_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int16_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int8_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int8_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<int8_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<bool>()(false, true),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<bool>()(true, false),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Min<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(max_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<double>()(1.0, 0.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<double>()(0.0, 1.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<double>()(1.0, 1.0), 1.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<float>()(1.0f, 0.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<float>()(0.0f, 1.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<float>()(1.0f, 1.0f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint64_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint64_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint64_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint32_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint32_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint32_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint16_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint16_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint16_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint8_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint8_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<uint8_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int64_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int64_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int64_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int32_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int32_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int32_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int16_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int16_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int16_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int8_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int8_t>()(0, -1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<int8_t>()(-1, -1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<bool>()(false, true),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<bool>()(true, false),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Max<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(plus_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<double>()(1.0, 0.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<double>()(0.0, 1.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<double>()(1.0, 1.0), 2.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<float>()(1.0f, 0.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<float>()(0.0f, 1.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<float>()(1.0f, 1.0f), 2.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint64_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint64_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint64_t>()(1, 1), 2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint32_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint32_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint32_t>()(1, 1), 2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint16_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint16_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint16_t>()(1, 1), 2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint8_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint8_t>()(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<uint8_t>()(1, 1), 2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int64_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int64_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int64_t>()(-1, -1), -2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int32_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int32_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int32_t>()(-1, -1), -2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int16_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int16_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int16_t>()(-1, -1), -2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int8_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int8_t>()(0, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<int8_t>()(-1, -1), -2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<bool>()(false, true),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<bool>()(true, false),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Plus<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(minus_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<double>()(1.0, 0.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<double>()(2.0, 1.0), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<double>()(1.0, 1.0), 0.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<float>()(1.0f, 0.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<float>()(2.0f, 1.0f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<float>()(1.0f, 1.0f), 0.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint64_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint64_t>()(2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint64_t>()(1, 1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint32_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint32_t>()(2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint32_t>()(1, 1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint16_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint16_t>()(2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint16_t>()(1, 1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint8_t>()(1, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint8_t>()(2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<uint8_t>()(1, 1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int64_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int64_t>()(-2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int64_t>()(-1, -1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int32_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int32_t>()(-2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int32_t>()(-1, -1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int16_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int16_t>()(-2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int16_t>()(-1, -1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int8_t>()(-1, 0), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int8_t>()(-2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<int8_t>()(-1, -1), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<bool>()(false, true),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<bool>()(true, false),  true);
-    BOOST_CHECK_EQUAL(GraphBLAS::Minus<bool>()(true, true),   false);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(times_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<double>()(0.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<double>()(1.0, 0.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<double>()(2.0, 1.0), 2.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<double>()(1.0, 1.0), 1.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<float>()(0.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<float>()(1.0f, 0.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<float>()(2.0f, 1.0f), 2.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<float>()(1.0f, 1.0f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint64_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint64_t>()(2, 1), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint64_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint32_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint32_t>()(2, 1), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint32_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint16_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint16_t>()(2, 1), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint16_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint8_t>()(1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint8_t>()(2, 1), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<uint8_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int64_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int64_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int64_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int64_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int32_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int32_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int32_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int16_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int16_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int16_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int8_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int8_t>()(-1, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int8_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<int8_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<bool>()(false, true),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<bool>()(true, false),  false);
-    BOOST_CHECK_EQUAL(GraphBLAS::Times<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(div_same_domain_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<double>()(0.0, 1.0), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<double>()(1.0, 2.0), 0.5);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<double>()(2.0, 1.0), 2.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<double>()(1.0, 1.0), 1.0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<float>()(0.0f, 1.0f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<float>()(1.0f, 2.0f), 0.5f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<float>()(2.0f, 1.0f), 2.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<float>()(1.0f, 1.0f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint64_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint64_t>()(1, 2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint64_t>()(2, 1), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint64_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint32_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint32_t>()(1, 2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint32_t>()(2, 1), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint32_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint16_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint16_t>()(1, 2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint16_t>()(2, 1), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint16_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint8_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint8_t>()(1, 2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint8_t>()(2, 1), 2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<uint8_t>()(1, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int64_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int64_t>()(-1, 2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int64_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int64_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int32_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int32_t>()(-1, 2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int32_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int32_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int16_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int16_t>()(-1, 2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int16_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int16_t>()(-1, -1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int8_t>()(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int8_t>()(-1, 2), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int8_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<int8_t>()(-1, -1), 1);
-
-    //BOOST_CHECK_EQUAL(GraphBLAS::Div<bool>()(false, false), ?);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<bool>()(false, true),  false);
-    //BOOST_CHECK_EQUAL(GraphBLAS::Div<bool>()(true, false),  ?);
-    BOOST_CHECK_EQUAL(GraphBLAS::Div<bool>()(true, true),   true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(plus_monoid_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<double>().identity(), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<double>()(-2., 1.), -1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<float>().identity(), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<float>()(-2.f, 1.f), -1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<uint64_t>().identity(), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<uint64_t>()(2UL, 1UL), 3UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<uint32_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<uint32_t>()(2U, 1U), 3U);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<uint16_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<uint16_t>()(2U, 1U), 3U);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<uint8_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<uint8_t>()(2U, 1U), 3U);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<int64_t>().identity(), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<int64_t>()(-2L, 1L), -1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<int32_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<int32_t>()(-2, 1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<int16_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<int16_t>()(-2, 1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<int8_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<int8_t>()(-2, 1), -1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<bool>().identity(), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::PlusMonoid<bool>()(true, true), true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(times_monoid_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<double>().identity(), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<double>()(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<float>().identity(), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<float>()(-2.f, 1.f), -2.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<uint64_t>().identity(), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<uint64_t>()(2UL, 1UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<uint32_t>().identity(), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<uint32_t>()(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<uint16_t>().identity(), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<uint16_t>()(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<uint8_t>().identity(), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<uint8_t>()(2U, 1U), 2U);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<int64_t>().identity(), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<int64_t>()(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<int32_t>().identity(), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<int32_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<int16_t>().identity(), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<int16_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<int8_t>().identity(), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<int8_t>()(-2, 1), -2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<bool>().identity(), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<bool>()(false, true), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::TimesMonoid<bool>()(true, true), true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(min_monoid_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<double>().identity(),
-                      std::numeric_limits<double>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<double>()(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<float>().identity(),
-                      std::numeric_limits<float>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<float>()(-2.f, 1.f), -2.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<uint64_t>().identity(),
-                      std::numeric_limits<uint64_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<uint64_t>()(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<uint32_t>().identity(),
-                      std::numeric_limits<uint32_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<uint32_t>()(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<uint16_t>().identity(),
-                      std::numeric_limits<uint16_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<uint16_t>()(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<uint8_t>().identity(),
-                      std::numeric_limits<uint8_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<uint8_t>()(2U, 1U), 1U);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<int64_t>().identity(),
-                      std::numeric_limits<int64_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<int64_t>()(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<int32_t>().identity(),
-                      std::numeric_limits<int32_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<int32_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<int16_t>().identity(),
-                      std::numeric_limits<int16_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<int16_t>()(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<int8_t>().identity(),
-                      std::numeric_limits<int8_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<int8_t>()(-2, 1), -2);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<bool>().identity(), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<bool>()(false, true), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinMonoid<bool>()(true, true), true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(max_monoid_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<double>().identity(), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<double>()(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<float>().identity(), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<float>()(-2.f, 1.f), 1.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<uint64_t>().identity(), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<uint64_t>()(2UL, 1UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<uint32_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<uint32_t>()(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<uint16_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<uint16_t>()(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<uint8_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<uint8_t>()(2U, 1U), 2U);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<int64_t>().identity(), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<int64_t>()(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<int32_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<int32_t>()(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<int16_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<int16_t>()(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<int8_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<int8_t>()(-2, 1), 1);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<bool>().identity(), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxMonoid<bool>()(false, true), true);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(logical_or_monoid_test)
-{
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<double>().identity(), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<double>()(-2., 0.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<double>()(0., 0.), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<float>().identity(), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<float>()(-2.f, 0.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<float>()(0.f, 0.f), 0.0f);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint64_t>().identity(), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint64_t>()(2UL, 0UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint64_t>()(0UL, 0UL), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint32_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint32_t>()(2U, 0U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint32_t>()(0U, 0U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint16_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint16_t>()(2U, 0U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint16_t>()(0U, 0U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint8_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint8_t>()(2U, 0U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<uint8_t>()(0U, 0U), 0U);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int64_t>().identity(), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int64_t>()(-2L, 0L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int64_t>()(0L, 0L), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int32_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int32_t>()(-2, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int32_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int16_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int16_t>()(-2, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int16_t>()(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int8_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int8_t>()(-2, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<int8_t>()(0, 0), 0);
-
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<bool>().identity(), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<bool>()(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalOrMonoid<bool>()(false, true), true);
-}
-
-//****************************************************************************
 BOOST_AUTO_TEST_CASE(arithmetic_semiring_test)
 {
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<double>().zero(), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<double>().add(-2., 1.), -1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<double>().mult(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<float>().zero(), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<float>().add(-2.f, 1.f), -1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<float>().mult(-2.f, 1.f), -2.0f);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<double>().zero(), 0.0);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<double>().add(-2., 1.), -1.0);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<double>().mult(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<float>().zero(), 0.0f);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<float>().add(-2.f, 1.f), -1.0f);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<float>().mult(-2.f, 1.f), -2.0f);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint64_t>().zero(), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint64_t>().add(2UL, 1UL), 3UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint32_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint32_t>().add(2U, 1U), 3U);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint32_t>().mult(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint16_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint16_t>().add(2U, 1U), 3U);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint16_t>().mult(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint8_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint8_t>().add(2U, 1U), 3U);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<uint8_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint64_t>().zero(), 0UL);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint64_t>().add(2UL, 1UL), 3UL);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint32_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint32_t>().add(2U, 1U), 3U);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint32_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint16_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint16_t>().add(2U, 1U), 3U);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint16_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint8_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint8_t>().add(2U, 1U), 3U);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<uint8_t>().mult(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int64_t>().zero(), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int64_t>().add(-2L, 1L), -1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int64_t>().mult(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int32_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int32_t>().add(-2, 1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int32_t>().mult(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int16_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int16_t>().add(-2, 1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int16_t>().mult(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int8_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int8_t>().add(-2, 1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<int8_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int64_t>().zero(), 0L);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int64_t>().add(-2L, 1L), -1L);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int64_t>().mult(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int32_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int32_t>().add(-2, 1), -1);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int32_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int16_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int16_t>().add(-2, 1), -1);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int16_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int8_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int8_t>().add(-2, 1), -1);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<int8_t>().mult(-2, 1), -2);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<bool>().zero(), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<bool>().add(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<bool>().add(false, true), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<bool>().mult(false, true), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::ArithmeticSemiring<bool>().mult(true, true), true);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<bool>().zero(), false);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<bool>().add(false, false), false);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<bool>().add(false, true), true);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<bool>().mult(false, true), false);
+    BOOST_CHECK_EQUAL(ArithmeticSemiring<bool>().mult(true, true), true);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(logical_semiring_test)
 {
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<double>().zero(), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<double>().add(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<double>().add(0., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<double>().add(-2., 0.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<double>().add(0., 0.), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<double>().mult(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<double>().mult(0., 1.), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<double>().mult(-2., 0.), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<double>().mult(0., 0.), 0.0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<double>().zero(), 0.0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<double>().add(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<double>().add(0., 1.), 1.0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<double>().add(-2., 0.), 1.0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<double>().add(0., 0.), 0.0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<double>().mult(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<double>().mult(0., 1.), 0.0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<double>().mult(-2., 0.), 0.0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<double>().mult(0., 0.), 0.0);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<float>().zero(), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<float>().add(-2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<float>().add(0.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<float>().add(-2.f, 0.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<float>().add(0.f, 0.f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<float>().mult(-2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<float>().mult(0.f, 1.f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<float>().mult(-2.f, 0.f), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<float>().mult(0.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalSemiring<float>().zero(), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalSemiring<float>().add(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalSemiring<float>().add(0.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalSemiring<float>().add(-2.f, 0.f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalSemiring<float>().add(0.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalSemiring<float>().mult(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalSemiring<float>().mult(0.f, 1.f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalSemiring<float>().mult(-2.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalSemiring<float>().mult(0.f, 0.f), 0.0f);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint64_t>().zero(), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint64_t>().add(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint64_t>().add(2UL, 0UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint64_t>().add(0UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint64_t>().add(0UL, 0UL), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint64_t>().mult(2UL, 0UL), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint64_t>().mult(0UL, 1UL), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint64_t>().mult(0UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint64_t>().zero(), 0UL);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint64_t>().add(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint64_t>().add(2UL, 0UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint64_t>().add(0UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint64_t>().add(0UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint64_t>().mult(2UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint64_t>().mult(0UL, 1UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint64_t>().mult(0UL, 0UL), 0UL);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint32_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint32_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint32_t>().add(2U, 0U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint32_t>().add(0U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint32_t>().add(0U, 0U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint32_t>().mult(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint32_t>().mult(2U, 0U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint32_t>().mult(0U, 1U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint32_t>().mult(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint32_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint32_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint32_t>().add(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint32_t>().add(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint32_t>().add(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint32_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint32_t>().mult(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint32_t>().mult(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint32_t>().mult(0U, 0U), 0U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint16_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint16_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint16_t>().add(2U, 0U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint16_t>().add(0U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint16_t>().add(0U, 0U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint16_t>().mult(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint16_t>().mult(2U, 0U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint16_t>().mult(0U, 1U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint16_t>().mult(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint16_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint16_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint16_t>().add(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint16_t>().add(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint16_t>().add(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint16_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint16_t>().mult(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint16_t>().mult(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint16_t>().mult(0U, 0U), 0U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint8_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint8_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint8_t>().add(2U, 0U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint8_t>().add(0U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint8_t>().add(0U, 0U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint8_t>().mult(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint8_t>().mult(2U, 0U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint8_t>().mult(0U, 1U), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<uint8_t>().mult(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint8_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint8_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint8_t>().add(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint8_t>().add(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint8_t>().add(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint8_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint8_t>().mult(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint8_t>().mult(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(LogicalSemiring<uint8_t>().mult(0U, 0U), 0U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int64_t>().zero(), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int64_t>().add(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int64_t>().add(-2L, 0L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int64_t>().add(0L, 1L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int64_t>().add(0L, 0L), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int64_t>().mult(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int64_t>().mult(-2L, 0L), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int64_t>().mult(0L, 1L), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int64_t>().mult(0L, 0L), 0L);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int64_t>().zero(), 0L);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int64_t>().add(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int64_t>().add(-2L, 0L), 1L);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int64_t>().add(0L, 1L), 1L);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int64_t>().add(0L, 0L), 0L);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int64_t>().mult(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int64_t>().mult(-2L, 0L), 0L);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int64_t>().mult(0L, 1L), 0L);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int64_t>().mult(0L, 0L), 0L);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int32_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int32_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int32_t>().add(-2, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int32_t>().add(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int32_t>().add(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int32_t>().mult(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int32_t>().mult(-2, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int32_t>().mult(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int32_t>().mult(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int32_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int32_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int32_t>().add(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int32_t>().add(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int32_t>().add(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int32_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int32_t>().mult(-2, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int32_t>().mult(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int32_t>().mult(0, 0), 0);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int16_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int16_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int16_t>().add(-2, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int16_t>().add(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int16_t>().add(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int16_t>().mult(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int16_t>().mult(-2, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int16_t>().mult(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int16_t>().mult(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int16_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int16_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int16_t>().add(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int16_t>().add(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int16_t>().add(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int16_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int16_t>().mult(-2, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int16_t>().mult(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int16_t>().mult(0, 0), 0);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int8_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int8_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int8_t>().add(-2, 0), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int8_t>().add(0, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int8_t>().add(0, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int8_t>().mult(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int8_t>().mult(-2, 0), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int8_t>().mult(0, 1), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<int8_t>().mult(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int8_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int8_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int8_t>().add(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int8_t>().add(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int8_t>().add(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int8_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int8_t>().mult(-2, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int8_t>().mult(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalSemiring<int8_t>().mult(0, 0), 0);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<bool>().zero(), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<bool>().add(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<bool>().add(false, true), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<bool>().add(true, false), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<bool>().add(true, true), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<bool>().mult(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<bool>().mult(false, true), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<bool>().mult(true, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::LogicalSemiring<bool>().mult(true, true), true);
+    BOOST_CHECK_EQUAL(LogicalSemiring<bool>().zero(), false);
+    BOOST_CHECK_EQUAL(LogicalSemiring<bool>().add(false, false), false);
+    BOOST_CHECK_EQUAL(LogicalSemiring<bool>().add(false, true), true);
+    BOOST_CHECK_EQUAL(LogicalSemiring<bool>().add(true, false), true);
+    BOOST_CHECK_EQUAL(LogicalSemiring<bool>().add(true, true), true);
+    BOOST_CHECK_EQUAL(LogicalSemiring<bool>().mult(false, false), false);
+    BOOST_CHECK_EQUAL(LogicalSemiring<bool>().mult(false, true), false);
+    BOOST_CHECK_EQUAL(LogicalSemiring<bool>().mult(true, false), false);
+    BOOST_CHECK_EQUAL(LogicalSemiring<bool>().mult(true, true), true);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(min_plus_semiring_test)
 {
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<double>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<double>().zero(),
                       std::numeric_limits<double>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<double>().add(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<double>().add(2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<double>().mult(-2., 1.), -1.0);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<double>().add(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<double>().add(2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<double>().mult(-2., 1.), -1.0);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<float>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<float>().zero(),
                       std::numeric_limits<float>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<float>().add(-2.f, 1.f), -2.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<float>().add(2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<float>().mult(-2.f, 1.f), -1.0f);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<float>().add(-2.f, 1.f), -2.0f);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<float>().add(2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<float>().mult(-2.f, 1.f), -1.0f);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint64_t>().zero(),
                       std::numeric_limits<uint64_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint64_t>().add(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint64_t>().add(2UL, 3UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint64_t>().mult(2UL, 1UL), 3UL);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint64_t>().add(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint64_t>().add(2UL, 3UL), 2UL);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint64_t>().mult(2UL, 1UL), 3UL);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint32_t>().zero(),
                       std::numeric_limits<uint32_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint32_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint32_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint32_t>().mult(2U, 1U), 3U);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint32_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint32_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint32_t>().mult(2U, 1U), 3U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint16_t>().zero(),
                       std::numeric_limits<uint16_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint16_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint16_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint16_t>().mult(2U, 1U), 3U);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint16_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint16_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint16_t>().mult(2U, 1U), 3U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint8_t>().zero(),
                       std::numeric_limits<uint8_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint8_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint8_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<uint8_t>().mult(2U, 1U), 3U);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint8_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint8_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<uint8_t>().mult(2U, 1U), 3U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int64_t>().zero(),
                       std::numeric_limits<int64_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int64_t>().add(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int64_t>().add(2L, -1L), -1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int64_t>().mult(-2L, 1L), -1L);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int64_t>().add(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int64_t>().add(2L, -1L), -1L);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int64_t>().mult(-2L, 1L), -1L);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int32_t>().zero(),
                       std::numeric_limits<int32_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int32_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int32_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int32_t>().mult(-2, 1), -1);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int32_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int32_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int32_t>().mult(-2, 1), -1);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int16_t>().zero(),
                       std::numeric_limits<int16_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int16_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int16_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int16_t>().mult(-2, 1), -1);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int16_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int16_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int16_t>().mult(-2, 1), -1);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int8_t>().zero(),
                       std::numeric_limits<int8_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int8_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int8_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<int8_t>().mult(-2, 1), -1);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int8_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int8_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<int8_t>().mult(-2, 1), -1);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<bool>().zero(), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<bool>().add(false, true), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<bool>().add(true, true), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<bool>().mult(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinPlusSemiring<bool>().mult(true, false), true);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<bool>().zero(), true);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<bool>().add(false, true), false);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<bool>().add(true, true), true);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<bool>().mult(false, false), false);
+    BOOST_CHECK_EQUAL(MinPlusSemiring<bool>().mult(true, false), true);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(max_times_semiring_test)
 {
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<double>().zero(), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<double>().add(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<double>().mult(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<float>().zero(), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<float>().add(-2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<float>().mult(-2.f, 1.f), -2.0f);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<double>().zero(), 0.0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<double>().add(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<double>().mult(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<float>().zero(), 0.0f);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<float>().add(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<float>().mult(-2.f, 1.f), -2.0f);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint64_t>().zero(), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint64_t>().add(2UL, 1UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint32_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint32_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint32_t>().mult(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint16_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint16_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint16_t>().mult(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint8_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint8_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<uint8_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint64_t>().zero(), 0UL);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint64_t>().add(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint32_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint32_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint32_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint16_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint16_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint16_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint8_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint8_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<uint8_t>().mult(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int64_t>().zero(), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int64_t>().add(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int64_t>().mult(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int32_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int32_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int32_t>().mult(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int16_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int16_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int16_t>().mult(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int8_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int8_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<int8_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int64_t>().zero(), 0L);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int64_t>().add(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int64_t>().mult(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int32_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int32_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int32_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int16_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int16_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int16_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int8_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int8_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int8_t>().mult(-2, 1), -2);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<bool>().zero(), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<bool>().add(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<bool>().add(false, true), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<bool>().mult(false, true), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxTimesSemiring<bool>().mult(true, true), true);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<bool>().zero(), false);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<bool>().add(false, false), false);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<bool>().add(false, true), true);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<bool>().mult(false, true), false);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<bool>().mult(true, true), true);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(min_select2nd_test)
 {
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<double>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<double>().zero(),
                       std::numeric_limits<double>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<double>().add(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<double>().add(2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<double>().mult(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<double>().add(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<double>().add(2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<double>().mult(-2., 1.), 1.0);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<float>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<float>().zero(),
                       std::numeric_limits<float>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<float>().add(-2.f, 1.f), -2.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<float>().add(2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<float>().mult(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<float>().add(-2.f, 1.f), -2.0f);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<float>().add(2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<float>().mult(-2.f, 1.f), 1.0f);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint64_t>().zero(),
                       std::numeric_limits<uint64_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint64_t>().add(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint64_t>().add(2UL, 3UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint64_t>().add(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint64_t>().add(2UL, 3UL), 2UL);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint32_t>().zero(),
                       std::numeric_limits<uint32_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint32_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint32_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint32_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint32_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint32_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint32_t>().mult(2U, 1U), 1U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint16_t>().zero(),
                       std::numeric_limits<uint16_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint16_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint16_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint16_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint16_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint16_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint16_t>().mult(2U, 1U), 1U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint8_t>().zero(),
                       std::numeric_limits<uint8_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint8_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint8_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<uint8_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint8_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint8_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint8_t>().mult(2U, 1U), 1U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int64_t>().zero(),
                       std::numeric_limits<int64_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int64_t>().add(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int64_t>().add(2L, -1L), -1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int64_t>().mult(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int64_t>().add(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int64_t>().add(2L, -1L), -1L);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int64_t>().mult(-2L, 1L), 1L);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int32_t>().zero(),
                       std::numeric_limits<int32_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int32_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int32_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int32_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int32_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int32_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int32_t>().mult(-2, 1), 1);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int16_t>().zero(),
                       std::numeric_limits<int16_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int16_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int16_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int16_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int16_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int16_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int16_t>().mult(-2, 1), 1);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int8_t>().zero(),
                       std::numeric_limits<int8_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int8_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int8_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<int8_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int8_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int8_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int8_t>().mult(-2, 1), 1);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<bool>().zero(), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<bool>().add(false, true), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<bool>().add(true, true), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<bool>().mult(true, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect2ndSemiring<bool>().mult(false, true), true);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().zero(), true);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().add(false, true), false);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().add(true, true), true);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().mult(true, false), false);
+    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().mult(false, true), true);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(max_select2nd_test)
 {
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<double>().zero(), 0.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<double>().add(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<double>().mult(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<float>().zero(), 0.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<float>().add(-2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<float>().mult(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().zero(), 0.0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().add(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().mult(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().zero(), 0.0f);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().add(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().mult(-2.f, 1.f), 1.0f);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint64_t>().zero(), 0UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint64_t>().add(2UL, 1UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint32_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint32_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint32_t>().mult(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint16_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint16_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint16_t>().mult(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint8_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint8_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<uint8_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint64_t>().zero(), 0UL);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint64_t>().add(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint32_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint32_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint32_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint16_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint16_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint16_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint8_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint8_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint8_t>().mult(2U, 1U), 1U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int64_t>().zero(), 0L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int64_t>().add(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int64_t>().mult(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int32_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int32_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int32_t>().mult(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int16_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int16_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int16_t>().mult(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int8_t>().zero(), 0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int8_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<int8_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().zero(), 0L);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().add(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().mult(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().mult(-2, 1), 1);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<bool>().zero(), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<bool>().add(false, false), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<bool>().add(false, true), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<bool>().mult(false, true), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MaxSelect2ndSemiring<bool>().mult(true, false), false);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().zero(), false);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().add(false, false), false);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().add(false, true), true);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().mult(false, true), true);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().mult(true, false), false);
 }
 
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(min_select1st_test)
 {
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<double>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<double>().zero(),
                       std::numeric_limits<double>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<double>().add(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<double>().add(2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<double>().mult(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<double>().add(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<double>().add(2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<double>().mult(-2., 1.), -2.0);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<float>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<float>().zero(),
                       std::numeric_limits<float>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<float>().add(-2.f, 1.f), -2.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<float>().add(2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<float>().mult(-2.f, 1.f), -2.0f);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<float>().add(-2.f, 1.f), -2.0f);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<float>().add(2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<float>().mult(-2.f, 1.f), -2.0f);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint64_t>().zero(),
                       std::numeric_limits<uint64_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint64_t>().add(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint64_t>().add(2UL, 3UL), 2UL);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint64_t>().add(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint64_t>().add(2UL, 3UL), 2UL);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint32_t>().zero(),
                       std::numeric_limits<uint32_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint32_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint32_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint32_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint32_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint32_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint32_t>().mult(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint16_t>().zero(),
                       std::numeric_limits<uint16_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint16_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint16_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint16_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint16_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint16_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint16_t>().mult(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint8_t>().zero(),
                       std::numeric_limits<uint8_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint8_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint8_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<uint8_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint8_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint8_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint8_t>().mult(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int64_t>().zero(),
                       std::numeric_limits<int64_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int64_t>().add(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int64_t>().add(2L, -1L), -1L);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int64_t>().mult(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int64_t>().add(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int64_t>().add(2L, -1L), -1L);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int64_t>().mult(-2L, 1L), -2L);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int32_t>().zero(),
                       std::numeric_limits<int32_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int32_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int32_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int32_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int32_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int32_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int32_t>().mult(-2, 1), -2);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int16_t>().zero(),
                       std::numeric_limits<int16_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int16_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int16_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int16_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int16_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int16_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int16_t>().mult(-2, 1), -2);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int8_t>().zero(),
                       std::numeric_limits<int8_t>::max());
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int8_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int8_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<int8_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int8_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int8_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int8_t>().mult(-2, 1), -2);
 
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<bool>().zero(), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<bool>().add(false, true), false);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<bool>().add(true, true), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<bool>().mult(true, false), true);
-    BOOST_CHECK_EQUAL(GraphBLAS::MinSelect1stSemiring<bool>().mult(false, true), false);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().zero(), true);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().add(false, true), false);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().add(true, true), true);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().mult(true, false), true);
+    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().mult(false, true), false);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
