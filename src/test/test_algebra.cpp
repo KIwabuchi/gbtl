@@ -575,6 +575,8 @@ BOOST_AUTO_TEST_CASE(BitwiseNot_test)
     BOOST_CHECK_EQUAL(BitwiseNot<uint32_t>()(ui32), 0xffffffdf);
     BOOST_CHECK_EQUAL(BitwiseNot<uint64_t>()(ui64),
                       0xffffffffffffffbf);
+
+    // different domains
     BOOST_CHECK_EQUAL((BitwiseNot<uint64_t,uint32_t>()(ui64)),
                       0xffffffbf);
     BOOST_CHECK_EQUAL((BitwiseNot<uint64_t,uint16_t>()(ui64)),
@@ -647,6 +649,45 @@ BOOST_AUTO_TEST_CASE(logical_or_same_domain_test)
 }
 
 //****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_or_different_domain_test)
+{
+    BOOST_CHECK_EQUAL((LogicalOr<int,double>()( 0, 0.0)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalOr<int,double>()(-1, 0.0)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalOr<int,double>()( 0, -1.0)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalOr<int,double>()(-1, 1.0)), 1.0);
+
+    BOOST_CHECK_EQUAL((LogicalOr<float,int>()(0.0f, 0)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalOr<float,int>()(1.0f, 0)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalOr<float,int>()(0.0f, -1)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalOr<float,int>()(1.0f, -1)), 1.0f);
+
+    BOOST_CHECK_EQUAL((LogicalOr<float, uint64_t>()(  0.f, 0)), 0.f);
+    BOOST_CHECK_EQUAL((LogicalOr<float, uint64_t>()( 0.1f, 0)), 1.f);
+    BOOST_CHECK_EQUAL((LogicalOr<float, uint64_t>()(  0.f, 1)), 1.f);
+    BOOST_CHECK_EQUAL((LogicalOr<float, uint64_t>()(-.05f, 1)), 1.f);
+
+    BOOST_CHECK_EQUAL((LogicalOr<int32_t,float>()( 0, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalOr<int32_t,float>()(-1, 0.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalOr<int32_t,float>()( 0, 1.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalOr<int32_t,float>()(-1, 1.f)), 1);
+
+    BOOST_CHECK_EQUAL((LogicalOr<double, uint16_t>()(0., 0)), 0.);
+    BOOST_CHECK_EQUAL((LogicalOr<double, uint16_t>()(1., 0)), 1.);
+    BOOST_CHECK_EQUAL((LogicalOr<double, uint16_t>()(0., 1)), 1.);
+    BOOST_CHECK_EQUAL((LogicalOr<double, uint16_t>()(1., 1)), 1.);
+
+    BOOST_CHECK_EQUAL((LogicalOr<uint8_t, float>()(0, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalOr<uint8_t, float>()(1, 0.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalOr<uint8_t, float>()(0, 1.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalOr<uint8_t, float>()(1, 1.f)), 1);
+
+    BOOST_CHECK_EQUAL((LogicalOr<bool, float>()(false, 0.f)), false);
+    BOOST_CHECK_EQUAL((LogicalOr<bool, float>()(true,  0.f)), true);
+    BOOST_CHECK_EQUAL((LogicalOr<bool, float>()(false, 1.f)), true);
+    BOOST_CHECK_EQUAL((LogicalOr<bool, float>()(true,  1.f)), true);
+}
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(logical_and_same_domain_test)
 {
     BOOST_CHECK_EQUAL(LogicalAnd<double>()(0.0, 0.0), 0.0);
@@ -703,6 +744,45 @@ BOOST_AUTO_TEST_CASE(logical_and_same_domain_test)
     BOOST_CHECK_EQUAL(LogicalAnd<bool>()(false, true),  false);
     BOOST_CHECK_EQUAL(LogicalAnd<bool>()(true, false),  false);
     BOOST_CHECK_EQUAL(LogicalAnd<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_and_different_domain_test)
+{
+    BOOST_CHECK_EQUAL((LogicalAnd<int,double>()( 0, 0.0)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalAnd<int,double>()(-1, 0.0)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalAnd<int,double>()( 0,-1.0)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalAnd<int,double>()(-1, 1.0)), 1.0);
+
+    BOOST_CHECK_EQUAL((LogicalAnd<float,int>()(0.0f,  0)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalAnd<float,int>()(1.0f,  0)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalAnd<float,int>()(0.0f, -1)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalAnd<float,int>()(1.0f, -1)), 1.0f);
+
+    BOOST_CHECK_EQUAL((LogicalAnd<float, uint64_t>()(  0.f, 0)), 0.f);
+    BOOST_CHECK_EQUAL((LogicalAnd<float, uint64_t>()( 0.1f, 0)), 0.f);
+    BOOST_CHECK_EQUAL((LogicalAnd<float, uint64_t>()(  0.f, 1)), 0.f);
+    BOOST_CHECK_EQUAL((LogicalAnd<float, uint64_t>()(-.05f, 1)), 1.f);
+
+    BOOST_CHECK_EQUAL((LogicalAnd<int32_t,float>()( 0, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalAnd<int32_t,float>()(-1, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalAnd<int32_t,float>()( 0, 1.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalAnd<int32_t,float>()(-1, 1.f)), 1);
+
+    BOOST_CHECK_EQUAL((LogicalAnd<double, uint16_t>()(0., 0)), 0.);
+    BOOST_CHECK_EQUAL((LogicalAnd<double, uint16_t>()(1., 0)), 0.);
+    BOOST_CHECK_EQUAL((LogicalAnd<double, uint16_t>()(0., 1)), 0.);
+    BOOST_CHECK_EQUAL((LogicalAnd<double, uint16_t>()(1., 1)), 1.);
+
+    BOOST_CHECK_EQUAL((LogicalAnd<uint8_t, float>()(0, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalAnd<uint8_t, float>()(1, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalAnd<uint8_t, float>()(0, 1.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalAnd<uint8_t, float>()(1, 1.f)), 1);
+
+    BOOST_CHECK_EQUAL((LogicalAnd<bool, float>()(false, 0.f)), false);
+    BOOST_CHECK_EQUAL((LogicalAnd<bool, float>()(true,  0.f)), false);
+    BOOST_CHECK_EQUAL((LogicalAnd<bool, float>()(false, 1.f)), false);
+    BOOST_CHECK_EQUAL((LogicalAnd<bool, float>()(true,  1.f)), true);
 }
 
 //****************************************************************************
@@ -765,6 +845,45 @@ BOOST_AUTO_TEST_CASE(logical_xor_same_domain_test)
 }
 
 //****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_xor_different_domain_test)
+{
+    BOOST_CHECK_EQUAL((LogicalXor<int,double>()( 0, 0.0)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalXor<int,double>()(-1, 0.0)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalXor<int,double>()( 0,-1.0)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalXor<int,double>()(-1, 1.0)), 0.0);
+
+    BOOST_CHECK_EQUAL((LogicalXor<float,int>()(0.0f,  0)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalXor<float,int>()(1.0f,  0)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalXor<float,int>()(0.0f, -1)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalXor<float,int>()(1.0f, -1)), 0.0f);
+
+    BOOST_CHECK_EQUAL((LogicalXor<float, uint64_t>()(  0.f, 0)), 0.f);
+    BOOST_CHECK_EQUAL((LogicalXor<float, uint64_t>()( 0.1f, 0)), 1.f);
+    BOOST_CHECK_EQUAL((LogicalXor<float, uint64_t>()(  0.f, 1)), 1.f);
+    BOOST_CHECK_EQUAL((LogicalXor<float, uint64_t>()(-.05f, 1)), 0.f);
+
+    BOOST_CHECK_EQUAL((LogicalXor<int32_t,float>()( 0, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalXor<int32_t,float>()(-1, 0.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalXor<int32_t,float>()( 0, 1.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalXor<int32_t,float>()(-1, 1.f)), 0);
+
+    BOOST_CHECK_EQUAL((LogicalXor<double, uint16_t>()(0., 0)), 0.);
+    BOOST_CHECK_EQUAL((LogicalXor<double, uint16_t>()(1., 0)), 1.);
+    BOOST_CHECK_EQUAL((LogicalXor<double, uint16_t>()(0., 1)), 1.);
+    BOOST_CHECK_EQUAL((LogicalXor<double, uint16_t>()(1., 1)), 0.);
+
+    BOOST_CHECK_EQUAL((LogicalXor<uint8_t, float>()(0, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalXor<uint8_t, float>()(1, 0.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalXor<uint8_t, float>()(0, 1.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalXor<uint8_t, float>()(1, 1.f)), 0);
+
+    BOOST_CHECK_EQUAL((LogicalXor<bool, float>()(false, 0.f)), false);
+    BOOST_CHECK_EQUAL((LogicalXor<bool, float>()(true,  0.f)),  true);
+    BOOST_CHECK_EQUAL((LogicalXor<bool, float>()(false, 1.f)),  true);
+    BOOST_CHECK_EQUAL((LogicalXor<bool, float>()(true,  1.f)), false);
+}
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(logical_xnor_same_domain_test)
 {
     BOOST_CHECK_EQUAL(LogicalXnor<double>()(0.0, 0.0), 1.0);
@@ -821,6 +940,128 @@ BOOST_AUTO_TEST_CASE(logical_xnor_same_domain_test)
     BOOST_CHECK_EQUAL(LogicalXnor<bool>()(false, true), false);
     BOOST_CHECK_EQUAL(LogicalXnor<bool>()(true, false), false);
     BOOST_CHECK_EQUAL(LogicalXnor<bool>()(true, true),   true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_xnor_different_domain_test)
+{
+    BOOST_CHECK_EQUAL((LogicalXnor<int,double>()( 0, 0.0)), 1.0);
+    BOOST_CHECK_EQUAL((LogicalXnor<int,double>()(-1, 0.0)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalXnor<int,double>()( 0,-1.0)), 0.0);
+    BOOST_CHECK_EQUAL((LogicalXnor<int,double>()(-1, 1.0)), 1.0);
+
+    BOOST_CHECK_EQUAL((LogicalXnor<float,int>()(0.0f,  0)), 1.0f);
+    BOOST_CHECK_EQUAL((LogicalXnor<float,int>()(1.0f,  0)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalXnor<float,int>()(0.0f, -1)), 0.0f);
+    BOOST_CHECK_EQUAL((LogicalXnor<float,int>()(1.0f, -1)), 1.0f);
+
+    BOOST_CHECK_EQUAL((LogicalXnor<float, uint64_t>()(  0.f, 0)), 1.f);
+    BOOST_CHECK_EQUAL((LogicalXnor<float, uint64_t>()( 0.1f, 0)), 0.f);
+    BOOST_CHECK_EQUAL((LogicalXnor<float, uint64_t>()(  0.f, 1)), 0.f);
+    BOOST_CHECK_EQUAL((LogicalXnor<float, uint64_t>()(-.05f, 1)), 1.f);
+
+    BOOST_CHECK_EQUAL((LogicalXnor<int32_t,float>()( 0, 0.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalXnor<int32_t,float>()(-1, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalXnor<int32_t,float>()( 0, 1.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalXnor<int32_t,float>()(-1, 1.f)), 1);
+
+    BOOST_CHECK_EQUAL((LogicalXnor<double, uint16_t>()(0., 0)), 1.);
+    BOOST_CHECK_EQUAL((LogicalXnor<double, uint16_t>()(1., 0)), 0.);
+    BOOST_CHECK_EQUAL((LogicalXnor<double, uint16_t>()(0., 1)), 0.);
+    BOOST_CHECK_EQUAL((LogicalXnor<double, uint16_t>()(1., 1)), 1.);
+
+    BOOST_CHECK_EQUAL((LogicalXnor<uint8_t, float>()(0, 0.f)), 1);
+    BOOST_CHECK_EQUAL((LogicalXnor<uint8_t, float>()(1, 0.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalXnor<uint8_t, float>()(0, 1.f)), 0);
+    BOOST_CHECK_EQUAL((LogicalXnor<uint8_t, float>()(1, 1.f)), 1);
+
+    BOOST_CHECK_EQUAL((LogicalXnor<bool, float>()(false, 0.f)), true);
+    BOOST_CHECK_EQUAL((LogicalXnor<bool, float>()(true,  0.f)), false);
+    BOOST_CHECK_EQUAL((LogicalXnor<bool, float>()(false, 1.f)), false);
+    BOOST_CHECK_EQUAL((LogicalXnor<bool, float>()(true,  1.f)), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(bitwise_or_test)
+{
+    //BOOST_CHECK_EQUAL(BitwiseOr<float>()(1.0f, 0.2f), 0.3f); // doesn't compile
+    BOOST_CHECK_EQUAL(BitwiseOr<    bool>()(true, false), true);
+    BOOST_CHECK_EQUAL(BitwiseOr< uint8_t>()(0x33, 0x3c), 0x03f);
+    BOOST_CHECK_EQUAL(BitwiseOr<uint16_t>()(0x00ff, 0x0f0f), 0x0fff);
+    BOOST_CHECK_EQUAL(BitwiseOr<uint32_t>()(0x00ff00ff,
+                                            0x0f0f0f0f), 0x0fff0fff);
+    BOOST_CHECK_EQUAL(BitwiseOr<uint64_t>()(0x00000000ffffffff,
+                                            0x0000ffff0000ffff),
+                      0x0000ffffffffffff);
+    BOOST_CHECK_EQUAL(BitwiseOr< int8_t>()(0x33, 0x3c), 0x03f);
+    BOOST_CHECK_EQUAL(BitwiseOr<int16_t>()(0x00ff, 0x0f0f), 0x0fff);
+    BOOST_CHECK_EQUAL(BitwiseOr<int32_t>()(0x00ff00ff,
+                                           0x0f0f0f0f), 0x0fff0fff);
+    BOOST_CHECK_EQUAL(BitwiseOr<int64_t>()(0x00000000ffffffff,
+                                           0x0000ffff0000ffff),
+                      0x0000ffffffffffff);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(bitwise_and_test)
+{
+    BOOST_CHECK_EQUAL(BitwiseAnd<    bool>()(true, false), false);
+    BOOST_CHECK_EQUAL(BitwiseAnd< uint8_t>()(0x33, 0x3c), 0x30);
+    BOOST_CHECK_EQUAL(BitwiseAnd<uint16_t>()(0x00ff, 0x0f0f), 0x000f);
+    BOOST_CHECK_EQUAL(BitwiseAnd<uint32_t>()(0x00ff00ff,
+                                             0x0f0f0f0f), 0x000f000f);
+    BOOST_CHECK_EQUAL(BitwiseAnd<uint64_t>()(0x00000000ffffffff,
+                                             0x0000ffff0000ffff),
+                      0x000000000000ffff);
+    BOOST_CHECK_EQUAL(BitwiseAnd< int8_t>()(0x33, 0x3c), 0x30);
+    BOOST_CHECK_EQUAL(BitwiseAnd<int16_t>()(0x00ff, 0x0f0f), 0x000f);
+    BOOST_CHECK_EQUAL(BitwiseAnd<int32_t>()(0x00ff00ff,
+                                            0x0f0f0f0f), 0x000f000f);
+    BOOST_CHECK_EQUAL(BitwiseAnd<int64_t>()(0x00000000ffffffff,
+                                            0x0000ffff0000ffff),
+                      0x000000000000ffff);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(bitwise_xor_test)
+{
+    BOOST_CHECK_EQUAL(BitwiseXor<    bool>()(true, false), true);
+    BOOST_CHECK_EQUAL(BitwiseXor< uint8_t>()(0x33, 0x3c), 0x0f);
+    BOOST_CHECK_EQUAL(BitwiseXor<uint16_t>()(0x00ff, 0x0f0f), 0x0ff0);
+    BOOST_CHECK_EQUAL(BitwiseXor<uint32_t>()(0x00ff00ff,
+                                             0x0f0f0f0f), 0x0ff00ff0);
+    BOOST_CHECK_EQUAL(BitwiseXor<uint64_t>()(0x00000000ffffffff,
+                                             0x0000ffff0000ffff),
+                      0x0000ffffffff0000);
+    BOOST_CHECK_EQUAL(BitwiseXor< int8_t>()(0x33, 0x3c), 0x0f);
+    BOOST_CHECK_EQUAL(BitwiseXor<int16_t>()(0x00ff, 0x0f0f), 0x0ff0);
+    BOOST_CHECK_EQUAL(BitwiseXor<int32_t>()(0x00ff00ff,
+                                            0x0f0f0f0f), 0x0ff00ff0);
+    BOOST_CHECK_EQUAL(BitwiseXor<int64_t>()(0x00000000ffffffff,
+                                            0x0000ffff0000ffff),
+                      0x0000ffffffff0000);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(bitwise_xnor_test)
+{
+    //weird but true
+    BOOST_CHECK_EQUAL(BitwiseXnor<    bool>()(true, false), true);
+
+    BOOST_CHECK_EQUAL(BitwiseXnor< uint8_t>()(0x33, 0x3c), 0xf0);
+    BOOST_CHECK_EQUAL(BitwiseXnor<uint16_t>()(0x00ff, 0x0f0f), 0xf00f);
+    BOOST_CHECK_EQUAL(BitwiseXnor<uint32_t>()(0x00ff00ff,
+                                              0x0f0f0f0f), 0xf00ff00f);
+    BOOST_CHECK_EQUAL(BitwiseXnor<uint64_t>()(0x00000000ffffffff,
+                                              0x0000ffff0000ffff),
+                      0xffff00000000ffff);
+    BOOST_CHECK_EQUAL(BitwiseXnor< int8_t>()(0x33, 0x3c), (int8_t)0xf0);
+    BOOST_CHECK_EQUAL(BitwiseXnor<int16_t>()(0x00ff, 0x0f0f), (int16_t)0xf00f);
+    BOOST_CHECK_EQUAL(BitwiseXnor<int32_t>()(0x00ff00ff,
+                                             0x0f0f0f0f), 0xf00ff00f);
+    BOOST_CHECK_EQUAL(BitwiseXnor<int64_t>()(0x00000000ffffffff,
+                                             0x0000ffff0000ffff),
+                      0xffff00000000ffff);
 }
 
 //****************************************************************************
