@@ -325,6 +325,7 @@ namespace GraphBLAS
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs / rhs; }
     };
 
+    // Note: not in GraphBLAS C API Specification
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Power
     {
@@ -369,9 +370,54 @@ namespace GraphBLAS
 
     /// @todo The following identity only works for unsigned domains
     /// std::numerical_limits<>::min() does not work for floating point types
-    GEN_GRAPHBLAS_MONOID(MaxMonoid, Max, 0)
+    //GEN_GRAPHBLAS_MONOID(MaxMonoid, Max, 0)
+    // See below for explicit instantiations
 
-    GEN_GRAPHBLAS_MONOID(LogicalOrMonoid, LogicalOr, false)
+    /// @todo the following identity only works for boolean domain
+    GEN_GRAPHBLAS_MONOID(LogicalOrMonoid,   LogicalOr,   false)
+    GEN_GRAPHBLAS_MONOID(LogicalAndMonoid,  LogicalAnd,  true)
+    GEN_GRAPHBLAS_MONOID(LogicalXorMonoid,  LogicalXor,  false)
+    GEN_GRAPHBLAS_MONOID(LogicalXnorMonoid, LogicalXnor, true)
+
+    template <typename ScalarT, typename Enable = void>
+    class MaxMonoid;
+
+    // MaxMonoid for ints
+    template <typename ScalarT>
+    class MaxMonoid<ScalarT, typename std::enable_if_t<std::is_integral_v<ScalarT> > >
+    {
+    public:
+        typedef ScalarT result_type;
+
+        ScalarT identity() const
+        {
+            return static_cast<ScalarT>(std::numeric_limits<ScalarT>::min());
+        }
+
+        ScalarT operator()(ScalarT lhs, ScalarT rhs) const
+        {
+            return GraphBLAS::Max<ScalarT>()(lhs, rhs);
+        }
+    };
+
+    // MaxMonoid for floating point numbers
+    template <typename ScalarT>
+    class MaxMonoid<ScalarT, typename std::enable_if_t<std::is_floating_point_v<ScalarT> > >
+    {
+    public:
+        typedef ScalarT result_type;
+
+        ScalarT identity() const
+        {
+            return static_cast<ScalarT>(-std::numeric_limits<ScalarT>::infinity());
+        }
+
+        ScalarT operator()(ScalarT lhs, ScalarT rhs) const
+        {
+            return GraphBLAS::Max<ScalarT>()(lhs, rhs);
+        }
+    };
+
 } // GraphBLAS
 
 //****************************************************************************
