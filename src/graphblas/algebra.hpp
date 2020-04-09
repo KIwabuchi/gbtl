@@ -197,6 +197,7 @@ namespace GraphBLAS
     };
 
     //-------------------------------------------------------------------------
+    /// @todo Consider decltype for D3's default
     template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
               typename std::enable_if_t<std::is_integral_v<I1> &&
                                         std::is_integral_v<I2> &&
@@ -279,14 +280,15 @@ namespace GraphBLAS
         inline D3 operator()(D1 lhs, D2 rhs) const { return lhs; }
     };
 
-    template<typename D1, typename D2 = D1, typename D3 = D1>
+    // Note output type, D3, defaults to D2
+    template<typename D1, typename D2 = D1, typename D3 = D2>
     struct Second
     {
         inline D3 operator()(D1 lhs, D2 rhs) const { return rhs; }
     };
 
     //-------------------------------------------------------------------------
-
+    /// @todo Consider decltype for D3's default
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Min
     {
@@ -300,6 +302,13 @@ namespace GraphBLAS
     };
 
     //-------------------------------------------------------------------------
+    /// @todo Consider decltype for D3's default
+    ///
+    /// from std::plus<>::operator() (since C++14)
+    ///
+    /// template<typename T, typename U>
+    /// constexpr auto operator()(T&& &lhs, U&& rhs) const
+    ///  -> decltype(std::forward<T>(lhs) + std::forward<U>(rhs));
 
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct Plus
