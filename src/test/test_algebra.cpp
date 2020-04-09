@@ -1124,6 +1124,65 @@ BOOST_AUTO_TEST_CASE(equal_same_domain_test)
 }
 
 //****************************************************************************
+BOOST_AUTO_TEST_CASE(equal_different_domain_test)
+{
+    BOOST_CHECK_EQUAL((Equal<double,bool    >()(0.0, 0.0)), true);
+    BOOST_CHECK_EQUAL((Equal<double,int32_t >()(1.0, 0.0)), false);
+    BOOST_CHECK_EQUAL((Equal<double,uint64_t>()(0.0, 1.0)), false);
+    BOOST_CHECK_EQUAL((Equal<double,float   >()(1.0, 1.0f)), true);
+
+    BOOST_CHECK_EQUAL((Equal<float,bool    >()(0.0f, false)), true);
+    BOOST_CHECK_EQUAL((Equal<float,double  >()(1.0f, 0.0)), false);
+    BOOST_CHECK_EQUAL((Equal<float,uint64_t>()(0.0f, 1)), false);
+    BOOST_CHECK_EQUAL((Equal<float,int32_t >()(1.0f, 1)), true);
+
+    BOOST_CHECK_EQUAL((Equal<uint64_t,bool    >()(0, false)), true);
+    BOOST_CHECK_EQUAL((Equal<uint64_t,int32_t >()(1, 0)), false);
+    BOOST_CHECK_EQUAL((Equal<uint64_t,uint64_t>()(0, 1)), false);
+    BOOST_CHECK_EQUAL((Equal<uint64_t,float   >()(1, 1.0f)), true);
+
+    BOOST_CHECK_EQUAL((Equal<uint32_t,bool    >()(0, false)), true);
+    BOOST_CHECK_EQUAL((Equal<uint32_t,int32_t >()(1, 0)), false);
+    BOOST_CHECK_EQUAL((Equal<uint32_t,uint64_t>()(0, 1)), false);
+    BOOST_CHECK_EQUAL((Equal<uint32_t,float   >()(1, 1)), true);
+
+    BOOST_CHECK_EQUAL((Equal<uint16_t,bool    >()(0, false)), true);
+    BOOST_CHECK_EQUAL((Equal<uint16_t,int32_t >()(1, 0)), false);
+    BOOST_CHECK_EQUAL((Equal<uint16_t,uint64_t>()(0, 1)), false);
+    BOOST_CHECK_EQUAL((Equal<uint16_t,float   >()(1, 1.0f)), true);
+
+    BOOST_CHECK_EQUAL((Equal<uint8_t,bool    >()(0, false)), true);
+    BOOST_CHECK_EQUAL((Equal<uint8_t,int32_t >()(1, 0)), false);
+    BOOST_CHECK_EQUAL((Equal<uint8_t,uint64_t>()(0, 1)), false);
+    BOOST_CHECK_EQUAL((Equal<uint8_t,float   >()(1, 1.0f)), true);
+
+    BOOST_CHECK_EQUAL((Equal<int64_t,bool    >()( 0,  false)), true);
+    BOOST_CHECK_EQUAL((Equal<int64_t,uint32_t>()(-1,  0)), false);
+    BOOST_CHECK_EQUAL((Equal<int64_t,int64_t >()( 0, -1)), false);
+    BOOST_CHECK_EQUAL((Equal<int64_t,float   >()(-1, -1.0f)), true);
+
+    BOOST_CHECK_EQUAL((Equal<int32_t,bool    >()( 0,  false)), true);
+    BOOST_CHECK_EQUAL((Equal<int32_t,uint32_t>()(-1,  0)), false);
+    BOOST_CHECK_EQUAL((Equal<int32_t,int64_t >()( 0, -1)), false);
+    BOOST_CHECK_EQUAL((Equal<int32_t,float   >()(-1, -1.0f)), true);
+
+    BOOST_CHECK_EQUAL((Equal<int16_t,bool    >()( 0,  false)), true);
+    BOOST_CHECK_EQUAL((Equal<int16_t,uint32_t>()(-1,  0)),     false);
+    BOOST_CHECK_EQUAL((Equal<int16_t,int64_t >()( 0, -1)),     false);
+    BOOST_CHECK_EQUAL((Equal<int16_t,float   >()(-1, -1.0f)),   true);
+
+    BOOST_CHECK_EQUAL((Equal<int8_t,bool    >()( 0,  false)), true);
+    BOOST_CHECK_EQUAL((Equal<int8_t,uint32_t>()(-1,  0)),     false);
+    BOOST_CHECK_EQUAL((Equal<int8_t,int64_t> ()( 0, -1)),     false);
+    BOOST_CHECK_EQUAL((Equal<int8_t,float   >()(-1, -1.f)),   true);
+
+    BOOST_CHECK_EQUAL((Equal<bool,int8_t  >()(false, 0)),   true);
+    BOOST_CHECK_EQUAL((Equal<bool,int32_t >()(false, 1)),   false);
+    BOOST_CHECK_EQUAL((Equal<bool,uint64_t>()(true,  0UL)), false);
+    BOOST_CHECK_EQUAL((Equal<bool,float   >()(true,  1.0f)),true);
+}
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(not_equal_same_domain_test)
 {
     BOOST_CHECK_EQUAL(NotEqual<double>()(0.0, 0.0), false);
@@ -1180,6 +1239,65 @@ BOOST_AUTO_TEST_CASE(not_equal_same_domain_test)
     BOOST_CHECK_EQUAL(NotEqual<bool>()(false, true),  true);
     BOOST_CHECK_EQUAL(NotEqual<bool>()(true, false),  true);
     BOOST_CHECK_EQUAL(NotEqual<bool>()(true, true),   false);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(not_equal_different_domain_test)
+{
+    BOOST_CHECK_EQUAL((NotEqual<double,bool    >()(0.0, 0.0)), false);
+    BOOST_CHECK_EQUAL((NotEqual<double,int32_t >()(1.0, 0.0)), true);
+    BOOST_CHECK_EQUAL((NotEqual<double,uint64_t>()(0.0, 1.0)), true);
+    BOOST_CHECK_EQUAL((NotEqual<double,float   >()(1.0, 1.0f)), false);
+
+    BOOST_CHECK_EQUAL((NotEqual<float,bool    >()(0.0f, false)), false);
+    BOOST_CHECK_EQUAL((NotEqual<float,double  >()(1.0f, 0.0)), true);
+    BOOST_CHECK_EQUAL((NotEqual<float,uint64_t>()(0.0f, 1)), true);
+    BOOST_CHECK_EQUAL((NotEqual<float,int32_t >()(1.0f, 1)), false);
+
+    BOOST_CHECK_EQUAL((NotEqual<uint64_t,bool    >()(0, false)), false);
+    BOOST_CHECK_EQUAL((NotEqual<uint64_t,int32_t >()(1, 0)), true);
+    BOOST_CHECK_EQUAL((NotEqual<uint64_t,uint64_t>()(0, 1)), true);
+    BOOST_CHECK_EQUAL((NotEqual<uint64_t,float   >()(1, 1.0f)), false);
+
+    BOOST_CHECK_EQUAL((NotEqual<uint32_t,bool    >()(0, false)), false);
+    BOOST_CHECK_EQUAL((NotEqual<uint32_t,int32_t >()(1, 0)), true);
+    BOOST_CHECK_EQUAL((NotEqual<uint32_t,uint64_t>()(0, 1)), true);
+    BOOST_CHECK_EQUAL((NotEqual<uint32_t,float   >()(1, 1)), false);
+
+    BOOST_CHECK_EQUAL((NotEqual<uint16_t,bool    >()(0, false)), false);
+    BOOST_CHECK_EQUAL((NotEqual<uint16_t,int32_t >()(1, 0)), true);
+    BOOST_CHECK_EQUAL((NotEqual<uint16_t,uint64_t>()(0, 1)), true);
+    BOOST_CHECK_EQUAL((NotEqual<uint16_t,float   >()(1, 1.0f)), false);
+
+    BOOST_CHECK_EQUAL((NotEqual<uint8_t,bool    >()(0, false)), false);
+    BOOST_CHECK_EQUAL((NotEqual<uint8_t,int32_t >()(1, 0)), true);
+    BOOST_CHECK_EQUAL((NotEqual<uint8_t,uint64_t>()(0, 1)), true);
+    BOOST_CHECK_EQUAL((NotEqual<uint8_t,float   >()(1, 1.0f)), false);
+
+    BOOST_CHECK_EQUAL((NotEqual<int64_t,bool    >()( 0,  false)), false);
+    BOOST_CHECK_EQUAL((NotEqual<int64_t,uint32_t>()(-1,  0)), true);
+    BOOST_CHECK_EQUAL((NotEqual<int64_t,int64_t >()( 0, -1)), true);
+    BOOST_CHECK_EQUAL((NotEqual<int64_t,float   >()(-1, -1.0f)), false);
+
+    BOOST_CHECK_EQUAL((NotEqual<int32_t,bool    >()( 0,  false)), false);
+    BOOST_CHECK_EQUAL((NotEqual<int32_t,uint32_t>()(-1,  0)), true);
+    BOOST_CHECK_EQUAL((NotEqual<int32_t,int64_t >()( 0, -1)), true);
+    BOOST_CHECK_EQUAL((NotEqual<int32_t,float   >()(-1, -1.0f)), false);
+
+    BOOST_CHECK_EQUAL((NotEqual<int16_t,bool    >()( 0,  false)), false);
+    BOOST_CHECK_EQUAL((NotEqual<int16_t,uint32_t>()(-1,  0)),     true);
+    BOOST_CHECK_EQUAL((NotEqual<int16_t,int64_t >()( 0, -1)),     true);
+    BOOST_CHECK_EQUAL((NotEqual<int16_t,float   >()(-1, -1.0f)),   false);
+
+    BOOST_CHECK_EQUAL((NotEqual<int8_t,bool    >()( 0,  false)), false);
+    BOOST_CHECK_EQUAL((NotEqual<int8_t,uint32_t>()(-1,  0)),     true);
+    BOOST_CHECK_EQUAL((NotEqual<int8_t,int64_t> ()( 0, -1)),     true);
+    BOOST_CHECK_EQUAL((NotEqual<int8_t,float   >()(-1, -1.f)),   false);
+
+    BOOST_CHECK_EQUAL((NotEqual<bool,int8_t  >()(false, 0)),   false);
+    BOOST_CHECK_EQUAL((NotEqual<bool,int32_t >()(false, 1)),   true);
+    BOOST_CHECK_EQUAL((NotEqual<bool,uint64_t>()(true,  0UL)), true);
+    BOOST_CHECK_EQUAL((NotEqual<bool,float   >()(true,  1.0f)),false);
 }
 
 //****************************************************************************
@@ -2000,9 +2118,11 @@ BOOST_AUTO_TEST_CASE(min_monoid_test)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(max_monoid_test)
 {
-    BOOST_CHECK_EQUAL(MaxMonoid<double>().identity(), 0.0);
+    BOOST_CHECK_EQUAL(MaxMonoid<double>().identity(),
+                      -std::numeric_limits<double>::infinity());
     BOOST_CHECK_EQUAL(MaxMonoid<double>()(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(MaxMonoid<float>().identity(), 0.0f);
+    BOOST_CHECK_EQUAL(MaxMonoid<float>().identity(),
+                      -std::numeric_limits<float>::infinity());
     BOOST_CHECK_EQUAL(MaxMonoid<float>()(-2.f, 1.f), 1.0f);
 
     BOOST_CHECK_EQUAL(MaxMonoid<uint64_t>().identity(), 0UL);
@@ -2014,13 +2134,17 @@ BOOST_AUTO_TEST_CASE(max_monoid_test)
     BOOST_CHECK_EQUAL(MaxMonoid<uint8_t>().identity(), 0U);
     BOOST_CHECK_EQUAL(MaxMonoid<uint8_t>()(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(MaxMonoid<int64_t>().identity(), 0L);
+    BOOST_CHECK_EQUAL(MaxMonoid<int64_t>().identity(),
+                      std::numeric_limits<int64_t>::min());
     BOOST_CHECK_EQUAL(MaxMonoid<int64_t>()(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(MaxMonoid<int32_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(MaxMonoid<int32_t>().identity(),
+                      std::numeric_limits<int32_t>::min());
     BOOST_CHECK_EQUAL(MaxMonoid<int32_t>()(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxMonoid<int16_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(MaxMonoid<int16_t>().identity(),
+                      std::numeric_limits<int16_t>::min());
     BOOST_CHECK_EQUAL(MaxMonoid<int16_t>()(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxMonoid<int8_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(MaxMonoid<int8_t>().identity(),
+                      std::numeric_limits<int8_t>::min());
     BOOST_CHECK_EQUAL(MaxMonoid<int8_t>()(-2, 1), 1);
 
     BOOST_CHECK_EQUAL(MaxMonoid<bool>().identity(), false);
@@ -2320,10 +2444,12 @@ BOOST_AUTO_TEST_CASE(min_plus_semiring_test)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(max_times_semiring_test)
 {
-    BOOST_CHECK_EQUAL(MaxTimesSemiring<double>().zero(), 0.0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<double>().zero(),
+                      -std::numeric_limits<double>::infinity());
     BOOST_CHECK_EQUAL(MaxTimesSemiring<double>().add(-2., 1.), 1.0);
     BOOST_CHECK_EQUAL(MaxTimesSemiring<double>().mult(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(MaxTimesSemiring<float>().zero(), 0.0f);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<float>().zero(),
+                      -std::numeric_limits<float>::infinity());
     BOOST_CHECK_EQUAL(MaxTimesSemiring<float>().add(-2.f, 1.f), 1.0f);
     BOOST_CHECK_EQUAL(MaxTimesSemiring<float>().mult(-2.f, 1.f), -2.0f);
 
@@ -2340,16 +2466,20 @@ BOOST_AUTO_TEST_CASE(max_times_semiring_test)
     BOOST_CHECK_EQUAL(MaxTimesSemiring<uint8_t>().add(2U, 1U), 2U);
     BOOST_CHECK_EQUAL(MaxTimesSemiring<uint8_t>().mult(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(MaxTimesSemiring<int64_t>().zero(), 0L);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int64_t>().zero(),
+                      std::numeric_limits<int64_t>::min());
     BOOST_CHECK_EQUAL(MaxTimesSemiring<int64_t>().add(-2L, 1L), 1L);
     BOOST_CHECK_EQUAL(MaxTimesSemiring<int64_t>().mult(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(MaxTimesSemiring<int32_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int32_t>().zero(),
+                      std::numeric_limits<int32_t>::min());
     BOOST_CHECK_EQUAL(MaxTimesSemiring<int32_t>().add(-2, 1), 1);
     BOOST_CHECK_EQUAL(MaxTimesSemiring<int32_t>().mult(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MaxTimesSemiring<int16_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int16_t>().zero(),
+                      std::numeric_limits<int16_t>::min());
     BOOST_CHECK_EQUAL(MaxTimesSemiring<int16_t>().add(-2, 1), 1);
     BOOST_CHECK_EQUAL(MaxTimesSemiring<int16_t>().mult(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MaxTimesSemiring<int8_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxTimesSemiring<int8_t>().zero(),
+                      std::numeric_limits<int8_t>::min());
     BOOST_CHECK_EQUAL(MaxTimesSemiring<int8_t>().add(-2, 1), 1);
     BOOST_CHECK_EQUAL(MaxTimesSemiring<int8_t>().mult(-2, 1), -2);
 
@@ -2433,10 +2563,12 @@ BOOST_AUTO_TEST_CASE(min_select2nd_test)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(max_select2nd_test)
 {
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().zero(), 0.0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().zero(),
+                      -std::numeric_limits<double>::infinity());
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().add(-2., 1.), 1.0);
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().mult(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().zero(), 0.0f);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().zero(),
+                      -std::numeric_limits<float>::infinity());
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().add(-2.f, 1.f), 1.0f);
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().mult(-2.f, 1.f), 1.0f);
 
@@ -2453,16 +2585,20 @@ BOOST_AUTO_TEST_CASE(max_select2nd_test)
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint8_t>().add(2U, 1U), 2U);
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint8_t>().mult(2U, 1U), 1U);
 
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().zero(), 0L);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().zero(),
+                      std::numeric_limits<int64_t>::min());
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().add(-2L, 1L), 1L);
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().mult(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().zero(),
+                      std::numeric_limits<int32_t>::min());
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().add(-2, 1), 1);
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().mult(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().zero(),
+                      std::numeric_limits<int16_t>::min());
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().add(-2, 1), 1);
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().mult(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().zero(),
+                      std::numeric_limits<int8_t>::min());
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().add(-2, 1), 1);
     BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().mult(-2, 1), 1);
 

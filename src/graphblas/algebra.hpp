@@ -344,6 +344,19 @@ typedef GraphBLAS::LogicalXnor<bool>  GrB_LXNOR;
 // Monoids
 //****************************************************************************
 
+//****************************************************************************
+/**
+ * The macro for building simple templated monoid classes
+ *
+ * @param[in]  M_NAME     The class name
+ * @param[in]  BINARYOP   The binary op callable to turn into a monoid
+ * @param[in]  IDENTITY   The multiplication binary function
+ *
+ * Note: the following only generates a template class where the identity is
+ * the "same" (with casting) regardless of ScalarT
+ *
+ * @todo Explore if this can be done with a class template like with MaxMonoid
+ */
 #define GEN_GRAPHBLAS_MONOID(M_NAME, BINARYOP, IDENTITY)        \
     template <typename ScalarT>                                 \
     struct M_NAME                                               \
@@ -362,16 +375,12 @@ typedef GraphBLAS::LogicalXnor<bool>  GrB_LXNOR;
         }                                                       \
     };
 
+//****************************************************************************
 namespace GraphBLAS
 {
     GEN_GRAPHBLAS_MONOID(PlusMonoid, Plus, 0)
     GEN_GRAPHBLAS_MONOID(TimesMonoid, Times, 1)
     GEN_GRAPHBLAS_MONOID(MinMonoid, Min, std::numeric_limits<ScalarT>::max())
-
-    /// @todo The following identity only works for unsigned domains
-    /// std::numerical_limits<>::min() does not work for floating point types
-    //GEN_GRAPHBLAS_MONOID(MaxMonoid, Max, 0)
-    // See below for explicit instantiations
 
     /// @todo the following identity only works for boolean domain
     GEN_GRAPHBLAS_MONOID(LogicalOrMonoid,   LogicalOr,   false)
@@ -379,12 +388,16 @@ namespace GraphBLAS
     GEN_GRAPHBLAS_MONOID(LogicalXorMonoid,  LogicalXor,  false)
     GEN_GRAPHBLAS_MONOID(LogicalXnorMonoid, LogicalXnor, true)
 
+    // ***********************************************************************
+    // MaxMonoid identity depends on the type requiring class templates and SFINAE
+    // See below for explicit instantiations
     template <typename ScalarT, typename Enable = void>
     class MaxMonoid;
 
     // MaxMonoid for ints
     template <typename ScalarT>
-    class MaxMonoid<ScalarT, typename std::enable_if_t<std::is_integral_v<ScalarT> > >
+    class MaxMonoid<ScalarT,
+                    typename std::enable_if_t<std::is_integral_v<ScalarT> > >
     {
     public:
         typedef ScalarT result_type;
@@ -402,7 +415,8 @@ namespace GraphBLAS
 
     // MaxMonoid for floating point numbers
     template <typename ScalarT>
-    class MaxMonoid<ScalarT, typename std::enable_if_t<std::is_floating_point_v<ScalarT> > >
+    class MaxMonoid<ScalarT,
+                    typename std::enable_if_t<std::is_floating_point_v<ScalarT> > >
     {
     public:
         typedef ScalarT result_type;
@@ -425,11 +439,11 @@ namespace GraphBLAS
 //****************************************************************************
 
 /**
- * The macro for building semi-ring objects
+ * The macro for building simple templated semiring classes
  *
  * @param[in]  SRNAME        The class name
  * @param[in]  ADD_MONOID    The addition monoid
- * @param[in]  MULT_BINARYOP The multiplication binary function
+ * @param[in]  MULT_BINARYOP The multiplication binary operator
  */
 #define GEN_GRAPHBLAS_SEMIRING(SRNAME, ADD_MONOID, MULT_BINARYOP)       \
     template <typename D1, typename D2=D1, typename D3=D1>              \
