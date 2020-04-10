@@ -330,192 +330,192 @@ BOOST_AUTO_TEST_CASE(max_times_semiring_test)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(min_select2nd_test)
+BOOST_AUTO_TEST_CASE(min_Second_test)
 {
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<double>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<double>().zero(),
                       std::numeric_limits<double>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<double>().add(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<double>().add(2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<double>().mult(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<double>().add(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<double>().add(2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<double>().mult(-2., 1.), 1.0);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<float>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<float>().zero(),
                       std::numeric_limits<float>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<float>().add(-2.f, 1.f), -2.0f);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<float>().add(2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<float>().mult(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<float>().add(-2.f, 1.f), -2.0f);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<float>().add(2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<float>().mult(-2.f, 1.f), 1.0f);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint64_t>().zero(),
                       std::numeric_limits<uint64_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint64_t>().add(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint64_t>().add(2UL, 3UL), 2UL);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint64_t>().add(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint64_t>().add(2UL, 3UL), 2UL);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint32_t>().zero(),
                       std::numeric_limits<uint32_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint32_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint32_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint32_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint32_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint32_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint32_t>().mult(2U, 1U), 1U);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint16_t>().zero(),
                       std::numeric_limits<uint16_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint16_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint16_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint16_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint16_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint16_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint16_t>().mult(2U, 1U), 1U);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint8_t>().zero(),
                       std::numeric_limits<uint8_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint8_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint8_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<uint8_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint8_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint8_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<uint8_t>().mult(2U, 1U), 1U);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int64_t>().zero(),
                       std::numeric_limits<int64_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int64_t>().add(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int64_t>().add(2L, -1L), -1L);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int64_t>().mult(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int64_t>().add(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int64_t>().add(2L, -1L), -1L);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int64_t>().mult(-2L, 1L), 1L);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int32_t>().zero(),
                       std::numeric_limits<int32_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int32_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int32_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int32_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int32_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int32_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int32_t>().mult(-2, 1), 1);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int16_t>().zero(),
                       std::numeric_limits<int16_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int16_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int16_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int16_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int16_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int16_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int16_t>().mult(-2, 1), 1);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int8_t>().zero(),
                       std::numeric_limits<int8_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int8_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int8_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<int8_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int8_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int8_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<int8_t>().mult(-2, 1), 1);
 
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().zero(), true);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().add(false, true), false);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().add(true, true), true);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().mult(true, false), false);
-    BOOST_CHECK_EQUAL(MinSelect2ndSemiring<bool>().mult(false, true), true);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<bool>().zero(), true);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<bool>().add(false, true), false);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<bool>().add(true, true), true);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<bool>().mult(true, false), false);
+    BOOST_CHECK_EQUAL(MinSecondSemiring<bool>().mult(false, true), true);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(max_select2nd_test)
+BOOST_AUTO_TEST_CASE(max_Second_test)
 {
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().zero(),
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<double>().zero(),
                       -std::numeric_limits<double>::infinity());
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().add(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<double>().mult(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().zero(),
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<double>().add(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<double>().mult(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<float>().zero(),
                       -std::numeric_limits<float>::infinity());
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().add(-2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<float>().mult(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<float>().add(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<float>().mult(-2.f, 1.f), 1.0f);
 
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint64_t>().zero(), 0UL);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint64_t>().add(2UL, 1UL), 2UL);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint32_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint32_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint32_t>().mult(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint16_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint16_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint16_t>().mult(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint8_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint8_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<uint8_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint64_t>().zero(), 0UL);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint64_t>().add(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint32_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint32_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint32_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint16_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint16_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint16_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint8_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint8_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<uint8_t>().mult(2U, 1U), 1U);
 
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().zero(),
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int64_t>().zero(),
                       std::numeric_limits<int64_t>::min());
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().add(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int64_t>().mult(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().zero(),
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int64_t>().add(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int64_t>().mult(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int32_t>().zero(),
                       std::numeric_limits<int32_t>::min());
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int32_t>().mult(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().zero(),
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int32_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int32_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int16_t>().zero(),
                       std::numeric_limits<int16_t>::min());
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int16_t>().mult(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().zero(),
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int16_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int16_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int8_t>().zero(),
                       std::numeric_limits<int8_t>::min());
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<int8_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int8_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<int8_t>().mult(-2, 1), 1);
 
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().zero(), false);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().add(false, false), false);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().add(false, true), true);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().mult(false, true), true);
-    BOOST_CHECK_EQUAL(MaxSelect2ndSemiring<bool>().mult(true, false), false);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<bool>().zero(), false);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<bool>().add(false, false), false);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<bool>().add(false, true), true);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<bool>().mult(false, true), true);
+    BOOST_CHECK_EQUAL(MaxSecondSemiring<bool>().mult(true, false), false);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(min_select1st_test)
+BOOST_AUTO_TEST_CASE(min_First_test)
 {
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<double>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<double>().zero(),
                       std::numeric_limits<double>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<double>().add(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<double>().add(2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<double>().mult(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<double>().add(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<double>().add(2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<double>().mult(-2., 1.), -2.0);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<float>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<float>().zero(),
                       std::numeric_limits<float>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<float>().add(-2.f, 1.f), -2.0f);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<float>().add(2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<float>().mult(-2.f, 1.f), -2.0f);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<float>().add(-2.f, 1.f), -2.0f);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<float>().add(2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<float>().mult(-2.f, 1.f), -2.0f);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint64_t>().zero(),
                       std::numeric_limits<uint64_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint64_t>().add(2UL, 1UL), 1UL);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint64_t>().add(2UL, 3UL), 2UL);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint64_t>().add(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint64_t>().add(2UL, 3UL), 2UL);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint32_t>().zero(),
                       std::numeric_limits<uint32_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint32_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint32_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint32_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint32_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint32_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint32_t>().mult(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint16_t>().zero(),
                       std::numeric_limits<uint16_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint16_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint16_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint16_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint16_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint16_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint16_t>().mult(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint8_t>().zero(),
                       std::numeric_limits<uint8_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint8_t>().add(2U, 1U), 1U);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint8_t>().add(2U, 3U), 2U);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<uint8_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint8_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint8_t>().add(2U, 3U), 2U);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<uint8_t>().mult(2U, 1U), 2U);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int64_t>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int64_t>().zero(),
                       std::numeric_limits<int64_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int64_t>().add(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int64_t>().add(2L, -1L), -1L);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int64_t>().mult(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int64_t>().add(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int64_t>().add(2L, -1L), -1L);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int64_t>().mult(-2L, 1L), -2L);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int32_t>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int32_t>().zero(),
                       std::numeric_limits<int32_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int32_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int32_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int32_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int32_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int32_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int32_t>().mult(-2, 1), -2);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int16_t>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int16_t>().zero(),
                       std::numeric_limits<int16_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int16_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int16_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int16_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int16_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int16_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int16_t>().mult(-2, 1), -2);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int8_t>().zero(),
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int8_t>().zero(),
                       std::numeric_limits<int8_t>::max());
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int8_t>().add(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int8_t>().add(2, -1), -1);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<int8_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int8_t>().add(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int8_t>().add(2, -1), -1);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<int8_t>().mult(-2, 1), -2);
 
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().zero(), true);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().add(false, true), false);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().add(true, true), true);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().mult(true, false), true);
-    BOOST_CHECK_EQUAL(MinSelect1stSemiring<bool>().mult(false, true), false);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<bool>().zero(), true);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<bool>().add(false, true), false);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<bool>().add(true, true), true);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<bool>().mult(true, false), true);
+    BOOST_CHECK_EQUAL(MinFirstSemiring<bool>().mult(false, true), false);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

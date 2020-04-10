@@ -389,7 +389,6 @@ namespace GraphBLAS
 {
     GEN_GRAPHBLAS_MONOID(PlusMonoid, Plus, 0)
     GEN_GRAPHBLAS_MONOID(TimesMonoid, Times, 1)
-    GEN_GRAPHBLAS_MONOID(MinMonoid, Min, std::numeric_limits<ScalarT>::max())
 
     /// @todo the following identity only works for boolean domain
     GEN_GRAPHBLAS_MONOID(LogicalOrMonoid,   LogicalOr,   false)
@@ -441,6 +440,53 @@ namespace GraphBLAS
         }
     };
 
+
+    //GEN_GRAPHBLAS_MONOID(MinMonoid, Min, std::numeric_limits<ScalarT>::max())
+
+    // ***********************************************************************
+    // MinMonoid identity depends on the type requiring class templates and SFINAE
+    // See below for explicit instantiations
+    template <typename ScalarT, typename Enable = void>
+    class MinMonoid;
+
+    // MinMonoid for ints
+    template <typename ScalarT>
+    class MinMonoid<ScalarT,
+                    typename std::enable_if_t<std::is_integral_v<ScalarT> > >
+    {
+    public:
+        typedef ScalarT result_type;
+
+        ScalarT identity() const
+        {
+            return static_cast<ScalarT>(std::numeric_limits<ScalarT>::max());
+        }
+
+        ScalarT operator()(ScalarT lhs, ScalarT rhs) const
+        {
+            return GraphBLAS::Min<ScalarT>()(lhs, rhs);
+        }
+    };
+
+    // MinMonoid for floating point numbers
+    template <typename ScalarT>
+    class MinMonoid<ScalarT,
+                    typename std::enable_if_t<std::is_floating_point_v<ScalarT> > >
+    {
+    public:
+        typedef ScalarT result_type;
+
+        ScalarT identity() const
+        {
+            return static_cast<ScalarT>(std::numeric_limits<ScalarT>::infinity());
+        }
+
+        ScalarT operator()(ScalarT lhs, ScalarT rhs) const
+        {
+            return GraphBLAS::Min<ScalarT>()(lhs, rhs);
+        }
+    };
+
 } // GraphBLAS
 
 //****************************************************************************
@@ -476,22 +522,55 @@ namespace GraphBLAS
 
 namespace GraphBLAS
 {
-    GEN_GRAPHBLAS_SEMIRING(ArithmeticSemiring, PlusMonoid, Times)
+    //************************************************************************
+    // "true" semirings
+    //************************************************************************
 
-    GEN_GRAPHBLAS_SEMIRING(LogicalSemiring, LogicalOrMonoid, LogicalAnd)
+    // aka PlusTimesSemiring
+    GEN_GRAPHBLAS_SEMIRING(ArithmeticSemiring, PlusMonoid, Times)
 
     /// @note the Plus operator would need to be "infinity aware" if the caller
     /// were to pass "infinity" sentinel as one of the arguments. But no
     /// GraphBLAS operations 'should' do that.
     GEN_GRAPHBLAS_SEMIRING(MinPlusSemiring, MinMonoid, Plus)
 
-    GEN_GRAPHBLAS_SEMIRING(MaxTimesSemiring, MaxMonoid, Times)
+    // MaxPlus is only valid for signed integers and floating point
+    //GEN_GRAPHBLAS_SEMIRING(MaxPlusSemiring, MaxMonoid, Plus)
 
-    GEN_GRAPHBLAS_SEMIRING(MinSelect2ndSemiring, MinMonoid, Second)
-    GEN_GRAPHBLAS_SEMIRING(MaxSelect2ndSemiring, MaxMonoid, Second)
+    // MinTimes is only valid for unsigned ints
 
-    GEN_GRAPHBLAS_SEMIRING(MinSelect1stSemiring, MinMonoid, First)
-    GEN_GRAPHBLAS_SEMIRING(MaxSelect1stSemiring, MaxMonoid, First)
+    GEN_GRAPHBLAS_SEMIRING(MinMaxSemiring, MinMonoid, Max)
+    GEN_GRAPHBLAS_SEMIRING(MaxMinSemiring, MaxMonoid, Min)
+
+    // MaxTimes is only valid for unsigned ints
+    //GEN_GRAPHBLAS_SEMIRING(MaxTimesSemiring, MaxMonoid, Times)
+
+    // PlusMin is only valid for unsigned ints
+
+    /// @todo restrict to boolean?
+    GEN_GRAPHBLAS_SEMIRING(LogicalSemiring, LogicalOrMonoid, LogicalAnd)
+    GEN_GRAPHBLAS_SEMIRING(LogicalAndOrSemiring, LogicalAndMonoid, LogicalOr)
+    GEN_GRAPHBLAS_SEMIRING(LogicalXorAndSemiring, LogicalXorMonoid, LogicalAnd)
+    GEN_GRAPHBLAS_SEMIRING(LogicalXnorOrSemiring, LogicalXnorMonoid, LogicalOr)
+
+    /// @todo NotEqualAnd
+    /// @todo EqualOr
+
+    //************************************************************************
+    // "other useful" semirings
+    //************************************************************************
+    // MaxPlus is only valid for unsigned ints
+
+    // MinTimes is only valid for signed types
+
+    // MaxTimes is only valid for signed types
+
+    GEN_GRAPHBLAS_SEMIRING(MinFirstSemiring, MinMonoid, First)
+    GEN_GRAPHBLAS_SEMIRING(MinSecondSemiring, MinMonoid, Second)
+
+    GEN_GRAPHBLAS_SEMIRING(MaxFirstSemiring, MaxMonoid, First)
+    GEN_GRAPHBLAS_SEMIRING(MaxSecondSemiring, MaxMonoid, Second)
+
 } // namespace GraphBLAS
 
 //****************************************************************************

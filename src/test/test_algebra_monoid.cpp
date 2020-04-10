@@ -112,10 +112,10 @@ BOOST_AUTO_TEST_CASE(times_monoid_test)
 BOOST_AUTO_TEST_CASE(min_monoid_test)
 {
     BOOST_CHECK_EQUAL(MinMonoid<double>().identity(),
-                      std::numeric_limits<double>::max());
+                      std::numeric_limits<double>::infinity());
     BOOST_CHECK_EQUAL(MinMonoid<double>()(-2., 1.), -2.0);
     BOOST_CHECK_EQUAL(MinMonoid<float>().identity(),
-                      std::numeric_limits<float>::max());
+                      std::numeric_limits<float>::infinity());
     BOOST_CHECK_EQUAL(MinMonoid<float>()(-2.f, 1.f), -2.0f);
 
     BOOST_CHECK_EQUAL(MinMonoid<uint64_t>().identity(),
@@ -190,51 +190,280 @@ BOOST_AUTO_TEST_CASE(max_monoid_test)
 BOOST_AUTO_TEST_CASE(logical_or_monoid_test)
 {
     BOOST_CHECK_EQUAL(LogicalOrMonoid<double>().identity(), 0.0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<double>()(0., 0.),  0.0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<double>()(0., 1.),  1.0);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<double>()(-2., 0.), 1.0);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<double>()(0., 0.), 0.0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<double>()(1., -1.), 1.0);
+
     BOOST_CHECK_EQUAL(LogicalOrMonoid<float>().identity(), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<float>()(0.f, 0.f),  0.0f);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<float>()(0.f, 1.f),  1.0f);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<float>()(-2.f, 0.f), 1.0f);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<float>()(0.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<float>()(1.f, -1.f), 1.0f);
 
     BOOST_CHECK_EQUAL(LogicalOrMonoid<uint64_t>().identity(), 0UL);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint64_t>()(2UL, 0UL), 1UL);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<uint64_t>()(0UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint64_t>()(0UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint64_t>()(2UL, 0UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint64_t>()(2UL, 1UL), 1UL);
+
     BOOST_CHECK_EQUAL(LogicalOrMonoid<uint32_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint32_t>()(2U, 0U), 1U);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<uint32_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint32_t>()(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint32_t>()(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint32_t>()(2U, 1U), 1U);
+
     BOOST_CHECK_EQUAL(LogicalOrMonoid<uint16_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint16_t>()(2U, 0U), 1U);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<uint16_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint16_t>()(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint16_t>()(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint16_t>()(2U, 1U), 1U);
+
     BOOST_CHECK_EQUAL(LogicalOrMonoid<uint8_t>().identity(), 0U);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint8_t>()(2U, 0U), 1U);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<uint8_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint8_t>()(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint8_t>()(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<uint8_t>()(2U, 1U), 1U);
 
     BOOST_CHECK_EQUAL(LogicalOrMonoid<int64_t>().identity(), 0L);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<int64_t>()(-2L, 0L), 1L);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<int64_t>()(0L, 0L), 0L);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int64_t>()(0L, 1L), 1L);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int64_t>()(-2L, 0L), 1L);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int64_t>()(-2L, 1L), 1L);
+
     BOOST_CHECK_EQUAL(LogicalOrMonoid<int32_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<int32_t>()(-2, 0), 1);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int32_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int32_t>()(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int32_t>()(-2, 1), 1);
+
     BOOST_CHECK_EQUAL(LogicalOrMonoid<int16_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<int16_t>()(-2, 0), 1);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int16_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int16_t>()(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int16_t>()(-2, 1), 1);
+
     BOOST_CHECK_EQUAL(LogicalOrMonoid<int8_t>().identity(), 0);
-    BOOST_CHECK_EQUAL(LogicalOrMonoid<int8_t>()(-2, 0), 1);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int8_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int8_t>()(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<int8_t>()(-2, 1), 1);
 
     BOOST_CHECK_EQUAL(LogicalOrMonoid<bool>().identity(), false);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<bool>()(false, false), false);
     BOOST_CHECK_EQUAL(LogicalOrMonoid<bool>()(false, true), true);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<bool>()(true, false), true);
+    BOOST_CHECK_EQUAL(LogicalOrMonoid<bool>()(true, true), true);
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(PlusMonoid_test)
+BOOST_AUTO_TEST_CASE(logical_and_monoid_test)
 {
-    uint8_t i8[3]={15, 22, 37};
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<double>().identity(), 1.0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<double>()(0., 0.),  0.0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<double>()(0., 1.),  0.0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<double>()(-2., 0.), 0.0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<double>()(1., -1.), 1.0);
 
-    PlusMonoid<uint8_t> GrB_PLUS_INT8;
-    BOOST_CHECK_EQUAL(GrB_PLUS_INT8.identity(), static_cast<uint8_t>(0));
-    BOOST_CHECK_EQUAL(GrB_PLUS_INT8(i8[0], i8[1]), i8[2]);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<float>().identity(), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<float>()(0.f, 0.f),  0.0f);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<float>()(0.f, 1.f),  0.0f);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<float>()(-2.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<float>()(1.f, -1.f), 1.0f);
+
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint64_t>().identity(), 1UL);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint64_t>()(0UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint64_t>()(0UL, 1UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint64_t>()(2UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint64_t>()(2UL, 1UL), 1UL);
+
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint32_t>().identity(), 1U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint32_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint32_t>()(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint32_t>()(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint32_t>()(2U, 1U), 1U);
+
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint16_t>().identity(), 1U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint16_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint16_t>()(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint16_t>()(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint16_t>()(2U, 1U), 1U);
+
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint8_t>().identity(), 1U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint8_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint8_t>()(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint8_t>()(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<uint8_t>()(2U, 1U), 1U);
+
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int64_t>().identity(), 1L);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int64_t>()(0L, 0L), 0L);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int64_t>()(0L, 1L), 0L);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int64_t>()(-2L, 0L), 0L);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int64_t>()(-2L, 1L), 1L);
+
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int32_t>().identity(), 1);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int32_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int32_t>()(-2, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int32_t>()(-2, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int16_t>().identity(), 1);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int16_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int16_t>()(-2, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int16_t>()(-2, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int8_t>().identity(), 1);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int8_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int8_t>()(-2, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<int8_t>()(-2, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<bool>().identity(),  true);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<bool>()(false, true), false);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<bool>()(true, false), false);
+    BOOST_CHECK_EQUAL(LogicalAndMonoid<bool>()(true, true), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_xor_monoid_test)
+{
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<double>().identity(), 0.0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<double>()(0., 0.),  0.0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<double>()(0., 1.),  1.0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<double>()(-2., 0.), 1.0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<double>()(1., -1.), 0.0);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<float>().identity(), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<float>()(0.f, 0.f),  0.0f);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<float>()(0.f, 1.f),  1.0f);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<float>()(-2.f, 0.f), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<float>()(1.f, -1.f), 0.0f);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint64_t>().identity(), 0UL);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint64_t>()(0UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint64_t>()(0UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint64_t>()(2UL, 0UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint64_t>()(2UL, 1UL), 0UL);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint32_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint32_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint32_t>()(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint32_t>()(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint32_t>()(2U, 1U), 0U);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint16_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint16_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint16_t>()(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint16_t>()(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint16_t>()(2U, 1U), 0U);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint8_t>().identity(), 0U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint8_t>()(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint8_t>()(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint8_t>()(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<uint8_t>()(2U, 1U), 0U);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int64_t>().identity(), 0L);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int64_t>()(0L, 0L), 0L);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int64_t>()(0L, 1L), 1L);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int64_t>()(-2L, 0L), 1L);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int64_t>()(-2L, 1L), 0L);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int32_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int32_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int32_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int32_t>()(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int32_t>()(-2, 1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int16_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int16_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int16_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int16_t>()(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int16_t>()(-2, 1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int8_t>().identity(), 0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int8_t>()(0, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int8_t>()(0, 1), 1);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int8_t>()(-2, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<int8_t>()(-2, 1), 0);
+
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<bool>().identity(), false);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<bool>()(false, false), false);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<bool>()(false, true),  true);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<bool>()(true, false),  true);
+    BOOST_CHECK_EQUAL(LogicalXorMonoid<bool>()(true, true), false);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(logical_xnor_monoid_test)
+{
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<double>().identity(), 1.0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<double>()(0., 0.),  1.0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<double>()(0., 1.),  0.0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<double>()(-2., 0.), 0.0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<double>()(1., -1.), 1.0);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<float>().identity(), 1.0f);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<float>()(0.f, 0.f),  1.0f);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<float>()(0.f, 1.f),  0.0f);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<float>()(-2.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<float>()(1.f, -1.f), 1.0f);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint64_t>().identity(), 1UL);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint64_t>()(0UL, 0UL), 1UL);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint64_t>()(0UL, 1UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint64_t>()(2UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint64_t>()(2UL, 1UL), 1UL);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint32_t>().identity(), 1U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint32_t>()(0U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint32_t>()(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint32_t>()(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint32_t>()(2U, 1U), 1U);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint16_t>().identity(), 1U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint16_t>()(0U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint16_t>()(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint16_t>()(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint16_t>()(2U, 1U), 1U);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint8_t>().identity(), 1U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint8_t>()(0U, 0U), 1U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint8_t>()(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint8_t>()(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<uint8_t>()(2U, 1U), 1U);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int64_t>().identity(), 1L);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int64_t>()(0L, 0L), 1L);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int64_t>()(0L, 1L), 0L);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int64_t>()(-2L, 0L), 0L);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int64_t>()(-2L, 1L), 1L);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int32_t>().identity(), 1);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int32_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int32_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int32_t>()(-2, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int32_t>()(-2, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int16_t>().identity(), 1);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int16_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int16_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int16_t>()(-2, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int16_t>()(-2, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int8_t>().identity(), 1);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int8_t>()(0, 0), 1);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int8_t>()(0, 1), 0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int8_t>()(-2, 0), 0);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<int8_t>()(-2, 1), 1);
+
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<bool>().identity(), true);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<bool>()(false, false), true);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<bool>()(false, true), false);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<bool>()(true, false), false);
+    BOOST_CHECK_EQUAL(LogicalXnorMonoid<bool>()(true, true),  true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
