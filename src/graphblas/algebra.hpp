@@ -526,45 +526,50 @@ namespace GraphBLAS
     // "true" semirings
     //************************************************************************
 
+    //************************************************************************
     // aka PlusTimesSemiring
     GEN_GRAPHBLAS_SEMIRING(ArithmeticSemiring, PlusMonoid, Times)
 
+    //************************************************************************
     /// @note the Plus operator would need to be "infinity aware" if the caller
     /// were to pass "infinity" sentinel as one of the arguments. But no
     /// GraphBLAS operations 'should' do that.
     GEN_GRAPHBLAS_SEMIRING(MinPlusSemiring, MinMonoid, Plus)
 
-    // MaxPlus is only valid for signed integers and floating point
-    //GEN_GRAPHBLAS_SEMIRING(MaxPlusSemiring, MaxMonoid, Plus)
+    //************************************************************************
+    // MaxPlusSemiring is a true semiring signed integers and floating point
+    // MaxPlusSemiring is a "useful" semiring for unsigned ints
+    GEN_GRAPHBLAS_SEMIRING(MaxPlusSemiring, MaxMonoid, Plus)
 
-    // MinTimes is only valid for unsigned ints
+    //************************************************************************
+    // MinTimesSemiring is a true semiring signed integers and floating point
+    // MinTimesSemiring is a "useful" semiring for unsigned ints
+    GEN_GRAPHBLAS_SEMIRING(MinTimesSemiring, MinMonoid, Times)
 
+    //************************************************************************
+    // MaxTimesSemiring is a true semiring for unsigned ints
+    // MaxTimesSemiring is a "useful" semiring signed integers and floating point
+    GEN_GRAPHBLAS_SEMIRING(MaxTimesSemiring, MaxMonoid, Times)
+
+    //************************************************************************
     GEN_GRAPHBLAS_SEMIRING(MinMaxSemiring, MinMonoid, Max)
     GEN_GRAPHBLAS_SEMIRING(MaxMinSemiring, MaxMonoid, Min)
 
-    // MaxTimes is only valid for unsigned ints
-    //GEN_GRAPHBLAS_SEMIRING(MaxTimesSemiring, MaxMonoid, Times)
+    //************************************************************************
+    // PlusMinSemiring is a true semiring for unsigned ints
+    // PlusMinSemiring is a "useful" semiring signed integers and floating point
+    GEN_GRAPHBLAS_SEMIRING(PlusMinSemiring, PlusMonoid, Min)
 
-    // PlusMin is only valid for unsigned ints
-
+    //************************************************************************
     /// @todo restrict to boolean?
     GEN_GRAPHBLAS_SEMIRING(LogicalSemiring, LogicalOrMonoid, LogicalAnd)
     GEN_GRAPHBLAS_SEMIRING(LogicalAndOrSemiring, LogicalAndMonoid, LogicalOr)
     GEN_GRAPHBLAS_SEMIRING(LogicalXorAndSemiring, LogicalXorMonoid, LogicalAnd)
     GEN_GRAPHBLAS_SEMIRING(LogicalXnorOrSemiring, LogicalXnorMonoid, LogicalOr)
 
-    /// @todo NotEqualAnd
-    /// @todo EqualOr
-
     //************************************************************************
     // "other useful" semirings
     //************************************************************************
-    // MaxPlus is only valid for unsigned ints
-
-    // MinTimes is only valid for signed types
-
-    // MaxTimes is only valid for signed types
-
     GEN_GRAPHBLAS_SEMIRING(MinFirstSemiring, MinMonoid, First)
     GEN_GRAPHBLAS_SEMIRING(MinSecondSemiring, MinMonoid, Second)
 
