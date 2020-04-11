@@ -523,11 +523,11 @@ namespace GraphBLAS
 namespace GraphBLAS
 {
     //************************************************************************
-    // "true" semirings
+    // "true" and "useful" semirings
     //************************************************************************
 
     //************************************************************************
-    // aka PlusTimesSemiring
+    // "true" Arithmetic Semiring aka PlusTimesSemiring
     GEN_GRAPHBLAS_SEMIRING(ArithmeticSemiring, PlusMonoid, Times)
 
     //************************************************************************
@@ -552,6 +552,7 @@ namespace GraphBLAS
     GEN_GRAPHBLAS_SEMIRING(MaxTimesSemiring, MaxMonoid, Times)
 
     //************************************************************************
+    // more "true" semirings
     GEN_GRAPHBLAS_SEMIRING(MinMaxSemiring, MinMonoid, Max)
     GEN_GRAPHBLAS_SEMIRING(MaxMinSemiring, MaxMonoid, Min)
 
@@ -562,10 +563,10 @@ namespace GraphBLAS
 
     //************************************************************************
     /// @todo restrict to boolean?
-    GEN_GRAPHBLAS_SEMIRING(LogicalSemiring, LogicalOrMonoid, LogicalAnd)
-    GEN_GRAPHBLAS_SEMIRING(LogicalAndOrSemiring, LogicalAndMonoid, LogicalOr)
-    GEN_GRAPHBLAS_SEMIRING(LogicalXorAndSemiring, LogicalXorMonoid, LogicalAnd)
-    GEN_GRAPHBLAS_SEMIRING(LogicalXnorOrSemiring, LogicalXnorMonoid, LogicalOr)
+    GEN_GRAPHBLAS_SEMIRING(LogicalSemiring, LogicalOrMonoid,   LogicalAnd)
+    GEN_GRAPHBLAS_SEMIRING(AndOrSemiring,   LogicalAndMonoid,  LogicalOr)
+    GEN_GRAPHBLAS_SEMIRING(XorAndSemiring,  LogicalXorMonoid,  LogicalAnd)
+    GEN_GRAPHBLAS_SEMIRING(XnorOrSemiring,  LogicalXnorMonoid, LogicalOr)
 
     //************************************************************************
     // "other useful" semirings

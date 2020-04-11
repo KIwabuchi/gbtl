@@ -605,6 +605,348 @@ BOOST_AUTO_TEST_CASE(logical_semiring_test)
 }
 
 //****************************************************************************
+BOOST_AUTO_TEST_CASE(and_or_semiring_test)
+{
+    BOOST_CHECK_EQUAL(AndOrSemiring<double>().zero(), 1.0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<double>().mult(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<double>().mult(0., 1.), 1.0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<double>().mult(-2., 0.), 1.0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<double>().mult(0., 0.), 0.0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<double>().add(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<double>().add(0., 1.), 0.0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<double>().add(-2., 0.), 0.0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<double>().add(0., 0.), 0.0);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<float>().zero(), 1.0f);
+    BOOST_CHECK_EQUAL(AndOrSemiring<float>().mult(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(AndOrSemiring<float>().mult(0.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(AndOrSemiring<float>().mult(-2.f, 0.f), 1.0f);
+    BOOST_CHECK_EQUAL(AndOrSemiring<float>().mult(0.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(AndOrSemiring<float>().add(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(AndOrSemiring<float>().add(0.f, 1.f), 0.0f);
+    BOOST_CHECK_EQUAL(AndOrSemiring<float>().add(-2.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(AndOrSemiring<float>().add(0.f, 0.f), 0.0f);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint64_t>().zero(), 1UL);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint64_t>().mult(2UL, 0UL), 1UL);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint64_t>().mult(0UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint64_t>().mult(0UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint64_t>().add(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint64_t>().add(2UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint64_t>().add(0UL, 1UL), 0UL);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint64_t>().add(0UL, 0UL), 0UL);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint32_t>().zero(), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint32_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint32_t>().mult(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint32_t>().mult(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint32_t>().mult(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint32_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint32_t>().add(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint32_t>().add(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint32_t>().add(0U, 0U), 0U);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint16_t>().zero(), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint16_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint16_t>().mult(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint16_t>().mult(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint16_t>().mult(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint16_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint16_t>().add(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint16_t>().add(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint16_t>().add(0U, 0U), 0U);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint8_t>().zero(), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint8_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint8_t>().mult(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint8_t>().mult(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint8_t>().mult(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint8_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint8_t>().add(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint8_t>().add(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(AndOrSemiring<uint8_t>().add(0U, 0U), 0U);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<int64_t>().zero(), 1L);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int64_t>().mult(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int64_t>().mult(-2L, 0L), 1L);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int64_t>().mult(0L, 1L), 1L);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int64_t>().mult(0L, 0L), 0L);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int64_t>().add(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int64_t>().add(-2L, 0L), 0L);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int64_t>().add(0L, 1L), 0L);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int64_t>().add(0L, 0L), 0L);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<int32_t>().zero(), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int32_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int32_t>().mult(-2, 0), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int32_t>().mult(0, 1), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int32_t>().mult(0, 0), 0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int32_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int32_t>().add(-2, 0), 0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int32_t>().add(0, 1), 0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int32_t>().add(0, 0), 0);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<int16_t>().zero(), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int16_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int16_t>().mult(-2, 0), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int16_t>().mult(0, 1), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int16_t>().mult(0, 0), 0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int16_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int16_t>().add(-2, 0), 0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int16_t>().add(0, 1), 0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int16_t>().add(0, 0), 0);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<int8_t>().zero(), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int8_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int8_t>().mult(-2, 0), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int8_t>().mult(0, 1), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int8_t>().mult(0, 0), 0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int8_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int8_t>().add(-2, 0), 0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int8_t>().add(0, 1), 0);
+    BOOST_CHECK_EQUAL(AndOrSemiring<int8_t>().add(0, 0), 0);
+
+    BOOST_CHECK_EQUAL(AndOrSemiring<bool>().zero(), true);
+    BOOST_CHECK_EQUAL(AndOrSemiring<bool>().mult(false, false), false);
+    BOOST_CHECK_EQUAL(AndOrSemiring<bool>().mult(false, true), true);
+    BOOST_CHECK_EQUAL(AndOrSemiring<bool>().mult(true, false), true);
+    BOOST_CHECK_EQUAL(AndOrSemiring<bool>().mult(true, true), true);
+    BOOST_CHECK_EQUAL(AndOrSemiring<bool>().add(false, false), false);
+    BOOST_CHECK_EQUAL(AndOrSemiring<bool>().add(false, true), false);
+    BOOST_CHECK_EQUAL(AndOrSemiring<bool>().add(true, false), false);
+    BOOST_CHECK_EQUAL(AndOrSemiring<bool>().add(true, true), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(xor_and_semiring_test)
+{
+    BOOST_CHECK_EQUAL(XorAndSemiring<double>().zero(), 0.0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<double>().add(-2., 1.), 0.0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<double>().add(0., 1.), 1.0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<double>().add(-2., 0.), 1.0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<double>().add(0., 0.), 0.0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<double>().mult(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<double>().mult(0., 1.), 0.0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<double>().mult(-2., 0.), 0.0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<double>().mult(0., 0.), 0.0);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<float>().zero(), 0.0f);
+    BOOST_CHECK_EQUAL(XorAndSemiring<float>().add(-2.f, 1.f), 0.0f);
+    BOOST_CHECK_EQUAL(XorAndSemiring<float>().add(0.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(XorAndSemiring<float>().add(-2.f, 0.f), 1.0f);
+    BOOST_CHECK_EQUAL(XorAndSemiring<float>().add(0.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(XorAndSemiring<float>().mult(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(XorAndSemiring<float>().mult(0.f, 1.f), 0.0f);
+    BOOST_CHECK_EQUAL(XorAndSemiring<float>().mult(-2.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(XorAndSemiring<float>().mult(0.f, 0.f), 0.0f);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint64_t>().zero(), 0UL);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint64_t>().add(2UL, 1UL), 0UL);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint64_t>().add(2UL, 0UL), 1UL);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint64_t>().add(0UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint64_t>().add(0UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint64_t>().mult(2UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint64_t>().mult(0UL, 1UL), 0UL);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint64_t>().mult(0UL, 0UL), 0UL);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint32_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint32_t>().add(2U, 1U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint32_t>().add(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint32_t>().add(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint32_t>().add(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint32_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint32_t>().mult(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint32_t>().mult(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint32_t>().mult(0U, 0U), 0U);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint16_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint16_t>().add(2U, 1U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint16_t>().add(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint16_t>().add(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint16_t>().add(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint16_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint16_t>().mult(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint16_t>().mult(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint16_t>().mult(0U, 0U), 0U);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint8_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint8_t>().add(2U, 1U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint8_t>().add(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint8_t>().add(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint8_t>().add(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint8_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint8_t>().mult(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint8_t>().mult(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(XorAndSemiring<uint8_t>().mult(0U, 0U), 0U);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<int64_t>().zero(), 0L);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int64_t>().add(-2L, 1L), 0L);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int64_t>().add(-2L, 0L), 1L);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int64_t>().add(0L, 1L), 1L);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int64_t>().add(0L, 0L), 0L);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int64_t>().mult(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int64_t>().mult(-2L, 0L), 0L);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int64_t>().mult(0L, 1L), 0L);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int64_t>().mult(0L, 0L), 0L);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<int32_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int32_t>().add(-2, 1), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int32_t>().add(-2, 0), 1);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int32_t>().add(0, 1), 1);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int32_t>().add(0, 0), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int32_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int32_t>().mult(-2, 0), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int32_t>().mult(0, 1), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int32_t>().mult(0, 0), 0);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<int16_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int16_t>().add(-2, 1), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int16_t>().add(-2, 0), 1);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int16_t>().add(0, 1), 1);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int16_t>().add(0, 0), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int16_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int16_t>().mult(-2, 0), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int16_t>().mult(0, 1), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int16_t>().mult(0, 0), 0);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<int8_t>().zero(), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int8_t>().add(-2, 1), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int8_t>().add(-2, 0), 1);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int8_t>().add(0, 1), 1);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int8_t>().add(0, 0), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int8_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int8_t>().mult(-2, 0), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int8_t>().mult(0, 1), 0);
+    BOOST_CHECK_EQUAL(XorAndSemiring<int8_t>().mult(0, 0), 0);
+
+    BOOST_CHECK_EQUAL(XorAndSemiring<bool>().zero(), false);
+    BOOST_CHECK_EQUAL(XorAndSemiring<bool>().add(false, false), false);
+    BOOST_CHECK_EQUAL(XorAndSemiring<bool>().add(false, true), true);
+    BOOST_CHECK_EQUAL(XorAndSemiring<bool>().add(true, false), true);
+    BOOST_CHECK_EQUAL(XorAndSemiring<bool>().add(true, true), false);
+    BOOST_CHECK_EQUAL(XorAndSemiring<bool>().mult(false, false), false);
+    BOOST_CHECK_EQUAL(XorAndSemiring<bool>().mult(false, true), false);
+    BOOST_CHECK_EQUAL(XorAndSemiring<bool>().mult(true, false), false);
+    BOOST_CHECK_EQUAL(XorAndSemiring<bool>().mult(true, true), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(xnor_or_semiring_test)
+{
+    BOOST_CHECK_EQUAL(XnorOrSemiring<double>().zero(), 1.0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<double>().mult(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<double>().mult(0., 1.), 1.0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<double>().mult(-2., 0.), 1.0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<double>().mult(0., 0.), 0.0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<double>().add(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<double>().add(0., 1.), 0.0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<double>().add(-2., 0.), 0.0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<double>().add(0., 0.), 1.0);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<float>().zero(), 1.0f);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<float>().mult(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<float>().mult(0.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<float>().mult(-2.f, 0.f), 1.0f);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<float>().mult(0.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<float>().add(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<float>().add(0.f, 1.f), 0.0f);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<float>().add(-2.f, 0.f), 0.0f);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<float>().add(0.f, 0.f), 1.0f);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint64_t>().zero(), 1UL);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint64_t>().mult(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint64_t>().mult(2UL, 0UL), 1UL);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint64_t>().mult(0UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint64_t>().mult(0UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint64_t>().add(2UL, 1UL), 1UL);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint64_t>().add(2UL, 0UL), 0UL);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint64_t>().add(0UL, 1UL), 0UL);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint64_t>().add(0UL, 0UL), 1UL);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint32_t>().zero(), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint32_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint32_t>().mult(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint32_t>().mult(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint32_t>().mult(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint32_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint32_t>().add(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint32_t>().add(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint32_t>().add(0U, 0U), 1U);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint16_t>().zero(), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint16_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint16_t>().mult(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint16_t>().mult(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint16_t>().mult(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint16_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint16_t>().add(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint16_t>().add(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint16_t>().add(0U, 0U), 1U);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint8_t>().zero(), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint8_t>().mult(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint8_t>().mult(2U, 0U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint8_t>().mult(0U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint8_t>().mult(0U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint8_t>().add(2U, 1U), 1U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint8_t>().add(2U, 0U), 0U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint8_t>().add(0U, 1U), 0U);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<uint8_t>().add(0U, 0U), 1U);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int64_t>().zero(), 1L);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int64_t>().mult(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int64_t>().mult(-2L, 0L), 1L);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int64_t>().mult(0L, 1L), 1L);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int64_t>().mult(0L, 0L), 0L);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int64_t>().add(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int64_t>().add(-2L, 0L), 0L);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int64_t>().add(0L, 1L), 0L);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int64_t>().add(0L, 0L), 1L);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int32_t>().zero(), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int32_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int32_t>().mult(-2, 0), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int32_t>().mult(0, 1), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int32_t>().mult(0, 0), 0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int32_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int32_t>().add(-2, 0), 0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int32_t>().add(0, 1), 0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int32_t>().add(0, 0), 1);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int16_t>().zero(), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int16_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int16_t>().mult(-2, 0), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int16_t>().mult(0, 1), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int16_t>().mult(0, 0), 0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int16_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int16_t>().add(-2, 0), 0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int16_t>().add(0, 1), 0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int16_t>().add(0, 0), 1);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int8_t>().zero(), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int8_t>().mult(-2, 1), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int8_t>().mult(-2, 0), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int8_t>().mult(0, 1), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int8_t>().mult(0, 0), 0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int8_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int8_t>().add(-2, 0), 0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int8_t>().add(0, 1), 0);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<int8_t>().add(0, 0), 1);
+
+    BOOST_CHECK_EQUAL(XnorOrSemiring<bool>().zero(), true);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<bool>().mult(false, false), false);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<bool>().mult(false, true), true);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<bool>().mult(true, false), true);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<bool>().mult(true, true), true);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<bool>().add(false, false), true);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<bool>().add(false, true), false);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<bool>().add(true, false), false);
+    BOOST_CHECK_EQUAL(XnorOrSemiring<bool>().add(true, true), true);
+}
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(min_first_test)
 {
     BOOST_CHECK_EQUAL(MinFirstSemiring<double>().zero(),
@@ -675,55 +1017,6 @@ BOOST_AUTO_TEST_CASE(min_first_test)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(max_first_test)
-{
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<double>().zero(),
-                      -std::numeric_limits<double>::infinity());
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<double>().add(-2., 1.), 1.0);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<double>().mult(-2., 1.), -2.0);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<float>().zero(),
-                      -std::numeric_limits<float>::infinity());
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<float>().add(-2.f, 1.f), 1.0f);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<float>().mult(-2.f, 1.f), -2.0f);
-
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint64_t>().zero(), 0UL);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint64_t>().add(2UL, 1UL), 2UL);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint32_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint32_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint32_t>().mult(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint16_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint16_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint16_t>().mult(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint8_t>().zero(), 0U);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint8_t>().add(2U, 1U), 2U);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint8_t>().mult(2U, 1U), 2U);
-
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int64_t>().zero(),
-                      std::numeric_limits<int64_t>::min());
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int64_t>().add(-2L, 1L), 1L);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int64_t>().mult(-2L, 1L), -2L);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int32_t>().zero(),
-                      std::numeric_limits<int32_t>::min());
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int32_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int32_t>().mult(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int16_t>().zero(),
-                      std::numeric_limits<int16_t>::min());
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int16_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int16_t>().mult(-2, 1), -2);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int8_t>().zero(),
-                      std::numeric_limits<int8_t>::min());
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int8_t>().add(-2, 1), 1);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<int8_t>().mult(-2, 1), -2);
-
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().zero(), false);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().add(false, false), false);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().add(false, true), true);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().mult(false, true), false);
-    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().mult(true, false), true);
-}
-
-//****************************************************************************
 BOOST_AUTO_TEST_CASE(min_second_test)
 {
     BOOST_CHECK_EQUAL(MinSecondSemiring<double>().zero(),
@@ -791,6 +1084,55 @@ BOOST_AUTO_TEST_CASE(min_second_test)
     BOOST_CHECK_EQUAL(MinSecondSemiring<bool>().add(true, true), true);
     BOOST_CHECK_EQUAL(MinSecondSemiring<bool>().mult(true, false), false);
     BOOST_CHECK_EQUAL(MinSecondSemiring<bool>().mult(false, true), true);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(max_first_test)
+{
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<double>().zero(),
+                      -std::numeric_limits<double>::infinity());
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<double>().add(-2., 1.), 1.0);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<double>().mult(-2., 1.), -2.0);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<float>().zero(),
+                      -std::numeric_limits<float>::infinity());
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<float>().add(-2.f, 1.f), 1.0f);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<float>().mult(-2.f, 1.f), -2.0f);
+
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint64_t>().zero(), 0UL);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint64_t>().add(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint64_t>().mult(2UL, 1UL), 2UL);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint32_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint32_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint32_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint16_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint16_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint16_t>().mult(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint8_t>().zero(), 0U);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint8_t>().add(2U, 1U), 2U);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<uint8_t>().mult(2U, 1U), 2U);
+
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int64_t>().zero(),
+                      std::numeric_limits<int64_t>::min());
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int64_t>().add(-2L, 1L), 1L);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int64_t>().mult(-2L, 1L), -2L);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int32_t>().zero(),
+                      std::numeric_limits<int32_t>::min());
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int32_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int32_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int16_t>().zero(),
+                      std::numeric_limits<int16_t>::min());
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int16_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int16_t>().mult(-2, 1), -2);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int8_t>().zero(),
+                      std::numeric_limits<int8_t>::min());
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int8_t>().add(-2, 1), 1);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<int8_t>().mult(-2, 1), -2);
+
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().zero(), false);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().add(false, false), false);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().add(false, true), true);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().mult(false, true), false);
+    BOOST_CHECK_EQUAL(MaxFirstSemiring<bool>().mult(true, false), true);
 }
 
 //****************************************************************************
