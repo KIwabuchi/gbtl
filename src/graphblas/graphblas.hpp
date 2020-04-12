@@ -32,6 +32,20 @@
 
 #pragma once
 
+#include <functional>
+
+#define GRB_VERSION    1
+#define GRB_SUBVERSION 3
+
+namespace GraphBLAS
+{
+    auto getVersion()
+    {
+        return std::make_tuple(static_cast<unsigned int>(GRB_VERSION),
+                               static_cast<unsigned int>(GRB_SUBVERSION));
+    }
+}
+
 #include <graphblas/detail/config.hpp>
 
 #include <graphblas/types.hpp>
