@@ -181,7 +181,7 @@ namespace algorithms
             // find the neighbor of each source node with the max random number
             GraphBLAS::mxv(neighbor_max,
                            candidates, GraphBLAS::NoAccumulate(),
-                           GraphBLAS::MaxSelect2ndSemiring<RealT>(),
+                           GraphBLAS::MaxSecondSemiring<RealT>(),
                            graph, prob, GraphBLAS::REPLACE);
             //GraphBLAS::print_vector(std::cout, neighbor_max, "neighbor_max");
 

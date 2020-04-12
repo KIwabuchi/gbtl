@@ -94,7 +94,7 @@ namespace algorithms
         // return a GraphBLAS::Vector with cluster assignments
         GraphBLAS::mxv(clusters,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                       GraphBLAS::MaxSelect2ndSemiring<GraphBLAS::IndexType>(),
+                       GraphBLAS::MaxSecondSemiring<GraphBLAS::IndexType>(),
                        cluster_matrix, index_of_vec);
 
         return clusters;

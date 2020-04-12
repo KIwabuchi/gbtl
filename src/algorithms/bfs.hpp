@@ -68,7 +68,7 @@ namespace
 
         GraphBLAS::mxm(mat,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                       GraphBLAS::MinSelect2ndSemiring<T>(),
+                       GraphBLAS::MinSecondSemiring<T>(),
                        mat, identity_ramp, GraphBLAS::REPLACE);
     }
 
@@ -93,7 +93,7 @@ namespace
 
         GraphBLAS::vxm(vec,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                       GraphBLAS::MinSelect2ndSemiring<T>(),
+                       GraphBLAS::MinSecondSemiring<T>(),
                        vec, identity_ramp, GraphBLAS::REPLACE);
     }
 
@@ -118,7 +118,7 @@ namespace
 
         GraphBLAS::vxm(vec,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                       GraphBLAS::MinSelect2ndSemiring<T>(),
+                       GraphBLAS::MinSecondSemiring<T>(),
                        vec, identity_ramp, GraphBLAS::REPLACE);
     }
 
@@ -183,13 +183,13 @@ namespace algorithms
                                  GraphBLAS::First<GraphBLAS::IndexType>(),
                                  index_ramp, wavefront);
 
-            // Select1st because we are left multiplying wavefront rows
+            // First because we are left multiplying wavefront rows
             // Masking out the parent list ensures wavefront values do not
             // overlap values already stored in the parent list
             GraphBLAS::vxm(wavefront,
                            GraphBLAS::complement(parent_list),
                            GraphBLAS::NoAccumulate(),
-                           GraphBLAS::MinSelect1stSemiring<GraphBLAS::IndexType>(),
+                           GraphBLAS::MinFirstSemiring<GraphBLAS::IndexType>(),
                            wavefront, graph, GraphBLAS::REPLACE);
 
             // We don't need to mask here since we did it in mxm.
@@ -278,13 +278,13 @@ namespace algorithms
                                  GraphBLAS::First<GraphBLAS::IndexType>(),
                                  index_ramp, wavefront);
 
-            // Select1st because we are left multiplying wavefront rows
+            // First because we are left multiplying wavefront rows
             // Masking out the parent list ensures wavefront values do not
             // overlap values already stored in the parent list
             GraphBLAS::vxm(wavefront,
                            GraphBLAS::complement(parent_list),
                            GraphBLAS::NoAccumulate(),
-                           GraphBLAS::MinSelect1stSemiring<T>(),
+                           GraphBLAS::MinFirstSemiring<T>(),
                            wavefront, graph, GraphBLAS::REPLACE);
 
             // We don't need to mask here since we did it in mxm.
@@ -358,7 +358,7 @@ namespace algorithms
         //col_index_of_1based(parent_list);
         GraphBLAS::mxm(parent_list,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                       GraphBLAS::MinSelect2ndSemiring<T>(),
+                       GraphBLAS::MinSecondSemiring<T>(),
                        parent_list, index_ramp);
 
         while (wavefronts.nvals() > 0)
@@ -367,16 +367,16 @@ namespace algorithms
             // col_index_of_1based(wavefronts);
             GraphBLAS::mxm(wavefronts,
                            GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                           GraphBLAS::MinSelect2ndSemiring<T>(),
+                           GraphBLAS::MinSecondSemiring<T>(),
                            wavefronts, index_ramp);
 
-            // Select1st because we are left multiplying wavefront rows
+            // First because we are left multiplying wavefront rows
             // Masking out the parent list ensures wavefronts values do not
             // overlap values already stored in the parent list
             GraphBLAS::mxm(wavefronts,
                            GraphBLAS::complement(parent_list),
                            GraphBLAS::NoAccumulate(),
-                           GraphBLAS::MinSelect1stSemiring<T>(),
+                           GraphBLAS::MinFirstSemiring<T>(),
                            wavefronts, graph, GraphBLAS::REPLACE);
 
             // We don't need to mask here since we did it in mxm.

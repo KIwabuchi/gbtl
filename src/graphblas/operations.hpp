@@ -35,6 +35,7 @@
 #include <cstddef>
 #include <vector>
 
+#include <graphblas/types.hpp>
 #include <graphblas/algebra.hpp>
 #include <graphblas/TransposeView.hpp>
 #include <graphblas/ComplementView.hpp>
@@ -51,31 +52,6 @@
 #define GB_INCLUDE_BACKEND_COMPLEMENT_VIEW 1
 #define GB_INCLUDE_BACKEND_OPERATIONS 1
 #include <backend_include.hpp>
-
-/// @todo: Figure out a better place to put these definitions
-namespace GraphBLAS
-{
-    template <class>
-    inline constexpr bool is_vector_v = false;
-
-    template <class T, class... Tags>
-    inline constexpr bool is_vector_v<Vector<T, Tags...>> = true;
-
-    template <class VectorT>
-    inline constexpr bool is_vector_v<VectorComplementView<VectorT>> = true;
-
-    template <class>
-    inline constexpr bool is_matrix_v = false;
-
-    template <class T, class... Tags>
-    inline constexpr bool is_matrix_v<Matrix<T, Tags...>> = true;
-
-    template <class MatrixT>
-    inline constexpr bool is_matrix_v<MatrixComplementView<MatrixT>> = true;
-
-    template <class MatrixT>
-    inline constexpr bool is_matrix_v<TransposeView<MatrixT>> = true;
-}
 
 //****************************************************************************
 // New signatures to conform to GraphBLAS Specification
@@ -478,10 +454,7 @@ namespace GraphBLAS
              typename AccumT,
              typename UVectorT,
              typename SequenceT,
-             typename std::enable_if<
-                 std::is_same<vector_tag,
-                              typename UVectorT::tag_type>::value,
-                 int>::type = 0,
+             typename std::enable_if_t<is_vector_v<UVectorT>, int> = 0,
              typename ...WTags>
     inline void assign(Vector<WScalarT, WTags...>      &w,
                        MaskT                    const  &mask,
@@ -515,10 +488,7 @@ namespace GraphBLAS
              typename AMatrixT,
              typename RowSequenceT,
              typename ColSequenceT,
-             typename std::enable_if<
-                 std::is_same<matrix_tag,
-                              typename AMatrixT::tag_type>::value,
-                 int>::type = 0>
+             typename std::enable_if_t<is_matrix_v<AMatrixT>, int> = 0>
     inline void assign(CMatrixT              &C,
                        MaskT           const &Mask,
                        AccumT          const &accum,

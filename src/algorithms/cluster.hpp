@@ -120,7 +120,7 @@ namespace algorithms
         // return a GraphBLAS::Vector with cluster assignments
         GraphBLAS::vxm(clusters,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                       GraphBLAS::MaxSelect1stSemiring<GraphBLAS::IndexType>(),
+                       GraphBLAS::MaxFirstSemiring<GraphBLAS::IndexType>(),
                        index_of_vec, cluster_matrix);
 
         return clusters;

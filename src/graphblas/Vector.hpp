@@ -33,24 +33,18 @@
 #include <type_traits>
 #include <graphblas/detail/config.hpp>
 #include <graphblas/detail/param_unpack.hpp>
+#include <graphblas/types.hpp>
 
 #define GB_INCLUDE_BACKEND_VECTOR 1
 #include <backend_include.hpp>
 
 namespace GraphBLAS
 {
-    template<typename ScalarT, typename... TagsT>
-    class Vector;
-
-    template<typename VectorT>
-    class VectorComplementView;
-
     //**************************************************************************
     template<typename ScalarT, typename... TagsT>
     class Vector
     {
     public:
-        typedef vector_tag          tag_type;
         typedef ScalarT ScalarType;
         typedef typename detail::vector_generator::result<
             ScalarT,
@@ -341,31 +335,12 @@ namespace GraphBLAS
                 OutputControlEnum     outp);
 
         // 4.3.7.1: assign - standard vector variant
-        // template<typename WVectorT,
-        //          typename MaskT,
-        //          typename AccumT,
-        //          typename UVectorT,
-        //          typename SequenceT,
-        //          typename std::enable_if<
-        //              std::is_same<vector_tag,
-        //                           typename UVectorT::tag_type>::value,
-        //              int>::type>
-        // friend inline void assign(WVectorT           &w,
-        //                           MaskT        const &mask,
-        //                           AccumT       const &accum,
-        //                           UVectorT     const &u,
-        //                           SequenceT    const &indices,
-        //                           OutputControlEnum   outp);
-
         template<typename WScalarT,
                  typename MaskT,
                  typename AccumT,
                  typename UVectorT,
                  typename SequenceT,
-                 typename std::enable_if<
-                     std::is_same<vector_tag,
-                                  typename UVectorT::tag_type>::value,
-                     int>::type,
+                 typename std::enable_if_t<is_vector_v<UVectorT>, int>,
                  typename ...WTags>
         friend inline void assign(Vector<WScalarT, WTags...>   &w,
                                   MaskT        const &mask,

@@ -46,8 +46,6 @@ namespace GraphBLAS
     class TransposeView
     {
     public:
-        typedef matrix_tag  tag_type;
-
         typedef typename backend::TransposeView<
             typename MatrixT::BackendType> BackendType;
         typedef typename MatrixT::ScalarType ScalarType;
@@ -264,10 +262,7 @@ namespace GraphBLAS
                  typename AMatrixT,
                  typename RowSequenceT,
                  typename ColSequenceT,
-                 typename std::enable_if<
-                     std::is_same<matrix_tag,
-                                  typename AMatrixT::tag_type>::value,
-                     int>::type>
+                 typename std::enable_if_t<is_matrix_v<AMatrixT>, int> >
         friend inline void assign(CMatrixT              &C,
                                   MaskT           const &Mask,
                                   AccumT          const &accum,

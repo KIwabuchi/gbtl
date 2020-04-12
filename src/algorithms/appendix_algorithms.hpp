@@ -164,7 +164,7 @@ namespace algorithms
             GrB::eWiseMult(q, GrB::NoMask(), GrB::NoAccumulate(),
                            GrB::First<GrB::IndexType>(), index_ramp, q);
             GrB::vxm(q, GrB::complement(parents), GrB::NoAccumulate(),
-                     GrB::MinSelect1stSemiring<GrB::IndexType>(), q, A,
+                     GrB::MinFirstSemiring<GrB::IndexType>(), q, A,
                      GrB::REPLACE);
             GrB::apply(parents, GrB::NoMask(), GrB::Plus<GrB::IndexType>(),
                        GrB::Identity<GrB::IndexType>(), q);
@@ -422,7 +422,7 @@ namespace algorithms
 
             // find the max probability of all neighbors
             GrB::mxv(neighbor_max, candidates, GrB::NoAccumulate(),
-                     GrB::MaxSelect2ndSemiring<float>(), A, prob, GrB::REPLACE);
+                     GrB::MaxSecondSemiring<float>(), A, prob, GrB::REPLACE);
 
             // Select source node if its probability is > neighbor_max
             GrB::eWiseAdd(new_members, GrB::NoMask(), GrB::NoAccumulate(),

@@ -33,6 +33,7 @@
 #include <type_traits>
 #include <graphblas/detail/config.hpp>
 #include <graphblas/detail/param_unpack.hpp>
+#include <graphblas/types.hpp>
 
 #define GB_INCLUDE_BACKEND_MATRIX 1
 #include <backend_include.hpp>
@@ -44,35 +45,7 @@
 
 namespace GraphBLAS
 {
-#if 0
-    //**************************************************************************
-    // GrB_NULL mask: (should be GrB_FULL?)
-    class NoMask
-    {
-    public:
-        typedef bool ScalarType; // not necessary?
-        typedef backend::NoMask BackendType; // not necessary?
-
-        backend::NoMask m_mat;  // can be const?
-        backend::NoMask m_vec;
-    };
-#endif
-
-    // We need to declare class so we can include later.
-    template<typename ScalarT, typename... TagsT>
-    class Vector;
-
-    template<typename ScalarT, typename... TagsT>
-    class Matrix;
-
-    template<typename MatrixT>
-    class TransposeView;
-
-    template<typename MatrixT>
-    class MatrixComplementView;
-
     //************************************************************************
-
     /**
      * @brief Frontend Matrix class. Performs API checks and forwards to
      *        backend code.
@@ -85,8 +58,6 @@ namespace GraphBLAS
     class Matrix
     {
     public:
-        typedef matrix_tag  tag_type;
-
         typedef ScalarT     ScalarType;
         typedef typename detail::matrix_generator::result<
             ScalarT,
@@ -419,10 +390,7 @@ namespace GraphBLAS
                  typename AMatrixT,
                  typename RowSequenceT,
                  typename ColSequenceT,
-                 typename std::enable_if<
-                     std::is_same<matrix_tag,
-                                  typename AMatrixT::tag_type>::value,
-                     int>::type>
+                 typename std::enable_if_t<is_matrix_v<AMatrixT>, int> >
         friend inline void assign(CMatrixT              &C,
                                   MaskT           const &Mask,
                                   AccumT          const &accum,

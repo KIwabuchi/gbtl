@@ -45,9 +45,9 @@ namespace GraphBLAS
     class MatrixComplementView
     {
     public:
+        typedef typename MatrixT::ScalarType ScalarType;
         typedef typename backend::MatrixComplementView<
             typename MatrixT::BackendType> BackendType;
-        typedef typename MatrixT::ScalarType ScalarType;
 
         //note:
         //the backend should be able to decide when to ignore any of the
@@ -219,10 +219,7 @@ namespace GraphBLAS
                  typename AMatrixT,
                  typename RowSequenceT,
                  typename ColSequenceT,
-                 typename std::enable_if<
-                     std::is_same<matrix_tag,
-                                  typename AMatrixT::tag_type>::value,
-                     int>::type>
+                 typename std::enable_if_t<is_matrix_v<AMatrixT>, int> >
         friend inline void assign(CMatrixT              &C,
                                   MaskT           const &Mask,
                                   AccumT          const &accum,
@@ -322,9 +319,9 @@ namespace GraphBLAS
     class VectorComplementView
     {
     public:
+        typedef typename VectorT::ScalarType ScalarType;
         typedef typename backend::VectorComplementView<
             typename VectorT::BackendType> BackendType;
-        typedef typename VectorT::ScalarType ScalarType;
 
         //note:
         //the backend should be able to decide when to ignore any of the
@@ -515,10 +512,7 @@ namespace GraphBLAS
                  typename AccumT,
                  typename UVectorT,
                  typename SequenceT,
-                 typename std::enable_if<
-                     std::is_same<vector_tag,
-                                  typename UVectorT::tag_type>::value,
-                     int>::type,
+                 typename std::enable_if_t<is_vector_v<UVectorT>, int>,
                  typename ...WTags>
         friend inline void assign(Vector<WScalarT, WTags...>      &w,
                                   MaskT                     const &mask,

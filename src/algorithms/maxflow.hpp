@@ -269,13 +269,13 @@ namespace algorithms
             // convert all stored values to their 1-based column index
             index_of_1based(wavefront);
 
-            // Select1st because we are left multiplying wavefront rows
+            // First because we are left multiplying wavefront rows
             // Masking out the parent list ensures wavefront values do not
             // overlap values already stored in the parent list
             GraphBLAS::vxm(wavefront,
                            GraphBLAS::complement(parent_list),
                            GraphBLAS::NoAccumulate(),
-                           GraphBLAS::MinSelect1stSemiring<GraphBLAS::IndexType,T,GraphBLAS::IndexType>(),
+                           GraphBLAS::MinFirstSemiring<GraphBLAS::IndexType,T,GraphBLAS::IndexType>(),
                            wavefront, graph, GraphBLAS::REPLACE);
 
             GraphBLAS::apply(parent_list,

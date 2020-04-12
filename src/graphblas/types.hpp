@@ -86,15 +86,42 @@ namespace GraphBLAS
     };
 
     //**************************************************************************
+    template<typename ScalarT, typename... TagsT>
+    class Vector;
 
-    // This is the "Matrix" class for this example
-    struct matrix_tag {};
+    template<typename VectorT>
+    class VectorComplementView;
 
-    // This is the "Vector" class for this example
-    struct vector_tag {};
+    template<typename ScalarT, typename... TagsT>
+    class Matrix;
 
+    template<typename MatrixT>
+    class TransposeView;
 
-} // namespace GraphBLAS
+    template<typename MatrixT>
+    class MatrixComplementView;
+
+    template <class>
+    inline constexpr bool is_vector_v = false;
+
+    template <class T, class... Tags>
+    inline constexpr bool is_vector_v<Vector<T, Tags...>> = true;
+
+    template <class VectorT>
+    inline constexpr bool is_vector_v<VectorComplementView<VectorT>> = true;
+
+    template <class>
+    inline constexpr bool is_matrix_v = false;
+
+    template <class T, class... Tags>
+    inline constexpr bool is_matrix_v<Matrix<T, Tags...>> = true;
+
+    template <class MatrixT>
+    inline constexpr bool is_matrix_v<MatrixComplementView<MatrixT>> = true;
+
+    template <class MatrixT>
+    inline constexpr bool is_matrix_v<TransposeView<MatrixT>> = true;
+}
 
 namespace std
 {
