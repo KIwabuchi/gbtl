@@ -209,6 +209,21 @@ namespace GraphBLAS
         IndexType ncols() const  { return m_mat.ncols(); }
         IndexType nvals() const  { return m_mat.nvals(); }
 
+        /**
+         * @brief Resize the matrix dimensions (smaller or larger)
+         *
+         * @param[in]  new_num_rows  New number of rows (zero is invalid)
+         * @param[in]  new_num_cols  New number of columns (zero is invalid)
+         *
+         */
+        void resize(IndexType new_num_rows, IndexType new_num_cols)
+        {
+            if ((new_num_rows == 0) || (new_num_cols == 0))
+                throw InvalidValueException();
+
+            m_mat.resize(new_num_rows, new_num_cols);
+        }
+
         bool hasElement(IndexType row, IndexType col) const
         {
             return m_mat.hasElement(row, col);

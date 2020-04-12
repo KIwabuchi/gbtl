@@ -33,6 +33,7 @@
 #include <iostream>
 #include <vector>
 #include <typeinfo>
+#include <numeric>
 
 namespace GraphBLAS
 {
@@ -79,7 +80,7 @@ namespace GraphBLAS
                 }
             }
 
-            BitmapSparseVector(IndexType const &nsize, ScalarT const &value)
+            BitmapSparseVector(IndexType nsize, ScalarT const &value)
                 : m_size(nsize),
                   m_nvals(0),
                   m_vals(nsize, value),
@@ -269,7 +270,65 @@ namespace GraphBLAS
                 return !(*this == rhs);
             }
 
-            // FUNCTIONS
+            // METHODS
+
+            void clear()
+            {
+                m_nvals = 0;
+                //m_vals.clear();
+                m_bitmap.assign(m_size, false);
+            }
+
+            IndexType size() const { return m_size; }
+            IndexType nvals() const { return m_nvals; }
+
+            /**
+             * @brief Resize the vector (smaller or larger)
+             *
+             * @param[in]  nsize  New number of elements (zero is invalid)
+             *
+             */
+            void resize(IndexType new_size)
+            {
+                // Check in the frontend
+                //if (nsize == 0)
+                //   throw InvalidValueException();
+
+                if (new_size < m_size)
+                {
+                    m_size = new_size;
+                    // compute new m_nvals when shrinking
+                    if (new_size < m_size/2)
+                    {
+                        // count remaining elements
+                        IndexType new_nvals = 0UL;
+                        new_nvals = std::reduce(m_bitmap.begin(),
+                                                m_bitmap.begin() + new_size,
+                                                new_nvals,
+                                               std::plus<IndexType>());
+                        m_nvals = new_nvals;
+                    }
+                    else
+                    {
+                        // count elements to be removed
+                        IndexType num_vals = 0UL;
+                        num_vals = std::reduce(m_bitmap.begin() + new_size,
+                                               m_bitmap.end(),
+                                               num_vals,
+                                               std::plus<IndexType>());
+                        m_nvals -= num_vals;
+                    }
+
+                    m_bitmap.resize(new_size);
+                    m_vals.resize(new_size);
+                }
+                else if (new_size > m_size)
+                {
+                    m_vals.resize(new_size);
+                    m_bitmap.resize(new_size, false);
+                    m_size = new_size;
+                }
+            }
 
             /**
              *
@@ -309,16 +368,6 @@ namespace GraphBLAS
                 m_bitmap.swap(bitmap);
                 m_nvals = nvals;
             }
-
-            void clear()
-            {
-                m_nvals = 0;
-                //m_vals.clear();
-                m_bitmap.assign(m_size, false);
-            }
-
-            IndexType size() const { return m_size; }
-            IndexType nvals() const { return m_nvals; }
 
             bool hasElement(IndexType index) const
             {
@@ -461,7 +510,7 @@ namespace GraphBLAS
             }
 
         private:
-            IndexType const       m_size;   // immutable after construction
+            IndexType             m_size;
             IndexType             m_nvals;
             std::vector<ScalarT>  m_vals;
             std::vector<bool>     m_bitmap;

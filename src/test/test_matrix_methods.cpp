@@ -41,6 +41,70 @@ using namespace GraphBLAS;
 BOOST_AUTO_TEST_SUITE(BOOST_TEST_MODULE)
 
 //****************************************************************************
+BOOST_AUTO_TEST_CASE(matrix_resize_test)
+{
+    IndexArrayType      i = {1, 2, 3, 4};
+    std::vector<double> v = {1, 2, 3, 4};
+
+    // matrix = diag{ -, 1, 2, 3, 4, -};
+
+    IndexType const NSIZE = 6;
+    Matrix<double> m1(NSIZE, NSIZE);
+    m1.build(i, i, v);
+    //print_matrix(std::cerr, m1, "m1(6,6)");
+
+    BOOST_CHECK_EQUAL(m1.nvals(), i.size());
+    BOOST_CHECK_EQUAL(m1.nrows(), NSIZE);
+    BOOST_CHECK_EQUAL(m1.ncols(), NSIZE);
+
+    // Make it bigger and set an element
+    m1.resize(2*NSIZE, 2*NSIZE);
+    //print_matrix(std::cerr, m1, "m1(12,12)");
+    BOOST_CHECK_EQUAL(m1.nvals(), i.size());
+    BOOST_CHECK_EQUAL(m1.nrows(), 2*NSIZE);
+    BOOST_CHECK_EQUAL(m1.ncols(), 2*NSIZE);
+
+    m1.setElement(NSIZE + 1, NSIZE + 1, 99);
+
+    BOOST_CHECK_EQUAL(m1.nvals(), i.size() + 1);
+    BOOST_CHECK_EQUAL(m1.extractElement(NSIZE + 1, NSIZE + 1), 99);
+
+    // Reduce num columns check remaining elements
+    m1.resize(2*NSIZE, 4UL);
+    //print_matrix(std::cerr, m1, "m1(12, 4)");
+    BOOST_CHECK_EQUAL(m1.nvals(), 3);
+    BOOST_CHECK_EQUAL(m1.nrows(), 2*NSIZE);
+    BOOST_CHECK_EQUAL(m1.ncols(), 4);
+    BOOST_CHECK_EQUAL(m1.extractElement(1, 1), 1);
+    BOOST_CHECK_EQUAL(m1.extractElement(2, 2), 2);
+    BOOST_CHECK_EQUAL(m1.extractElement(3, 3), 3);
+
+    // Reduce num rows check remaining elements
+    m1.resize(3UL, 4UL);
+    //print_matrix(std::cerr, m1, "m1(3, 4)");
+    BOOST_CHECK_EQUAL(m1.nvals(), 2);
+    BOOST_CHECK_EQUAL(m1.nrows(), 3);
+    BOOST_CHECK_EQUAL(m1.ncols(), 4);
+    BOOST_CHECK_EQUAL(m1.extractElement(1, 1), 1);
+    BOOST_CHECK_EQUAL(m1.extractElement(2, 2), 2);
+
+    // reduce both and check remaining elements
+    m1.resize(2UL, 2UL);
+    //print_matrix(std::cerr, m1, "m1(2,2)");
+    BOOST_CHECK_EQUAL(m1.nvals(), 1);
+    BOOST_CHECK_EQUAL(m1.nrows(), 2);
+    BOOST_CHECK_EQUAL(m1.ncols(), 2);
+    BOOST_CHECK_EQUAL(m1.extractElement(1, 1), 1);
+
+    // Make it bigger show that elements don't reappear
+    m1.resize(2*NSIZE, 2*NSIZE);
+    //print_matrix(std::cerr, m1, "m1(12,12)");
+    BOOST_CHECK_EQUAL(m1.nvals(), 1);
+    BOOST_CHECK_EQUAL(m1.nrows(), 2*NSIZE);
+    BOOST_CHECK_EQUAL(m1.ncols(), 2*NSIZE);
+}
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(matrix_removeElement_test)
 {
     IndexArrayType      i = {0, 0, 0, 1, 1, 1, 2, 2};

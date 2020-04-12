@@ -41,6 +41,43 @@ using namespace GraphBLAS;
 BOOST_AUTO_TEST_SUITE(BOOST_TEST_MODULE)
 
 //****************************************************************************
+BOOST_AUTO_TEST_CASE(vector_resize_test)
+{
+    IndexArrayType      i = {1, 2, 3};
+    std::vector<double> v = {1, 2, 3};
+
+    //std::vector<double> vec = { -, 1, 2, 3, -, -};
+
+    IndexType const NSIZE = 6;
+    Vector<double> v1(NSIZE);
+    v1.build(i, v);
+
+    BOOST_CHECK_EQUAL(v1.nvals(), i.size());
+    BOOST_CHECK_EQUAL(v1.size(), NSIZE);
+
+    // Make it bigger and set an element
+    v1.resize(2*NSIZE);
+    BOOST_CHECK_EQUAL(v1.nvals(), i.size());
+    BOOST_CHECK_EQUAL(v1.size(), 2*NSIZE);
+
+    v1.setElement(NSIZE + 1, 99);
+
+    BOOST_CHECK_EQUAL(v1.extractElement(NSIZE + 1), 99);
+
+    // Make it smaller and check remaining elements
+    v1.resize(3UL);
+    BOOST_CHECK_EQUAL(v1.size(), 3);
+    BOOST_CHECK_EQUAL(v1.nvals(), 2);
+    BOOST_CHECK_EQUAL(v1.extractElement(1), 1);
+    BOOST_CHECK_EQUAL(v1.extractElement(2), 2);
+
+    // Make it bigger show that elements don't reappear
+    v1.resize(2*NSIZE);
+    BOOST_CHECK_EQUAL(v1.nvals(), 2);
+    BOOST_CHECK_EQUAL(v1.size(), 2*NSIZE);
+}
+
+//****************************************************************************
 BOOST_AUTO_TEST_CASE(vector_removeElement_test)
 {
     IndexArrayType      i = {1, 2, 3};

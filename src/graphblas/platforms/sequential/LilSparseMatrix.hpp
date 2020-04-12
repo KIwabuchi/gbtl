@@ -210,6 +210,63 @@ namespace GraphBLAS
             //     num_cols = m_num_cols;
             // }
 
+            /**
+             * @brief Resize the matrix dimensions (smaller or larger)
+             *
+             * @param[in]  new_num_rows  New number of rows (zero is invalid)
+             * @param[in]  new_num_cols  New number of columns (zero is invalid)
+             *
+             */
+            void resize(IndexType new_num_rows, IndexType new_num_cols)
+            {
+                // Invalid values check by frontend
+                //if ((new_num_rows == 0) || (new_num_cols == 0))
+                //    throw InvalidValueException();
+
+                // *******************************************
+                // Step 1: Deal with number of rows
+                m_data.resize(new_num_rows);
+
+                // Count how many elements are left when num_rows reduces
+                if (new_num_rows < m_num_rows)
+                {
+                    m_nvals = 0UL;
+                    for (auto const &row : m_data)
+                        m_nvals += row.size();
+                }
+                m_num_rows = new_num_rows;
+
+                // *******************************************
+                // Step 2: Deal with number columns
+                // Need to do nothing if size stays the same or increases
+                if (new_num_cols < m_num_cols)
+                {
+                    IndexType new_nvals(0UL);
+
+                    // Need to eliminate any entries beyond new limit
+                    // when decreasing
+                    for (auto &row : m_data)
+                    {
+                        if (!row.empty())
+                        {
+                            auto it(row.begin());
+                            for ( ; ((it != row.end()) &&
+                                     (std::get<0>(*it) < new_num_cols)); ++it)
+                            {
+                            }
+
+                            if (it != row.end())
+                            {
+                                IndexType nval(row.size());
+                                row.erase(it, row.end());
+                                m_nvals -= (nval - row.size()); // adjust nvals
+                            }
+                        }
+                    }
+                }
+                m_num_cols = new_num_cols;
+            }
+
             bool hasElement(IndexType irow, IndexType icol) const
             {
                 if (irow >= m_num_rows || icol >= m_num_cols)

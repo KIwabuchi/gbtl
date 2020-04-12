@@ -55,7 +55,7 @@ namespace GraphBLAS
 
         Vector() = delete;
 
-        Vector(IndexType const & nsize) : m_vec(nsize) {}
+        Vector(IndexType nsize) : m_vec(nsize) {}
 
         /**
          * @brief Construct a dense vector with 'count' copies of 'value'
@@ -65,7 +65,7 @@ namespace GraphBLAS
          * @param[in]  count  Number of elements in the vector.
          * @param[in]  value  The scalar value to store in each element
          */
-        Vector(IndexType const &count, ScalarT const &value)
+        Vector(IndexType count, ScalarT const &value)
             : m_vec(count, value)
         {
         }
@@ -196,6 +196,20 @@ namespace GraphBLAS
 
         IndexType size() const   { return m_vec.size(); }
         IndexType nvals() const  { return m_vec.nvals(); }
+
+        /**
+         * @brief Resize the vector (smaller or larger)
+         *
+         * @param[in]  new_size  New size of the dimension (zero is invalid)
+         *
+         */
+        void resize(IndexType new_size)
+        {
+            if (new_size == 0)
+                throw InvalidValueException();
+
+            m_vec.resize(new_size);
+        }
 
         bool hasElement(IndexType index) const
         {
