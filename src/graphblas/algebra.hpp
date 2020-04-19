@@ -141,7 +141,7 @@ namespace GraphBLAS
     //
     //                     std::bind(GraphBLAS::Minus<float>(),
     //                               static_cast<float>(nsver),
-    //                               std::placeholders::_2),
+    //                               std::placeholders::_1),
     //
     //************************************************************************
 }
