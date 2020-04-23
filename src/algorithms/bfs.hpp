@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -36,93 +36,12 @@
  * readable error code conversion.</p>
  */
 
-#ifndef ALGORITHMS_BFS_HPP
-#define ALGORITHMS_BFS_HPP
+#pragma once
 
 #include <limits>
 #include <tuple>
 
 #include <graphblas/graphblas.hpp>
-
-//****************************************************************************
-namespace
-{
-    //************************************************************************
-    // convert each stored entry in a matrix to its 1-based column index
-    template <typename MatrixT>
-    void col_index_of_1based(MatrixT &mat)
-    {
-        using T = typename MatrixT::ScalarType;
-
-        GraphBLAS::IndexArrayType i, j, v;
-        for (GraphBLAS::IndexType ix = 0; ix < mat.ncols(); ++ix)
-        {
-            i.push_back(ix);
-            j.push_back(ix);
-            v.push_back(ix + 1);
-        }
-
-        MatrixT identity_ramp(mat.ncols(), mat.ncols());
-
-        identity_ramp.build(i,j,v);
-
-        GraphBLAS::mxm(mat,
-                       GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                       GraphBLAS::MinSecondSemiring<T>(),
-                       mat, identity_ramp, GraphBLAS::REPLACE);
-    }
-
-    //************************************************************************
-    //convert each stored entry of a vector to its 1-based index
-    template <typename VectorT>
-    void index_of_0based(VectorT &vec)
-    {
-        using T = typename VectorT::ScalarType;
-
-        GraphBLAS::IndexArrayType i, j, v;
-        for (GraphBLAS::IndexType ix = 0; ix < vec.size(); ++ix)
-        {
-            i.push_back(ix);
-            j.push_back(ix);
-            v.push_back(ix);
-        }
-
-        GraphBLAS::Matrix<T> identity_ramp(vec.size(), vec.size());
-
-        identity_ramp.build(i,j,v);
-
-        GraphBLAS::vxm(vec,
-                       GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                       GraphBLAS::MinSecondSemiring<T>(),
-                       vec, identity_ramp, GraphBLAS::REPLACE);
-    }
-
-    //************************************************************************
-    //convert each stored entry of a vector to its 1-based index
-    template <typename VectorT>
-    void index_of_1based(VectorT &vec)
-    {
-        using T = typename VectorT::ScalarType;
-
-        GraphBLAS::IndexArrayType i, j, v;
-        for (GraphBLAS::IndexType ix = 0; ix < vec.size(); ++ix)
-        {
-            i.push_back(ix);
-            j.push_back(ix);
-            v.push_back(ix + 1);
-        }
-
-        GraphBLAS::Matrix<T> identity_ramp(vec.size(), vec.size());
-
-        identity_ramp.build(i,j,v);
-
-        GraphBLAS::vxm(vec,
-                       GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                       GraphBLAS::MinSecondSemiring<T>(),
-                       vec, identity_ramp, GraphBLAS::REPLACE);
-    }
-
-}
 
 //****************************************************************************
 namespace algorithms
@@ -157,27 +76,25 @@ namespace algorithms
         GraphBLAS::Vector<GraphBLAS::IndexType> index_ramp(N);
         {
             std::vector<GraphBLAS::IndexType> idx(N);
-            std::vector<GraphBLAS::IndexType> idx1(N);
             for (GraphBLAS::IndexType i = 0; i < N; ++i)
             {
                 idx[i] = i;
-                idx1[i]= i + 1;  // off-by-one until structure only mask
             }
 
-            index_ramp.build(idx.begin(), idx1.begin(), N);
+            index_ramp.build(idx.begin(), idx.begin(), N);
         }
 
         // initialize wavefront to source node.
         GraphBLAS::Vector<GraphBLAS::IndexType> wavefront(N);
         wavefront.setElement(source, 1UL);
 
-        // set root parent to self; off-by-one until structure only mask
+        // set root parent to self;
         parent_list.clear();
-        parent_list.setElement(source, source + 1);
+        parent_list.setElement(source, source);
 
         while (wavefront.nvals() > 0)
         {
-            // convert all stored values to their 1-based column index
+            // convert all stored values to their column index
             GraphBLAS::eWiseMult(wavefront,
                                  GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                                  GraphBLAS::First<GraphBLAS::IndexType>(),
@@ -187,7 +104,7 @@ namespace algorithms
             // Masking out the parent list ensures wavefront values do not
             // overlap values already stored in the parent list
             GraphBLAS::vxm(wavefront,
-                           GraphBLAS::complement(parent_list),
+                           GraphBLAS::complement(GraphBLAS::structure(parent_list)),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::MinFirstSemiring<GraphBLAS::IndexType>(),
                            wavefront, graph, GraphBLAS::REPLACE);
@@ -202,17 +119,6 @@ namespace algorithms
                              wavefront,
                              GraphBLAS::MERGE);
         }
-
-        // REMOVE THE FOLLOWING SUBTRACTION WHEN STRUCTURE ONLY MASKS IMPL'ED
-        // Restore zero-based indices by subtracting 1 from all stored values
-        GraphBLAS::apply(parent_list,
-                         GraphBLAS::NoMask(),
-                         GraphBLAS::NoAccumulate(),
-                         std::bind(GraphBLAS::Minus<unsigned int>(),
-                                   std::placeholders::_1,
-                                   1U),
-                         parent_list,
-                         GraphBLAS::REPLACE);
     }
 
     //************************************************************************
@@ -248,22 +154,21 @@ namespace algorithms
         GraphBLAS::Vector<GraphBLAS::IndexType> index_ramp(N);
         {
             std::vector<GraphBLAS::IndexType> idx(N);
-            std::vector<GraphBLAS::IndexType> idx1(N);
             for (GraphBLAS::IndexType i = 0; i < N; ++i)
             {
                 idx[i] = i;
-                idx1[i]= i + 1;  // off-by-one until structure only mask
             }
 
-            index_ramp.build(idx.begin(), idx1.begin(), N);
+            index_ramp.build(idx.begin(), idx.begin(), N);
         }
 
-        // Set the roots parents to themselves using one-based indices because
-        // the mask is sensitive to stored zeros.
-        parent_list = wavefront;
+        // Set the roots parents to themselves using indices
+        GraphBLAS::eWiseMult(parent_list,
+                             GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
+                             GraphBLAS::First<GraphBLAS::IndexType>(),
+                             index_ramp, wavefront);
 
-        // convert all stored values to their 1-based column index
-        // index_of_1based(parent_list);
+        // convert all stored values to their column index
         GraphBLAS::eWiseMult(parent_list,
                              GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                              GraphBLAS::First<GraphBLAS::IndexType>(),
@@ -271,8 +176,7 @@ namespace algorithms
 
         while (wavefront.nvals() > 0)
         {
-            // convert all stored values to their 1-based column index
-            //index_of_1based(wavefront);
+            // convert all stored values to their column index
             GraphBLAS::eWiseMult(wavefront,
                                  GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                                  GraphBLAS::First<GraphBLAS::IndexType>(),
@@ -282,7 +186,7 @@ namespace algorithms
             // Masking out the parent list ensures wavefront values do not
             // overlap values already stored in the parent list
             GraphBLAS::vxm(wavefront,
-                           GraphBLAS::complement(parent_list),
+                           GraphBLAS::complement(GraphBLAS::structure(parent_list)),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::MinFirstSemiring<T>(),
                            wavefront, graph, GraphBLAS::REPLACE);
@@ -297,16 +201,6 @@ namespace algorithms
                              wavefront,
                              GraphBLAS::MERGE);
         }
-
-        // Restore zero-based indices by subtracting 1 from all stored values
-        GraphBLAS::apply(parent_list,
-                         GraphBLAS::NoMask(),
-                         GraphBLAS::NoAccumulate(),
-                         std::bind(GraphBLAS::Minus<unsigned int>(),
-                                   std::placeholders::_1,
-                                   1U),
-                         parent_list,
-                         GraphBLAS::REPLACE);
     }
 
     //************************************************************************
@@ -342,29 +236,24 @@ namespace algorithms
         // create index ramp for index_of() functionality
         GraphBLAS::Matrix<GraphBLAS::IndexType> index_ramp(N, N);
         {
-            GraphBLAS::IndexArrayType idx, val;
+            GraphBLAS::IndexArrayType idx;
             for (GraphBLAS::IndexType i = 0; i < N; ++i)
             {
                 idx.push_back(i);
-                val.push_back(i + 1);  // off-by-one until structure only mask
             }
 
-            index_ramp.build(idx, idx, val);
+            index_ramp.build(idx, idx, idx);
         }
 
-        // Set the roots parents to themselves using one-based indices because
-        // the mask is sensitive to stored zeros.
-        parent_list = wavefronts;
-        //col_index_of_1based(parent_list);
+        // Set the roots parents to themselves.
         GraphBLAS::mxm(parent_list,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                        GraphBLAS::MinSecondSemiring<T>(),
-                       parent_list, index_ramp);
+                       wavefronts, index_ramp);
 
         while (wavefronts.nvals() > 0)
         {
-            // convert all stored values to their 1-based column index
-            // col_index_of_1based(wavefronts);
+            // convert all stored values to their column index
             GraphBLAS::mxm(wavefronts,
                            GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                            GraphBLAS::MinSecondSemiring<T>(),
@@ -374,7 +263,7 @@ namespace algorithms
             // Masking out the parent list ensures wavefronts values do not
             // overlap values already stored in the parent list
             GraphBLAS::mxm(wavefronts,
-                           GraphBLAS::complement(parent_list),
+                           GraphBLAS::complement(GraphBLAS::structure(parent_list)),
                            GraphBLAS::NoAccumulate(),
                            GraphBLAS::MinFirstSemiring<T>(),
                            wavefronts, graph, GraphBLAS::REPLACE);
@@ -389,16 +278,6 @@ namespace algorithms
                              wavefronts,
                              GraphBLAS::MERGE);
         }
-
-        // Restore zero-based indices by subtracting 1 from all stored values
-        GraphBLAS::apply(parent_list,
-                         GraphBLAS::NoMask(),
-                         GraphBLAS::NoAccumulate(),
-                         std::bind(GraphBLAS::Minus<unsigned int>(),
-                                   std::placeholders::_1,
-                                   1U),
-                         parent_list,
-                         GraphBLAS::REPLACE);
     }
 
     //************************************************************************
@@ -706,5 +585,3 @@ namespace algorithms
     }
 
 }
-
-#endif

@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,8 +27,7 @@
  * DM18-0559
  */
 
-#ifndef ALGORITHMS_CLUSTER_HPP
-#define ALGORITHMS_CLUSTER_HPP
+#pragma once
 
 #include <vector>
 #include <math.h>
@@ -549,5 +548,3 @@ namespace algorithms
     }
 
 } // algorithms
-
-#endif // CLUSTER_HPP
