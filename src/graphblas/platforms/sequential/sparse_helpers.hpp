@@ -1009,6 +1009,10 @@ namespace GraphBLAS
                 {
                     mask_tuples.push_back(std::make_tuple(ix, true));
                 }
+                else
+                {
+                    ++it;
+                }
             }
 
             return mask_tuples;
@@ -1198,6 +1202,10 @@ namespace GraphBLAS
                 if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
                 {
                     mask_tuples.push_back(std::make_tuple(ix, true));
+                }
+                else
+                {
+                    ++it;
                 }
             }
 

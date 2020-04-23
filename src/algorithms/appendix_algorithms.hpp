@@ -145,16 +145,15 @@ namespace algorithms
                                MatrixT const  &A,
                                GrB::IndexType  src)
     {
-        /// @todo support structure mask
         GrB::IndexType const N(A.nrows());
 
         // create index ramp for index_of() functionality
         GrB::Vector<GrB::IndexType> index_ramp(N);
         for (GrB::IndexType i = 0; i < N; ++i)
-            index_ramp.setElement(i, i + 1);  // off-by-1 until structure
+            index_ramp.setElement(i, i);
 
         parents.clear();
-        parents.setElement(src, src + 1);  // off-by-1..structure
+        parents.setElement(src, src);
 
         GrB::Vector<GrB::IndexType> q(N);
         q.setElement(src, 1UL);
@@ -163,17 +162,15 @@ namespace algorithms
         while (q.nvals() > 0) {
             GrB::eWiseMult(q, GrB::NoMask(), GrB::NoAccumulate(),
                            GrB::First<GrB::IndexType>(), index_ramp, q);
-            GrB::vxm(q, GrB::complement(parents), GrB::NoAccumulate(),
-                     GrB::MinFirstSemiring<GrB::IndexType>(), q, A,
+            GrB::vxm(q,
+                     GrB::complement(GrB::structure(parents)),
+                     GrB::NoAccumulate(),
+                     GrB::MinFirstSemiring<GrB::IndexType>(),
+                     q, A,
                      GrB::REPLACE);
             GrB::apply(parents, GrB::NoMask(), GrB::Plus<GrB::IndexType>(),
                        GrB::Identity<GrB::IndexType>(), q);
         }
-
-        /// @todo REMOVE THE FOLLOWING WHEN STRUCTURE ONLY MASK SUPPORTED
-        // Restore zero-based indices by subtracting 1 from all values
-        GrB::apply(parents, GrB::NoMask(), GrB::NoAccumulate(),
-                   GrB::Minus<GrB::IndexType>(), parents, 1, GrB::REPLACE);
     }
 
     //************************************************************************

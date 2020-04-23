@@ -1225,7 +1225,7 @@ namespace GraphBLAS
         VectorStructureView<VectorT> const &structure_view)
     {
         return VectorStructuralComplementView<VectorT>(
-            structure_view.m_mat);
+            structure_view.m_vec);
     }
 
 } // GraphBLAS
