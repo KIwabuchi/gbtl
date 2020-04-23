@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -459,7 +459,7 @@ namespace GraphBLAS
             // output specific to the storage layout of this type of matrix
             void printInfo(std::ostream &os) const
             {
-                //os << "BitmapSparseVector<" << typeid(ScalarT).name() << ">" << std::endl;
+                os << "backend::BitmapSparseVector<" << typeid(ScalarT).name() << ">" << std::endl;
                 //os << "size  = " << m_size;
                 //os << ", nvals = " << m_nvals << std::endl;
                 //os << "contents: [";

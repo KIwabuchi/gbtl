@@ -39,44 +39,44 @@ namespace GraphBLAS
 {
     //************************************************************************
     template<typename MatrixT>
-    class MatrixComplementView
+    class MatrixStructureView
     {
     public:
         typedef bool  ScalarType;
 
-        MatrixComplementView(MatrixT const &mat)
+        MatrixStructureView(MatrixT const &mat)
             : m_mat(mat)
         {
         }
 
         IndexType nrows() const { return m_mat.nrows(); }
         IndexType ncols() const { return m_mat.ncols(); }
+        IndexType nvals() const { return m_mat.nvals(); }
 
         void printInfo(std::ostream &os) const
         {
-            os << "MatrixComplementView of: ";
+            os << "MatrixStructureView of: ";
             m_mat.printInfo(os);
         }
 
         friend std::ostream &operator<<(std::ostream               &os,
-                                        MatrixComplementView const &mat)
+                                        MatrixStructureView const &mat)
         {
-            os << "MatrixComplementView of: ";
+            os << "MatrixStructureView of: ";
             os << mat.m_mat;
             return os;
         }
 
         MatrixT const &m_mat;
-
     };
 
     //************************************************************************
     template <class ViewT,
-              typename std::enable_if_t<is_complement_v<ViewT>, int> = 0>
+              typename std::enable_if_t<is_structure_v<ViewT>, int> = 0>
     decltype(auto)
     get_internal_matrix(ViewT const &view)
     {
-        return MatrixComplementView(get_internal_matrix(view.m_mat));
+        return MatrixStructureView(get_internal_matrix(view.m_mat));
     }
 
 
@@ -85,28 +85,29 @@ namespace GraphBLAS
 
     //************************************************************************
     template<typename VectorT>
-    class VectorComplementView
+    class VectorStructureView
     {
     public:
-        typedef bool  ScalarType;
+        typedef bool    ScalarType;
 
-        VectorComplementView(VectorT const &vec)
+        VectorStructureView(VectorT const &vec)
             : m_vec(vec)
         {
         }
 
         IndexType size()  const { return m_vec.size(); }
+        IndexType nvals() const { return m_vec.nvals(); }
 
         void printInfo(std::ostream &os) const
         {
-            os << "Frontend VectorComplementView of: ";
+            os << "VectorStructureView of: ";
             m_vec.printInfo(os);
         }
 
         friend std::ostream &operator<<(std::ostream               &os,
-                                        VectorComplementView const &vec)
+                                        VectorStructureView const &vec)
         {
-            os << "VectorComplementView of: ";
+            os << "VectorStructureView of: ";
             os << vec.m_vec;
             return os;
         }
@@ -116,11 +117,10 @@ namespace GraphBLAS
 
     //************************************************************************
     template <class ViewT,
-              typename std::enable_if_t<is_complement_v<ViewT>, int> = 0>
+              typename std::enable_if_t<is_structure_v<ViewT>, int> = 0>
     decltype(auto)
     get_internal_vector(ViewT const &view)
     {
-        return VectorComplementView(get_internal_vector(view.m_vec));
+        return VectorStructureView(get_internal_vector(view.m_vec));
     }
-
-} // end namespace GraphBLAS
+}

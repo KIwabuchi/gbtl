@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,8 +27,7 @@
  * DM18-0559
  */
 
-#ifndef GB_TYPES_HPP
-#define GB_TYPES_HPP
+#pragma once
 
 #include <cstdint>
 #include <exception>
@@ -40,6 +39,7 @@ namespace GraphBLAS
     typedef uint64_t IndexType;
     typedef std::vector<IndexType> IndexArrayType;
 
+    //**************************************************************************
     // When an operation uses a mask this controls what happens to non-masked
     // elements in the resulting container:
     //    MERGE   -> leave as is,
@@ -58,75 +58,108 @@ namespace GraphBLAS
         inline D3 operator()(D1 lhs, D2 rhs) const { return true; }
     };
 
-
     //**************************************************************************
-    // All backends need to support this marker class
-    namespace backend
-    {
-        class NoMask
-        {
-        public:
-            friend std::ostream &operator<<(std::ostream             &os,
-                                            NoMask          const    &mask)
-            {
-                os << "No mask";
-                return os;
-            }
-        };
-    }
-
     class NoMask
     {
     public:
         //typedef bool ScalarType;             // arbitrary type; not necessary
         //typedef backend::NoMask BackendType; // not necessary
 
-        backend::NoMask m_mat;  // can be const?
-        backend::NoMask m_vec;
+        //backend::NoMask m_mat;  // @todo make const?
+        //backend::NoMask m_vec;
+
+        friend std::ostream &operator<<(std::ostream             &os,
+                                        NoMask          const    &mask)
+        {
+            os << "No mask";
+            return os;
+        }
+
+        friend inline NoMask const &get_internal_matrix(NoMask const &mask)
+        {
+            return mask;
+        }
+
+        friend inline NoMask const &get_internal_vector(NoMask const &mask)
+        {
+            return mask;
+        }
     };
 
     //**************************************************************************
-    template<typename ScalarT, typename... TagsT>
-    class Vector;
-
-    template<typename VectorT>
-    class VectorComplementView;
-
-    template<typename ScalarT, typename... TagsT>
-    class Matrix;
-
-    template<typename MatrixT>
-    class TransposeView;
-
-    template<typename MatrixT>
-    class MatrixComplementView;
+    template<typename ScalarT, typename... TagsT> class Vector;
 
     template <class>
     inline constexpr bool is_vector_v = false;
 
-    template <class T, class... Tags>
-    inline constexpr bool is_vector_v<Vector<T, Tags...>> = true;
+    template <class ScalarT, class... Tags>
+    inline constexpr bool is_vector_v<Vector<ScalarT, Tags...>> = true;
 
-    template <class VectorT>
-    inline constexpr bool is_vector_v<VectorComplementView<VectorT>> = true;
+    //************************************************************************
+    template<typename ScalarT, typename... TagsT> class Matrix;
 
     template <class>
     inline constexpr bool is_matrix_v = false;
 
-    template <class T, class... Tags>
-    inline constexpr bool is_matrix_v<Matrix<T, Tags...>> = true;
+    template <class ScalarT, class... Tags>
+    inline constexpr bool is_matrix_v<Matrix<ScalarT, Tags...>> = true;
 
-    template <class MatrixT>
-    inline constexpr bool is_matrix_v<MatrixComplementView<MatrixT>> = true;
+    //************************************************************************
+    template<class VectorT> class VectorComplementView;
+    template<class VectorT> class VectorStructureView;
+    template<class VectorT> class VectorStructuralComplementView;
+
+    template<class MatrixT> class TransposeView;
+    template<class MatrixT> class MatrixComplementView;
+    template<class MatrixT> class MatrixStructureView;
+    template<class MatrixT> class MatrixStructuralComplementView;
 
     template <class MatrixT>
     inline constexpr bool is_matrix_v<TransposeView<MatrixT>> = true;
+
+    //************************************************************************
+    template <class>
+    inline constexpr bool is_complement_v = false;
+
+    template <class MatrixT>
+    inline constexpr bool is_complement_v<MatrixComplementView<MatrixT>> = true;
+
+    template <class VectorT>
+    inline constexpr bool is_complement_v<VectorComplementView<VectorT>> = true;
+
+
+    template <class>
+    inline constexpr bool is_structure_v = false;
+
+    template <class MatrixT>
+    inline constexpr bool is_structure_v<MatrixStructureView<MatrixT>> = true;
+
+    template <class VectorT>
+    inline constexpr bool is_structure_v<VectorStructureView<VectorT>> = true;
+
+
+    template <class>
+    inline constexpr bool is_structural_complement_v = false;
+
+    template <class MatrixT>
+    inline constexpr bool is_structural_complement_v<
+        MatrixStructuralComplementView<MatrixT>> = true;
+
+    template <class VectorT>
+    inline constexpr bool is_structural_complement_v<
+        VectorStructuralComplementView<VectorT>> = true;
+
+
+    template <class>
+    inline constexpr bool is_transpose_v = false;
+
+    template <class MatrixT>
+    inline constexpr bool is_transpose_v<TransposeView<MatrixT>> = true;
 }
 
 namespace std
 {
-
-// @TODO; It seems that unit tests can't find this!
+    /// @TODO; It seems that unit tests can't find this!
     inline std::ostream &
     operator<<(std::ostream &os, const std::vector<long unsigned int> vec)
     {
@@ -140,5 +173,3 @@ namespace std
     }
 
 } // namespace std
-
-#endif // GB_TYPES_HPP

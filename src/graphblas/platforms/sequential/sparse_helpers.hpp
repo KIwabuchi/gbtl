@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -941,9 +941,81 @@ namespace GraphBLAS
 
         } // apply_with_mask
 
+
+        //**********************************************************************
+        // Matrix Mask Churn
+        //**********************************************************************
+
+        //**********************************************************************
+        // WARNING: costly
+        template <typename MatrixT>
+        decltype(auto)
+        get_structure_row(MatrixT mat, IndexType row_idx)
+        {
+            std::vector<std::tuple<IndexType, bool> > mask_tuples;
+            auto &row_tuples = mat.getRow(row_idx);
+            auto it = row_tuples.begin();
+
+            for (auto [ix, val] : row_tuples)
+            {
+                mask_tuples.push_back(std::make_tuple(ix, true));
+            }
+
+            return mask_tuples;
+        }
+
+        //**********************************************************************
+        // WARNING: costly
+        template <typename MatrixT>
+        decltype(auto)
+        get_complement_row(MatrixT mat, IndexType row_idx)
+        {
+            std::vector<std::tuple<IndexType, bool> > mask_tuples;
+            auto &row_tuples = mat.getRow(row_idx);
+            auto it = row_tuples.begin();
+
+            for (IndexType ix = 0; ix < mat.ncols(); ++ix)
+            {
+                if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
+                {
+                    mask_tuples.push_back(std::make_tuple(ix, true));
+                }
+                else
+                {
+                    if (static_cast<bool>(std::get<1>(*it)) == false)
+                    {
+                        mask_tuples.push_back(std::make_tuple(ix, true));
+                    }
+                    ++it;
+                }
+            }
+
+            return mask_tuples;
+        }
+
+        //**********************************************************************
+        // WARNING: costly
+        template <typename MatrixT>
+        decltype(auto)
+        get_structural_complement_row(MatrixT mat, IndexType row_idx)
+        {
+            std::vector<std::tuple<IndexType, bool> > mask_tuples;
+            auto &row_tuples = mat.getRow(row_idx);
+            auto it = row_tuples.begin();
+
+            for (IndexType ix = 0; ix < mat.ncols(); ++ix)
+            {
+                if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
+                {
+                    mask_tuples.push_back(std::make_tuple(ix, true));
+                }
+            }
+
+            return mask_tuples;
+        }
+
         //**********************************************************************
         // Matrix version
-
         template < typename CMatrixT,
                    typename ZMatrixT,
                    typename MMatrixT>
@@ -953,12 +1025,7 @@ namespace GraphBLAS
                                  OutputControlEnum   outp)
         {
             typedef typename CMatrixT::ScalarType CScalarType;
-            typedef typename ZMatrixT::ScalarType ZScalarType;
-            typedef typename MMatrixT::ScalarType MScalarType;
-
             typedef std::vector<std::tuple<IndexType, CScalarType> > CRowType;
-            typedef std::vector<std::tuple<IndexType, ZScalarType> > ZRowType;
-            typedef std::vector<std::tuple<IndexType, MScalarType> > MRowType;
 
             CRowType tmp_row;
             IndexType nRows(C.nrows());
@@ -973,21 +1040,172 @@ namespace GraphBLAS
         }
 
         //**********************************************************************
-        // Matrix version specialized for no mask
+        // Matrix version specialized for complement mask
+        template < typename CMatrixT,
+                   typename ZMatrixT,
+                   typename MMatrixT>
+        void write_with_opt_mask(
+            CMatrixT                                  &C,
+            ZMatrixT                            const &Z,
+            GraphBLAS::MatrixComplementView<MMatrixT> const &Mask,
+            OutputControlEnum                          outp)
+        {
+            typedef typename CMatrixT::ScalarType CScalarType;
+            typedef std::vector<std::tuple<IndexType, CScalarType> > CRowType;
 
+            CRowType tmp_row;
+            IndexType nRows(C.nrows());
+            for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
+            {
+                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
+                                get_complement_row(Mask.m_mat, row_idx),
+                                outp);
+
+                // Now, set the new one.  Yes, we can optimize this later
+                C.setRow(row_idx, tmp_row);
+            }
+        }
+
+        //**********************************************************************
+        // Matrix version specialized for structure mask
+        template < typename CMatrixT,
+                   typename ZMatrixT,
+                   typename MMatrixT>
+        void write_with_opt_mask(
+            CMatrixT                                 &C,
+            ZMatrixT                           const &Z,
+            GraphBLAS::MatrixStructureView<MMatrixT> const &Mask,
+            OutputControlEnum                         outp)
+        {
+            typedef typename CMatrixT::ScalarType CScalarType;
+            typedef std::vector<std::tuple<IndexType, CScalarType> > CRowType;
+
+            CRowType tmp_row;
+            IndexType nRows(C.nrows());
+            for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
+            {
+                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
+                                get_structure_row(Mask.m_mat, row_idx),
+                                outp);
+
+                // Now, set the new one.  Yes, we can optimize this later
+                C.setRow(row_idx, tmp_row);
+            }
+        }
+
+        //**********************************************************************
+        // Matrix version specialized for structural complement mask
+        template < typename CMatrixT,
+                   typename ZMatrixT,
+                   typename MMatrixT>
+        void write_with_opt_mask(
+            CMatrixT                                            &C,
+            ZMatrixT                                      const &Z,
+            GraphBLAS::MatrixStructuralComplementView<MMatrixT> const &Mask,
+            OutputControlEnum                                    outp)
+        {
+            typedef typename CMatrixT::ScalarType CScalarType;
+            typedef std::vector<std::tuple<IndexType, CScalarType> > CRowType;
+
+            CRowType tmp_row;
+            IndexType nRows(C.nrows());
+            for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
+            {
+                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
+                                get_structural_complement_row(Mask.m_mat, row_idx),
+                                outp);
+
+                // Now, set the new one.  Yes, we can optimize this later
+                C.setRow(row_idx, tmp_row);
+            }
+        }
+
+        //**********************************************************************
+        // Matrix version specialized for no mask
         template < typename CMatrixT,
                    typename ZMatrixT >
         void write_with_opt_mask(CMatrixT                   &C,
                                  ZMatrixT           const   &Z,
-                                 backend::NoMask    const   &foo,
+                                 GraphBLAS::NoMask  const   &foo,
                                  OutputControlEnum           outp)
         {
             sparse_copy(C, Z);
         }
 
         //**********************************************************************
-        // Vector version
+        // Vector Mask Churn
+        //**********************************************************************
 
+        //**********************************************************************
+        // WARNING: costly
+        template <typename VectorT>
+        decltype(auto)
+        get_structure_contents(VectorT vec)
+        {
+            std::vector<std::tuple<IndexType, bool> > mask_tuples;
+            auto row_tuples = vec.getContents();
+            auto it = row_tuples.begin();
+
+            for (auto [ix, val] : row_tuples)
+            {
+                mask_tuples.push_back(std::make_tuple(ix, true));
+            }
+
+            return mask_tuples;
+        }
+
+        //**********************************************************************
+        // WARNING: costly
+        template <typename VectorT>
+        decltype(auto)
+        get_complement_contents(VectorT vec)
+        {
+            std::vector<std::tuple<IndexType, bool> > mask_tuples;
+            auto row_tuples = vec.getContents();
+            auto it = row_tuples.begin();
+
+            for (IndexType ix = 0; ix < vec.size(); ++ix)
+            {
+                if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
+                {
+                    mask_tuples.push_back(std::make_tuple(ix, true));
+                }
+                else
+                {
+                    if (static_cast<bool>(std::get<1>(*it)) == false)
+                    {
+                        mask_tuples.push_back(std::make_tuple(ix, true));
+                    }
+                    ++it;
+                }
+            }
+
+            return mask_tuples;
+        }
+
+        //**********************************************************************
+        // WARNING: costly
+        template <typename VectorT>
+        decltype(auto)
+        get_structural_complement_contents(VectorT vec)
+        {
+            std::vector<std::tuple<IndexType, bool> > mask_tuples;
+            auto row_tuples = vec.getContents();
+            auto it = row_tuples.begin();
+
+            for (IndexType ix = 0; ix < vec.size(); ++ix)
+            {
+                if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
+                {
+                    mask_tuples.push_back(std::make_tuple(ix, true));
+                }
+            }
+
+            return mask_tuples;
+        }
+
+        //**********************************************************************
+        // Vector version
         template <typename WVectorT,
                   typename ZScalarT,
                   typename MaskT>
@@ -1001,21 +1219,89 @@ namespace GraphBLAS
             std::vector<std::tuple<IndexType, WScalarType> > tmp_row;
 
             apply_with_mask(tmp_row, w.getContents(), z,
-                            mask.getContents(), outp);
+                            mask.getContents(),
+                            outp);
 
             // Now, set the new one.  Yes, we can optimize this later
             w.setContents(tmp_row);
         }
 
         //**********************************************************************
-        // Vector version specialized for no mask
+        // Vector version specialized for complement mask
+        template <typename WVectorT,
+                  typename ZScalarT,
+                  typename MaskT>
+        void write_with_opt_mask_1D(
+            WVectorT                                           &w,
+            std::vector<std::tuple<IndexType, ZScalarT>> const &z,
+            GraphBLAS::VectorComplementView<MaskT>       const &mask,
+            OutputControlEnum                                   outp)
+        {
+            typedef typename WVectorT::ScalarType WScalarType;
+            std::vector<std::tuple<IndexType, WScalarType> > tmp_row;
 
+            apply_with_mask(tmp_row, w.getContents(), z,
+                            get_complement_contents(mask.m_vec),
+                            outp);
+
+            // Now, set the new one.  Yes, we can optimize this later
+            w.setContents(tmp_row);
+        }
+
+        //**********************************************************************
+        // Vector version specialized for structure mask
+        template <typename WVectorT,
+                  typename ZScalarT,
+                  typename MaskT>
+        void write_with_opt_mask_1D(
+            WVectorT                                           &w,
+            std::vector<std::tuple<IndexType, ZScalarT>> const &z,
+            GraphBLAS::VectorStructureView<MaskT>        const &mask,
+            OutputControlEnum                                   outp)
+        {
+            typedef typename WVectorT::ScalarType WScalarType;
+            std::vector<std::tuple<IndexType, WScalarType> > tmp_row;
+
+            apply_with_mask(tmp_row, w.getContents(), z,
+                            get_structure_contents(mask.m_vec),
+                            outp);
+
+            // Now, set the new one.  Yes, we can optimize this later
+            w.setContents(tmp_row);
+        }
+
+
+        //**********************************************************************
+        // Vector version specialized for structural complement mask
+        template <typename WVectorT,
+                  typename ZScalarT,
+                  typename MaskT>
+        void write_with_opt_mask_1D(
+            WVectorT                                           &w,
+            std::vector<std::tuple<IndexType, ZScalarT>> const &z,
+            GraphBLAS::VectorStructuralComplementView<MaskT> const &mask,
+            OutputControlEnum                                       outp)
+        {
+            typedef typename WVectorT::ScalarType WScalarType;
+            std::vector<std::tuple<IndexType, WScalarType> > tmp_row;
+
+            apply_with_mask(tmp_row, w.getContents(), z,
+                            get_structural_complement_contents(mask.m_vec),
+                            outp);
+
+            // Now, set the new one.  Yes, we can optimize this later
+            w.setContents(tmp_row);
+        }
+
+
+        //**********************************************************************
+        // Vector version specialized for no mask
         template <typename WVectorT,
                   typename ZScalarT>
         void write_with_opt_mask_1D(
             WVectorT                                           &w,
             std::vector<std::tuple<IndexType, ZScalarT>> const &z,
-            backend::NoMask                              const &foo,
+            GraphBLAS::NoMask                            const &foo,
             OutputControlEnum                                   outp)
         {
             //sparse_copy(w, z);

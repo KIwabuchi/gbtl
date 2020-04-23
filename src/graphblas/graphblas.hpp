@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,9 +26,6 @@
  *
  * DM18-0559
  */
-
-#ifndef GRAPHBLAS_HPP
-#define GRAPHBLAS_HPP
 
 #pragma once
 
@@ -55,7 +52,9 @@ namespace GraphBLAS
 
 #include <graphblas/Matrix.hpp>
 #include <graphblas/Vector.hpp>
+#include <graphblas/StructureView.hpp>
 #include <graphblas/ComplementView.hpp>
+#include <graphblas/StructuralComplementView.hpp>
 #include <graphblas/TransposeView.hpp>
 
 #include <graphblas/operations.hpp>
@@ -63,5 +62,3 @@ namespace GraphBLAS
 
 #define GB_INCLUDE_BACKEND_ALL 1
 #include <backend_include.hpp>
-
-#endif // GRAPHBLAS_HPP

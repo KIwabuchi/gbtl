@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE(test_mxv_sparse_nomask_noaccum)
     GraphBLAS::backend::BitmapSparseVector<double> w(16);
 
     GraphBLAS::backend::mxv(w,
-                            GraphBLAS::backend::NoMask(),
+                            GraphBLAS::NoMask(),
                             GraphBLAS::Second<double>(),
                             GraphBLAS::ArithmeticSemiring<double>(),
                             m1, v1, REPLACE);

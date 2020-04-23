@@ -246,266 +246,44 @@ namespace GraphBLAS
             m_vec.extractTuples(indices, values);
         }
 
-        /// This replaces operator<< and outputs implementation specific
-        /// information.
-        void printInfo(std::ostream &os) const
+        // ================================================
+        void printInfo(std::ostream &ostr) const
         {
-            m_vec.printInfo(os);
+            ostr << "GraphBLAS::Vector: " << std::endl;
+            m_vec.printInfo(ostr);
+        }
+
+        friend std::ostream &operator<<(std::ostream &ostr, Vector const &vec)
+        {
+            vec.printInfo(ostr);
+            return ostr;
         }
 
     private:
-
-        // 4.3.2
-        template<typename WVectorT,
-                typename MaskT,
-                typename AccumT,
-                typename SemiringT,
-                typename UVectorT,
-                typename AMatrixT>
-        friend inline void vxm(WVectorT         &w,
-                               MaskT      const &mask,
-                               AccumT     const &accum,
-                               SemiringT         op,
-                               UVectorT   const &u,
-                               AMatrixT   const &A,
-                               OutputControlEnum outp);
-
-        // 4.3.3
-        template<typename WVectorT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename SemiringT,
-                 typename AMatrixT,
-                 typename UVectorT>
-        friend inline void mxv(WVectorT          &w,
-                               MaskT       const &mask,
-                               AccumT      const &accum,
-                               SemiringT          op,
-                               AMatrixT    const &A,
-                               UVectorT    const &u,
-                               OutputControlEnum  outp);
-
-        // 4.3.4.1
-        template<typename WScalarT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename BinaryOpT,  //can be BinaryOp, Monoid (not Semiring)
-                 typename UVectorT,
-                 typename VVectorT,
-                 typename ...WTagsT>
-        friend inline void eWiseMult(
-            GraphBLAS::Vector<WScalarT, WTagsT...> &w,
-            MaskT                            const &mask,
-            AccumT                           const &accum,
-            BinaryOpT                               op,
-            UVectorT                         const &u,
-            VVectorT                         const &v,
-            OutputControlEnum                       outp);
-
-        // 4.3.5.1
-        template<typename WScalarT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename BinaryOpT,  //can be BinaryOp, Monoid (not Semiring)
-                 typename UVectorT,
-                 typename VVectorT,
-                 typename ...WTagsT>
-        friend inline void eWiseAdd(
-            GraphBLAS::Vector<WScalarT, WTagsT...> &w,
-            MaskT                            const &mask,
-            AccumT                           const &accum,
-            BinaryOpT                               op,
-            UVectorT                         const &u,
-            VVectorT                         const &v,
-            OutputControlEnum                       outp);
-
-        // 4.3.6.1
-        template<typename WVectorT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename UVectorT,
-                 typename SequenceT>
-        friend inline void extract(WVectorT             &w,
-                                   MaskT          const &mask,
-                                   AccumT         const &accum,
-                                   UVectorT       const &u,
-                                   SequenceT      const &indices,
-                                   OutputControlEnum     outp);
-
-        // 4.3.6.3
-        template<typename WScalarT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename AMatrixT,
-                 typename SequenceT,
-                 typename ...WTags>
-        friend inline void extract(
-                GraphBLAS::Vector<WScalarT, WTags...> &w,
-                MaskT          const &mask,
-                AccumT         const &accum,
-                AMatrixT       const &A,
-                SequenceT      const &row_indices,
-                IndexType             col_index,
-                OutputControlEnum     outp);
-
-        // 4.3.7.1: assign - standard vector variant
-        template<typename WScalarT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename UVectorT,
-                 typename SequenceT,
-                 typename std::enable_if_t<is_vector_v<UVectorT>, int>,
-                 typename ...WTags>
-        friend inline void assign(Vector<WScalarT, WTags...>   &w,
-                                  MaskT        const &mask,
-                                  AccumT       const &accum,
-                                  UVectorT     const &u,
-                                  SequenceT    const &indices,
-                                  OutputControlEnum   outp);
-
-        // 4.3.7.3:
-        template<typename CScalarT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename UVectorT,
-                 typename SequenceT,
-                 typename ...CTags>
-        friend inline void assign(Matrix<CScalarT, CTags...>  &C,
-                                  MaskT                 const &mask,  // a vector
-                                  AccumT                const &accum,
-                                  UVectorT              const &u,
-                                  SequenceT             const &row_indices,
-                                  IndexType                    col_index,
-                                  OutputControlEnum            outp);
-
-        // 4.3.7.4:
-        template<typename CScalarT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename UVectorT,
-                 typename SequenceT,
-                 typename ...CTags>
-        friend inline void assign(Matrix<CScalarT, CTags...>  &C,
-                                  MaskT                 const &mask,  // a vector
-                                  AccumT                const &accum,
-                                  UVectorT              const &u,
-                                  IndexType                    row_index,
-                                  SequenceT             const &col_indices,
-                                  OutputControlEnum            outp);
-
-        // 4.3.7.5:
-        template<typename WVectorT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename ValueT,
-                 typename SequenceT,
-                 typename std::enable_if<
-                     std::is_convertible<ValueT,
-                                         typename WVectorT::ScalarType>::value,
-                     int>::type>
-        friend inline void assign(WVectorT          &w,
-                                  MaskT       const &mask,
-                                  AccumT      const &accum,
-                                  ValueT             val,
-                                  SequenceT   const &indices,
-                                  OutputControlEnum  outp);
-
-        // 4.3.8.1: vector unaryop variant
-        template<typename WScalarT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename UnaryOpT,
-                 typename UVectorT,
-                 typename ...WTagsT>
-        friend inline void apply(Vector<WScalarT, WTagsT...> &w,
-                                 MaskT                 const &mask,
-                                 AccumT                const &accum,
-                                 UnaryOpT                     op,
-                                 UVectorT              const &u,
-                                 OutputControlEnum            outp);
-
-
-        // 4.3.8.3: vector binaryop variants
-        template<typename WScalarT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename BinaryOpT,
-                 typename FirstT,
-                 typename SecondT,
-                 typename ...WTagsT>
-        friend inline void apply(Vector<WScalarT, WTagsT...> &w,
-                                 MaskT                 const &mask,
-                                 AccumT                const &accum,
-                                 BinaryOpT                    op,
-                                 FirstT                const &lhs,
-                                 SecondT               const &rhs,
-                                 OutputControlEnum            outp);
-
-        // 4.3.9.1
-        template<typename WVectorT,
-                 typename MaskT,
-                 typename AccumT,
-                 typename BinaryOpT,  // monoid or binary op only
-                 typename AMatrixT>
-        friend inline void reduce(WVectorT         &u,
-                                  MaskT      const &mask,
-                                  AccumT     const &accum,
-                                  BinaryOpT         op,
-                                  AMatrixT   const &A,
-                                  OutputControlEnum outp);
-        // 4.3.9.2
-        template<typename ValueT,
-                 typename AccumT,
-                 typename MonoidT, // monoid only
-                 typename UScalarT,
-                 typename ...UTagsT>
-        friend inline void reduce(
-            ValueT                                       &dst,
-            AccumT                                 const &accum,
-            MonoidT                                       op,
-            GraphBLAS::Vector<UScalarT, UTagsT...> const &u);
-
-        //*********************************************************************
-
-        template<typename OtherScalarT, typename... OtherTagsT>
-        friend inline VectorComplementView<Vector<OtherScalarT,
-                                                  OtherTagsT...>> complement(
-            Vector<OtherScalarT, OtherTagsT...> const &mask);
-
-        //*********************************************************************
-
-        // .... ADD OTHER OPERATIONS AS FRIENDS AS THEY ARE IMPLEMENTED .....
-
-    private:
         BackendType m_vec;
+
+        // FRIEND FUNCTIONS
+
+        friend inline BackendType &get_internal_vector(Vector &vector)
+        {
+            return vector.m_vec;
+        }
+
+        friend inline BackendType const &get_internal_vector(Vector const &vector)
+        {
+            return vector.m_vec;
+        }
     };
 
-    /**
-     *  @brief Output the vector in array form.  Mainly for debugging
-     *         small vectors.
-     *
-     *  @param[in] ostr  The output stream to send the contents
-     *  @param[in] vec   The vector to output
-     *  @param[in] label Optional label to output first.
-     */
-    template <typename VectorT>
-    void print_vector(std::ostream      &ostr,
-                      VectorT const     &vec,
-                      std::string const &label = "")
-    {
-        // The new backend doesn't have get_zero.   Should we have it???
-        // ostr << label << ": zero = " << vec.m_vec.get_zero() << std::endl;
-        ostr << label << ":" << std::endl;
-        vec.printInfo(ostr);
-        ostr << std::endl;
-    }
-
-    /// @todo This does not need to be a friend
+    /// @deprecated
     template<typename ScalarT, typename... TagsT>
-    std::ostream &operator<<(std::ostream &os, const Vector<ScalarT, TagsT...> &vec)
-    {
-        vec.printInfo(os);
-        return os;
-    }
+    void print_vector(std::ostream                    &ostr,
+                      Vector<ScalarT, TagsT...> const &vec,
+                      std::string const               &label = "")
+        {
+            ostr << label << ":" << std::endl;
+            ostr << vec;
+            ostr << std::endl;
+        }
 
 } // end namespace GraphBLAS

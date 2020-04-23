@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -43,8 +43,9 @@
 #include <iterator>
 
 #include <graphblas/algebra.hpp>
+
+/// @deprecated
 #include <graphblas/platforms/sequential/TransposeView.hpp>
-#include <graphblas/platforms/sequential/ComplementView.hpp>
 
 // Add individual operation files here
 #include <graphblas/platforms/sequential/sparse_mxm.hpp>

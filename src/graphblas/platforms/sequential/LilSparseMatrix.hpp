@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -686,6 +686,8 @@ namespace GraphBLAS
                     IndexType num_rows = nrows();
                     IndexType num_cols = ncols();
 
+                    os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << ">"
+                       << std::endl;
                     os << "(" << num_rows << "x" << num_cols << ")" << std::endl;
 
                     for (IndexType row_idx = 0; row_idx < num_rows; ++row_idx)

@@ -61,38 +61,6 @@ BOOST_AUTO_TEST_CASE(test_single_argument_transpose)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_complement)
-{
-    IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mA = {1, 0, 0, 0, 1, 0, 0, 0, 1};
-    Matrix<double, DirectedMatrixTag> mA(3, 3);
-    mA.build(i_mA, j_mA, v_mA);
-
-    IndexArrayType i_aA    = {0, 0, 1, 1, 2, 2};
-    IndexArrayType j_aA    = {1, 2, 0, 2, 0, 1};
-    std::vector<bool> v_answer(6, true);
-    Matrix<bool, DirectedMatrixTag> answer(3, 3);
-    answer.build(i_aA, j_aA, v_answer);
-
-    auto result = complement(mA);
-
-    for (IndexType ix = 0; ix < 3; ++ix)
-    {
-        for (IndexType iy = 0; iy < 3; ++iy)
-        {
-            BOOST_CHECK_EQUAL(result.hasElement(ix, iy),
-                              answer.hasElement(ix, iy));
-            if (answer.hasElement(ix, iy))
-            {
-                BOOST_CHECK_EQUAL(result.extractElement(ix, iy),
-                                  answer.extractElement(ix, iy));
-            }
-        }
-    }
-}
-
-//****************************************************************************
 BOOST_AUTO_TEST_CASE(test_mxm_masked)
 {
     IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
@@ -128,9 +96,43 @@ BOOST_AUTO_TEST_CASE(test_mxm_masked)
     BOOST_CHECK_EQUAL(result, answer);
 }
 
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(test_mxm_complement_masked)
+{
+    IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
+    IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
+    std::vector<double> v_mA = {12, 7, 3, 4, 5, 6, 7, 8, 9};
+    Matrix<double, DirectedMatrixTag> mA(3, 3);
+    mA.build(i_mA, j_mA, v_mA);
+
+    IndexArrayType i_mB    = {0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2};
+    IndexArrayType j_mB    = {0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3};
+    std::vector<double> v_mB = {5, 8, 1, 2, 6, 7, 3, 4, 5, 9, 1};
+    Matrix<double, DirectedMatrixTag> mB(3, 4);
+    mB.build(i_mB, j_mB, v_mB);
+
+    Matrix<double, DirectedMatrixTag> result(3, 4);
+
+    IndexArrayType i_answer = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
+    IndexArrayType j_answer = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3};
+    std::vector<double> v_answer = {114, 160, 60, 27, 74, 97,
+                                    73, 14, 119, 157, 112, 23};
+    Matrix<double, DirectedMatrixTag> answer(3, 4);
+    answer.build(i_answer, j_answer, v_answer);
+
+    Matrix<bool, DirectedMatrixTag> mask(3,4);  //empty
+
+    mxm(result,
+        complement(mask), GraphBLAS::NoAccumulate(),
+        GraphBLAS::ArithmeticSemiring<double>(),
+        mA, mB);
+
+    BOOST_CHECK_EQUAL(result, answer);
+}
+
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_a_transpose)
+BOOST_AUTO_TEST_CASE(test_mxm_a_transpose)
 {
     IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
     IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
@@ -162,7 +164,7 @@ BOOST_AUTO_TEST_CASE(test_a_transpose)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_b_transpose)
+BOOST_AUTO_TEST_CASE(test_mxm_b_transpose)
 {
     IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
     IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
@@ -193,7 +195,7 @@ BOOST_AUTO_TEST_CASE(test_b_transpose)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_a_and_b_transpose)
+BOOST_AUTO_TEST_CASE(test_mxm_a_and_b_transpose)
 {
     IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
     IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
@@ -224,7 +226,7 @@ BOOST_AUTO_TEST_CASE(test_a_and_b_transpose)
 }
 
 //****************************************************************************
-BOOST_AUTO_TEST_CASE(test_a_equals_c_transpose)
+BOOST_AUTO_TEST_CASE(test_mxm_a_equals_c_transpose)
 {
     IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
     IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
@@ -253,213 +255,5 @@ BOOST_AUTO_TEST_CASE(test_a_equals_c_transpose)
 
     BOOST_CHECK_EQUAL(result, answer);
 }
-
-/// @todo Complementing transpose not supported
-/// @todo Complementing operands not supperted
-#if 0
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_a_complement)
-{
-    IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mA = {0, 1, 1, 0, 0, 0, 1, 1, 1};
-    Matrix<double, DirectedMatrixTag> mA(3, 3);
-    mA.build(i_mA, j_mA, v_mA);
-
-    IndexArrayType i_mB    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mB    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mB = {1, 0, 1, 1, 1, 0, 1, 0, 1};
-    Matrix<double, DirectedMatrixTag> mB(3, 3);
-    mB.build(i_mB, j_mB, v_mB);
-
-    Matrix<double, DirectedMatrixTag> result(3, 3);
-
-    IndexArrayType i_answer = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_answer = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_answer = {1, 0, 1, 3, 1, 2, 0, 0, 0};
-    Matrix<double, DirectedMatrixTag> answer(3, 3);
-    answer.build(i_answer, j_answer, v_answer);
-
-    mxm(result,
-        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
-        complement(mA), mB);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_b_complement)
-{
-    IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mA = {0, 1, 1, 0, 0, 0, 1, 1, 1};
-    Matrix<double, DirectedMatrixTag> mA(3, 3);
-    mA.build(i_mA, j_mA, v_mA);
-
-    IndexArrayType i_mB    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mB    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mB = {1, 0, 1, 1, 1, 0, 1, 0, 1};
-    Matrix<double, DirectedMatrixTag> mB(3, 3);
-    mB.build(i_mB, j_mB, v_mB);
-
-    Matrix<double, DirectedMatrixTag> result(3, 3);
-
-    IndexArrayType i_answer = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_answer = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_answer = {0, 1, 1, 0, 0, 0, 0, 2, 1};
-    Matrix<double, DirectedMatrixTag> answer(3, 3);
-    answer.build(i_answer, j_answer, v_answer);
-
-    mxm(result,
-        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
-        mA, complement(mB));
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_a_and_b_complement)
-{
-    IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mA = {0, 1, 1, 0, 0, 0, 1, 1, 1};
-    Matrix<double, DirectedMatrixTag> mA(3, 3);
-    mA.build(i_mA, j_mA, v_mA);
-
-    IndexArrayType i_mB    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mB    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mB = {1, 0, 1, 1, 1, 0, 1, 0, 1};
-    Matrix<double, DirectedMatrixTag> mB(3, 3);
-    mB.build(i_mB, j_mB, v_mB);
-
-    Matrix<double, DirectedMatrixTag> result(3, 3);
-
-    IndexArrayType i_answer = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_answer = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_answer = {0, 1, 0, 0, 2, 1, 0, 0, 0};
-    Matrix<double, DirectedMatrixTag> answer(3, 3);
-    answer.build(i_answer, j_answer, v_answer);
-
-    mxm(result,
-        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
-        complement(mA), complement(mB));
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_a_equals_c_complement)
-{
-    IndexArrayType i_mA    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mA    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mA = {0, 1, 1, 0, 0, 0, 1, 1, 1};
-    Matrix<double, DirectedMatrixTag> mA(3, 3);
-    mA.build(i_mA, j_mA, v_mA);
-
-    IndexArrayType i_mB    = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mB    = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mB = {1, 0, 0, 0, 1, 0, 0, 0, 1};
-    Matrix<double, DirectedMatrixTag> mB(3, 3);
-    mB.build(i_mB, j_mB, v_mB);
-
-    Matrix<double, DirectedMatrixTag> result(3, 3);
-
-    IndexArrayType i_answer = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_answer = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_answer = {1, 0, 0, 1, 1, 1, 0, 0, 0};
-    Matrix<double, DirectedMatrixTag> answer(3, 3);
-    answer.build(i_answer, j_answer, v_answer);
-
-    mxm(result,
-        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
-        complement(mA), mB);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_a_transpose_and_complement)
-{
-    IndexArrayType i_mA = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mA = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mA = {0, 1, 1, 0, 0, 0, 1, 1, 1};
-    Matrix<double, DirectedMatrixTag> mA(3, 3);
-    mA.build(i_mA, j_mA, v_mA);
-
-    IndexArrayType i_mB = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mB = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mB = {1, 0, 1, 1, 1, 0, 1, 0, 1};
-    Matrix<double, DirectedMatrixTag> mB(3, 3);
-    mB.build(i_mB, j_mB, v_mB);
-
-    Matrix<double, DirectedMatrixTag> result(3, 3);
-
-    IndexArrayType i_answer = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_answer = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_answer = {2, 1, 1, 1, 1, 0, 1, 1, 0};
-    Matrix<double, DirectedMatrixTag> answer(3, 3);
-    answer.build(i_answer, j_answer, v_answer);
-
-    mxm(complement(transpose(mA)), mB, result);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_b_transpose_and_complement)
-{
-    IndexArrayType i_mA = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mA = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mA = {0, 1, 1, 0, 0, 0, 1, 1, 1};
-    Matrix<double, DirectedMatrixTag> mA(3, 3);
-    mA.build(i_mA, j_mA, v_mA);
-
-    IndexArrayType i_mB = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mB = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mB = {1, 0, 1, 1, 1, 0, 1, 0, 1};
-    Matrix<double, DirectedMatrixTag> mB(3, 3);
-    mB.build(i_mB, j_mB, v_mB);
-
-    Matrix<double, DirectedMatrixTag> result(3, 3);
-
-    IndexArrayType i_answer = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_answer = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_answer = {1, 1, 1, 0, 0, 0, 1, 1, 1};
-    Matrix<double, DirectedMatrixTag> answer(3, 3);
-    answer.build(i_answer, j_answer, v_answer);
-
-    mxm(mA, complement(transpose(mB)), result);
-    BOOST_CHECK_EQUAL(result, answer);
-}
-
-//****************************************************************************
-BOOST_AUTO_TEST_CASE(test_a_and_b_transpose_and_complement)
-{
-    IndexArrayType i_mA = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mA = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mA = {0, 1, 1, 0, 0, 0, 1, 1, 1};
-    Matrix<double, DirectedMatrixTag> mA(3, 3);
-    mA.build(i_mA, j_mA, v_mA);
-
-    IndexArrayType i_mB = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_mB = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_mB = {1, 0, 1, 1, 1, 0, 1, 0, 1};
-    Matrix<double, DirectedMatrixTag> mB(3, 3);
-    mB.build(i_mB, j_mB, v_mB);
-
-    Matrix<double, DirectedMatrixTag> result(3, 3);
-
-    IndexArrayType i_answer = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-    IndexArrayType j_answer = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    std::vector<double> v_answer = {1, 0, 1, 1, 0, 1, 1, 0, 1};
-    Matrix<double, DirectedMatrixTag> answer(3, 3);
-    answer.build(i_answer, j_answer, v_answer);
-
-    mxm(result,
-        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-        complement(transpose(mA)), complement(transpose(mB)));
-    BOOST_CHECK_EQUAL(result, answer);
-}
-#endif
 
 BOOST_AUTO_TEST_SUITE_END()
