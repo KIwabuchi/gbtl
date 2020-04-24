@@ -7,7 +7,7 @@ rm test.out
 # Note the good parenthesis before the read and after the end so that failed is in one subshell
 find build/bin -name "test_*" -perm /u+x | ( while read test; do
     #echo "Now running $test..." && ./$test && echo ""; 
-    #echo "Now running $test..."
+    echo "Now running $test..." >> test.out
     ./$test >> test.out 2>&1
     
     if [ $? != 0 ]; then
