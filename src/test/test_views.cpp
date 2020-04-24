@@ -288,4 +288,141 @@ BOOST_AUTO_TEST_CASE(test_mxm_a_and_b_transpose)
     BOOST_CHECK_EQUAL(result, answer);
 }
 
+//****************************************************************************
+//****************************************************************************
+
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(test_mxv)
+{
+    std::vector<std::vector<double> > A ={{12, 7, 3},
+                                          { 4, 5, 6},
+                                          { 7, 8, 9}};
+    Matrix<double> mA(A, 0);
+
+    std::vector<double> B = {5, 6, 4};
+    Vector<double> mB(B, 0);
+
+    Vector<double> result(3);
+
+    std::vector<double> ans = {114,  74, 119};
+    Vector<double> answer(ans, 0);
+
+    mxv(result,
+        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
+        GraphBLAS::ArithmeticSemiring<double>(),
+        mA, mB);
+
+    BOOST_CHECK_EQUAL(result, answer);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(test_mxv_masked)
+{
+    std::vector<std::vector<double> > A ={{12, 7, 3},
+                                          { 4, 5, 6},
+                                          { 7, 8, 9}};
+    Matrix<double> mA(A, 0);
+
+    std::vector<double> B = {5, 6, 4};
+    Vector<double> mB(B, 0);
+
+    Vector<double> result(3);
+
+    std::vector<double> ans = {114,  74, 0};
+    Vector<double> answer(ans, 0);
+
+    std::vector<uint8_t> M = {1, 1, 0};
+    Vector<uint8_t> mask(M, 0);
+
+    mxv(result,
+        mask, GraphBLAS::NoAccumulate(),
+        GraphBLAS::ArithmeticSemiring<double>(),
+        mA, mB);
+
+    BOOST_CHECK_EQUAL(result, answer);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(test_mxv_complemented_mask)
+{
+    std::vector<std::vector<double> > A ={{12, 7, 3},
+                                          { 4, 5, 6},
+                                          { 7, 8, 9}};
+    Matrix<double> mA(A, 0);
+
+    std::vector<double> B = {5, 6, 4};
+    Vector<double> mB(B, 0);
+
+    Vector<double> result(3);
+
+    std::vector<double> ans = {114,  74, 0};
+    Vector<double> answer(ans, 0);
+
+    std::vector<uint8_t> M = {0, 0, 1};
+    Vector<uint8_t> mask(M, 0);
+
+    mxv(result,
+        GraphBLAS::complement(mask), GraphBLAS::NoAccumulate(),
+        GraphBLAS::ArithmeticSemiring<double>(),
+        mA, mB);
+
+    BOOST_CHECK_EQUAL(result, answer);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(test_mxv_structure_mask)
+{
+    std::vector<std::vector<double> > A ={{12, 7, 3},
+                                          { 4, 5, 6},
+                                          { 7, 8, 9}};
+    Matrix<double> mA(A, 0);
+
+    std::vector<double> B = {5, 6, 4};
+    Vector<double> mB(B, 0);
+
+    Vector<double> result(3);
+
+    std::vector<double> ans = {114,  74, 0};
+    Vector<double> answer(ans, 0);
+
+    std::vector<uint8_t> M = {1, 0, 99};
+    Vector<uint8_t> mask(M, 99);
+
+    mxv(result,
+        GraphBLAS::structure(mask), GraphBLAS::NoAccumulate(),
+        GraphBLAS::ArithmeticSemiring<double>(),
+        mA, mB);
+
+    BOOST_CHECK_EQUAL(result, answer);
+}
+
+//****************************************************************************
+BOOST_AUTO_TEST_CASE(test_mxv_complemented_structure_mask)
+{
+    std::vector<std::vector<double> > A ={{12, 7, 3},
+                                          { 4, 5, 6},
+                                          { 7, 8, 9}};
+    Matrix<double> mA(A, 0);
+
+    std::vector<double> B = {5, 6, 4};
+    Vector<double> mB(B, 0);
+
+    Vector<double> result(3);
+
+    std::vector<double> ans = {114,  74, 0};
+    Vector<double> answer(ans, 0);
+
+    std::vector<uint8_t> M = {99, 99, 0};
+    Vector<uint8_t> mask(M, 99);
+
+    mxv(result,
+        GraphBLAS::complement(GraphBLAS::structure(mask)),
+        GraphBLAS::NoAccumulate(),
+        GraphBLAS::ArithmeticSemiring<double>(),
+        mA, mB);
+
+    BOOST_CHECK_EQUAL(result, answer);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

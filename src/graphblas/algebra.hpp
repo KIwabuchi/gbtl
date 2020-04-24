@@ -198,7 +198,7 @@ namespace GraphBLAS
 
     //-------------------------------------------------------------------------
     /// @todo Consider decltype for D3's default
-    template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
+    template <typename I1, typename I2 = I1, typename I3 = I1,
               typename std::enable_if_t<std::is_integral_v<I1> &&
                                         std::is_integral_v<I2> &&
                                         std::is_integral_v<I3>, int> = 0>
@@ -207,7 +207,7 @@ namespace GraphBLAS
         inline I3 operator()(I1 lhs, I2 rhs) const { return lhs | rhs; }
     };
 
-    template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
+    template <typename I1, typename I2 = I1, typename I3 = I1,
               typename std::enable_if_t<std::is_integral_v<I1> &&
                                         std::is_integral_v<I2> &&
                                         std::is_integral_v<I3>, int> = 0>
@@ -216,7 +216,7 @@ namespace GraphBLAS
         inline I3 operator()(I1 lhs, I2 rhs) const { return lhs & rhs; }
     };
 
-    template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
+    template <typename I1, typename I2 = I1, typename I3 = I1,
               typename std::enable_if_t<std::is_integral_v<I1> &&
                                         std::is_integral_v<I2> &&
                                         std::is_integral_v<I3>, int> = 0>
@@ -225,7 +225,7 @@ namespace GraphBLAS
         inline I3 operator()(I1 lhs, I2 rhs) const { return lhs ^ rhs; }
     };
 
-    template <typename I1 = uint64_t, typename I2 = I1, typename I3 = I1,
+    template <typename I1, typename I2 = I1, typename I3 = I1,
               typename std::enable_if_t<std::is_integral_v<I1> &&
                                         std::is_integral_v<I2> &&
                                         std::is_integral_v<I3>, int> = 0>
