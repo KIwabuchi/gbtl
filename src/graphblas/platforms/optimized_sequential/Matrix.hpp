@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -45,9 +45,6 @@ namespace GraphBLAS
         public:
             typedef ScalarT ScalarType;
 
-            LilSparseMatrix<ScalarT> &getBase() {return *this;}
-            LilSparseMatrix<ScalarT> const &getBase() const {return *this;}
-
             // construct an empty matrix of fixed dimensions
             Matrix(IndexType   num_rows,
                    IndexType   num_cols)
@@ -86,6 +83,12 @@ namespace GraphBLAS
             bool operator!=(Matrix const &rhs) const
             {
                 return LilSparseMatrix<ScalarT>::operator!=(rhs);
+            }
+
+            void printInfo(std::ostream &os) const
+            {
+                os << "Optimized_Sequential Backend: ";
+                LilSparseMatrix<ScalarT>::printInfo(os);
             }
         };
     }

@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,11 +27,9 @@
  * DM18-0559
  */
 
-#ifndef GB_SEQUENTIAL_TRANSPOSE_VIEW_HPP
-#define GB_SEQUENTIAL_TRANSPOSE_VIEW_HPP
+#pragma once
 
-#define GB_INCLUDE_BACKEND_MATRIX 1
-#include <backend_include.hpp>
+#include <graphblas/platforms/sequential/Matrix.hpp>
 
 //****************************************************************************
 
@@ -264,5 +262,3 @@ namespace GraphBLAS
 
     } //backend
 } // GraphBLAS
-
-#endif // GB_SEQUENTIAL_TRANSPOSE_VIEW_HPP

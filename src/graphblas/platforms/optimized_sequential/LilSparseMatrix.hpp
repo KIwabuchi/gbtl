@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,13 +27,13 @@
  * DM18-0559
  */
 
-#ifndef GB_SEQUENTIAL_LILSPARSEMATRIX_HPP
-#define GB_SEQUENTIAL_LILSPARSEMATRIX_HPP
+#pragma once
 
 #include <iostream>
 #include <vector>
 #include <typeinfo>
 #include <stdexcept>
+#include <algorithm>
 
 #include <graphblas/graphblas.hpp>
 
@@ -49,6 +49,8 @@ namespace GraphBLAS
         {
         public:
             typedef ScalarT ScalarType;
+            typedef std::tuple<IndexType, ScalarT> ElementType;
+            typedef std::vector<ElementType>       RowType;
 
             // Constructor
             LilSparseMatrix(IndexType num_rows,
@@ -200,12 +202,62 @@ namespace GraphBLAS
             IndexType ncols() const { return m_num_cols; }
             IndexType nvals() const { return m_nvals; }
 
-            /// Version 1 of getshape that assigns to two passed parameters
-            // void get_shape(IndexType &num_rows, IndexType &num_cols) const
-            // {
-            //     num_rows = m_num_rows;
-            //     num_cols = m_num_cols;
-            // }
+            /**
+             * @brief Resize the matrix dimensions (smaller or larger)
+             *
+             * @param[in]  new_num_rows  New number of rows (zero is invalid)
+             * @param[in]  new_num_cols  New number of columns (zero is invalid)
+             *
+             */
+            void resize(IndexType new_num_rows, IndexType new_num_cols)
+            {
+                // Invalid values check by frontend
+                //if ((new_num_rows == 0) || (new_num_cols == 0))
+                //    throw InvalidValueException();
+
+                // *******************************************
+                // Step 1: Deal with number of rows
+                m_data.resize(new_num_rows);
+
+                // Count how many elements are left when num_rows reduces
+                if (new_num_rows < m_num_rows)
+                {
+                    m_nvals = 0UL;
+                    for (auto const &row : m_data)
+                        m_nvals += row.size();
+                }
+                m_num_rows = new_num_rows;
+
+                // *******************************************
+                // Step 2: Deal with number columns
+                // Need to do nothing if size stays the same or increases
+                if (new_num_cols < m_num_cols)
+                {
+                    IndexType new_nvals(0UL);
+
+                    // Need to eliminate any entries beyond new limit
+                    // when decreasing
+                    for (auto &row : m_data)
+                    {
+                        if (!row.empty())
+                        {
+                            auto it(row.begin());
+                            for ( ; ((it != row.end()) &&
+                                     (std::get<0>(*it) < new_num_cols)); ++it)
+                            {
+                            }
+
+                            if (it != row.end())
+                            {
+                                IndexType nval(row.size());
+                                row.erase(it, row.end());
+                                m_nvals -= (nval - row.size()); // adjust nvals
+                            }
+                        }
+                    }
+                }
+                m_num_cols = new_num_cols;
+            }
 
             bool hasElement(IndexType irow, IndexType icol) const
             {
@@ -354,6 +406,25 @@ namespace GraphBLAS
                 }
             }
 
+            void removeElement(IndexType irow, IndexType icol)
+            {
+                if (irow >= m_num_rows || icol >= m_num_cols)
+                {
+                    throw IndexOutOfBoundsException("setElement: index out of bounds");
+                }
+
+                /// @todo Replace with binary_search
+                auto it = std::find_if(
+                    m_data[irow].begin(), m_data[irow].end(),
+                    [&icol](ElementType const &elt) { return icol == std::get<0>(elt); });
+
+                if (it != m_data[irow].end())
+                {
+                    m_nvals = m_nvals - 1;
+                    m_data[irow].erase(it);
+                }
+            }
+
             void recomputeNvals()
             {
                 IndexType nvals(0);
@@ -376,8 +447,6 @@ namespace GraphBLAS
             }
 
             // Row access
-            typedef std::vector<std::tuple<IndexType, ScalarT>> RowType;
-
             // Warning if you use this non-const row accessor then you should
             // call recomputeNvals() at some point to fix it
             RowType &operator[](IndexType row_index) { return m_data[row_index]; }
@@ -663,9 +732,9 @@ namespace GraphBLAS
             template<typename RAIteratorIT,
                      typename RAIteratorJT,
                      typename RAIteratorVT>
-            ScalarT extractTuples(RAIteratorIT        row_it,
-                                  RAIteratorJT        col_it,
-                                  RAIteratorVT        values) const
+            void extractTuples(RAIteratorIT        row_it,
+                               RAIteratorJT        col_it,
+                               RAIteratorVT        values) const
             {
                 for (IndexType row = 0; row < m_data.size(); ++row)
                 {
@@ -685,7 +754,7 @@ namespace GraphBLAS
             {
                 // Used to print data in storage format instead of like a matrix
                 #ifdef GRB_SEQUENTIAL_MATRIX_PRINT_STORAGE
-                    os << "LilSparseMatrix<" << typeid(ScalarT).name() << ">"
+                    os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << ">"
                        << std::endl;
                     os << "dimensions: " << m_num_rows << " x " << m_num_cols
                        << std::endl;
@@ -703,11 +772,11 @@ namespace GraphBLAS
                         os << std::endl;
                     }
                 #else
-                    typedef std::vector<std::tuple<IndexType, ScalarT>> const & RowType;
-
                     IndexType num_rows = nrows();
                     IndexType num_cols = ncols();
 
+                    os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << ">"
+                       << std::endl;
                     os << "(" << num_rows << "x" << num_cols << "), nvals = "
                        << nvals() << std::endl;
 
@@ -775,12 +844,10 @@ namespace GraphBLAS
             IndexType m_num_cols;
             IndexType m_nvals;
 
-            // List-of-lists storage (LIL)
-            std::vector<std::vector<std::tuple<IndexType, ScalarT>>> m_data;
+            // List-of-lists storage (LIL) really VOV
+            std::vector<RowType> m_data;
         };
 
     } // namespace backend
 
 } // namespace GraphBLAS
-
-#endif // GB_SEQUENTIAL_LILSPARSEMATRIX_HPP

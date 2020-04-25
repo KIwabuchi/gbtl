@@ -32,9 +32,6 @@
  * (CPU) backend.
  */
 
-#ifndef GB_OPTIMIZED_SEQUENTIAL_OPERATIONS_HPP
-#define GB_OPTIMIZED_SEQUENTIAL_OPERATIONS_HPP
-
 #pragma once
 
 #include <functional>
@@ -43,8 +40,9 @@
 #include <iterator>
 
 #include <graphblas/algebra.hpp>
+
+/// @deprecated
 #include <graphblas/platforms/optimized_sequential/TransposeView.hpp>
-#include <graphblas/platforms/optimized_sequential/ComplementView.hpp>
 
 // Add individual operation files here
 #include <graphblas/platforms/optimized_sequential/sparse_mxm.hpp>
@@ -66,52 +64,11 @@ namespace GraphBLAS
         /**
          *
          */
-
-        template<typename MatrixT>
-        inline MatrixComplementView<MatrixT> matrix_complement(MatrixT const &Mask)
-        {
-            return MatrixComplementView<MatrixT>(Mask);
-        }
-
-
-        /**
-         *
-         */
-        template<typename MatrixT>
-        inline MatrixT const &strip_matrix_complement(
-            MatrixComplementView<MatrixT> const &NotM)
-        {
-            return NotM.m_matrix;
-        }
-
-
-        template<typename VectorT>
-        inline VectorComplementView<VectorT> vector_complement(VectorT const &mask)
-        {
-            return VectorComplementView<VectorT>(mask);
-        }
-
-        /**
-         *
-         */
-        template<typename VectorT>
-        inline VectorT const &strip_vector_complement(
-            VectorComplementView<VectorT> const &Notm)
-        {
-            return Notm.m_vector;
-        }
-
-
-        /**
-         *
-         */
         template<typename MatrixT>
         inline TransposeView<MatrixT> transpose(MatrixT const &A)
         {
             return TransposeView<MatrixT>(A);
         }
-
-
 
         /**
          *
@@ -124,5 +81,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif // GB_OPTIMIZED_SEQUENTIAL_OPERATIONS_HPP

@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,12 +27,12 @@
  * DM18-0559
  */
 
-#ifndef GB_SEQUENTIAL_BITMAPSPARSEVECTOR_HPP
-#define GB_SEQUENTIAL_BITMAPSPARSEVECTOR_HPP
+#pragma once
 
 #include <iostream>
 #include <vector>
 #include <typeinfo>
+#include <numeric>
 
 namespace GraphBLAS
 {
@@ -79,7 +79,7 @@ namespace GraphBLAS
                 }
             }
 
-            BitmapSparseVector(IndexType const &nsize, ScalarT const &value)
+            BitmapSparseVector(IndexType nsize, ScalarT const &value)
                 : m_size(nsize),
                   m_nvals(0),
                   m_vals(nsize, value),
@@ -269,7 +269,65 @@ namespace GraphBLAS
                 return !(*this == rhs);
             }
 
-            // FUNCTIONS
+            // METHODS
+
+            void clear()
+            {
+                m_nvals = 0;
+                //m_vals.clear();
+                m_bitmap.assign(m_size, false);
+            }
+
+            IndexType size() const { return m_size; }
+            IndexType nvals() const { return m_nvals; }
+
+            /**
+             * @brief Resize the vector (smaller or larger)
+             *
+             * @param[in]  nsize  New number of elements (zero is invalid)
+             *
+             */
+            void resize(IndexType new_size)
+            {
+                // Check in the frontend
+                //if (nsize == 0)
+                //   throw InvalidValueException();
+
+                if (new_size < m_size)
+                {
+                    m_size = new_size;
+                    // compute new m_nvals when shrinking
+                    if (new_size < m_size/2)
+                    {
+                        // count remaining elements
+                        IndexType new_nvals = 0UL;
+                        new_nvals = std::reduce(m_bitmap.begin(),
+                                                m_bitmap.begin() + new_size,
+                                                new_nvals,
+                                               std::plus<IndexType>());
+                        m_nvals = new_nvals;
+                    }
+                    else
+                    {
+                        // count elements to be removed
+                        IndexType num_vals = 0UL;
+                        num_vals = std::reduce(m_bitmap.begin() + new_size,
+                                               m_bitmap.end(),
+                                               num_vals,
+                                               std::plus<IndexType>());
+                        m_nvals -= num_vals;
+                    }
+
+                    m_bitmap.resize(new_size);
+                    m_vals.resize(new_size);
+                }
+                else if (new_size > m_size)
+                {
+                    m_vals.resize(new_size);
+                    m_bitmap.resize(new_size, false);
+                    m_size = new_size;
+                }
+            }
 
             /**
              *
@@ -309,16 +367,6 @@ namespace GraphBLAS
                 m_bitmap.swap(bitmap);
                 m_nvals = nvals;
             }
-
-            void clear()
-            {
-                m_nvals = 0;
-                //m_vals.clear();
-                m_bitmap.assign(m_size, false);
-            }
-
-            IndexType size() const { return m_size; }
-            IndexType nvals() const { return m_nvals; }
 
             bool hasElement(IndexType index) const
             {
@@ -372,6 +420,20 @@ namespace GraphBLAS
                 }
             }
 
+            void removeElement(IndexType index)
+            {
+                if (index >= m_size)
+                {
+                    throw IndexOutOfBoundsException();
+                }
+
+                if (m_bitmap[index] == true)
+                {
+                    --m_nvals;
+                    m_bitmap[index] = false;
+                }
+            }
+
             template<typename RAIteratorIT,
                      typename RAIteratorVT>
             void extractTuples(RAIteratorIT        i_it,
@@ -396,10 +458,10 @@ namespace GraphBLAS
             // output specific to the storage layout of this type of matrix
             void printInfo(std::ostream &os) const
             {
-                //os << "BitmapSparseVector<" << typeid(ScalarT).name() << ">" << std::endl;
-                //os << "size  = " << m_size;
-                //os << ", nvals = " << m_nvals << std::endl;
-                //os << "contents: [";
+                os << "backend::BitmapSparseVector<" << typeid(ScalarT).name() << ">";
+                os << ", size  = " << m_size;
+                os << ", nvals = " << m_nvals << std::endl;
+
                 os << "[";
                 if (m_bitmap[0]) os << m_vals[0]; else os << "-";
                 for (IndexType idx = 1; idx < m_size; ++idx)
@@ -447,14 +509,10 @@ namespace GraphBLAS
             }
 
         private:
-            IndexType const       m_size;   // immutable after construction
+            IndexType             m_size;
             IndexType             m_nvals;
             std::vector<ScalarT>  m_vals;
             std::vector<bool>     m_bitmap;
         };
     } // backend
 } // GraphBLAS
-
-
-
-#endif // GB_SEQUENTIAL_BITMAPSPARSEVECTOR_HPP

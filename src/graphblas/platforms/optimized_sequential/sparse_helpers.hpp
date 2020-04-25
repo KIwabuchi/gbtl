@@ -982,7 +982,7 @@ namespace GraphBLAS
                    typename ZMatrixT >
         void write_with_opt_mask(CMatrixT                   &C,
                                  ZMatrixT           const   &Z,
-                                 backend::NoMask    const   &foo,
+                                 GraphBLAS::NoMask  const   &foo,
                                  bool                       replace)
         {
             sparse_copy(C, Z);
@@ -1018,7 +1018,7 @@ namespace GraphBLAS
         void write_with_opt_mask_1D(
             WVectorT                                           &w,
             std::vector<std::tuple<IndexType, ZScalarT>> const &z,
-            backend::NoMask const                              &foo,
+            GraphBLAS::NoMask const                            &foo,
             bool                                                replace)
         {
             //sparse_copy(w, z);

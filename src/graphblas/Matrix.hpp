@@ -264,7 +264,7 @@ namespace GraphBLAS
         // ================================================
         void printInfo(std::ostream &ostr) const
         {
-            ostr << "GraphBLAS::Matrix: " << std::endl;
+            ostr << "GraphBLAS::Matrix: ";
             m_mat.printInfo(ostr);
         }
 

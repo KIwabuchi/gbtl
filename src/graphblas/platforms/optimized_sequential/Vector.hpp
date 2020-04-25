@@ -81,7 +81,7 @@ namespace GraphBLAS
 
             void printInfo(std::ostream &os) const
             {
-                os << "Sequential Backend:" << std::endl;
+                os << "Optimized Sequential Backend: ";
                 BitmapSparseVector<ScalarT>::printInfo(os);
             }
         };

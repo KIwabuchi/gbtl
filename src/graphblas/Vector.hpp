@@ -249,7 +249,7 @@ namespace GraphBLAS
         // ================================================
         void printInfo(std::ostream &ostr) const
         {
-            ostr << "GraphBLAS::Vector: " << std::endl;
+            ostr << "GraphBLAS::Vector: ";
             m_vec.printInfo(ostr);
         }
 

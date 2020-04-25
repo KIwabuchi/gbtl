@@ -207,7 +207,7 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (A*B)" << std::endl;
-            sparse_mxm_CompMask_NoAccum_AB(C, strip_matrix_complement(M),
+            sparse_mxm_CompMask_NoAccum_AB(C, get_internal_matrix(M),
                                            op, A, B, replace_flag);
         }
 
@@ -222,7 +222,7 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (C + A*B)" << std::endl;
-            sparse_mxm_CompMask_Accum_AB(C, strip_matrix_complement(M), accum,
+            sparse_mxm_CompMask_Accum_AB(C, get_internal_matrix(M), accum,
                                          op, A, B, replace_flag);
         }
 
@@ -297,7 +297,7 @@ namespace GraphBLAS
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (A*B')" << std::endl;
             sparse_mxm_CompMask_NoAccum_ABT(
-                C, strip_matrix_complement(M), op,
+                C, get_internal_matrix(M), op,
                 A, strip_transpose(B), replace_flag);
         }
 
@@ -313,7 +313,7 @@ namespace GraphBLAS
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (C + A*B')" << std::endl;
             sparse_mxm_CompMask_Accum_ABT(
-                C, strip_matrix_complement(M), accum, op,
+                C, get_internal_matrix(M), accum, op,
                 A, strip_transpose(B), replace_flag);
         }
 
@@ -388,7 +388,7 @@ namespace GraphBLAS
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (A'*B)" << std::endl;
             sparse_mxm_CompMask_NoAccum_ATB(
-                C, strip_matrix_complement(M), op,
+                C, get_internal_matrix(M), op,
                 strip_transpose(A), B, replace_flag);
         }
 
@@ -404,7 +404,7 @@ namespace GraphBLAS
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (C + A'*B)" << std::endl;
             sparse_mxm_CompMask_Accum_ATB(
-                C, strip_matrix_complement(M), accum, op,
+                C, get_internal_matrix(M), accum, op,
                 strip_transpose(A), B, replace_flag);
         }
 
@@ -484,7 +484,7 @@ namespace GraphBLAS
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (A'*B')" << std::endl;
             sparse_mxm_CompMask_NoAccum_ATBT(
-                C, strip_matrix_complement(M), op,
+                C, get_internal_matrix(M), op,
                 strip_transpose(A), strip_transpose(B), replace_flag);
         }
 
@@ -500,7 +500,7 @@ namespace GraphBLAS
             std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
                       << " := (C + A'*B')" << std::endl;
             sparse_mxm_CompMask_Accum_ATBT(
-                C, strip_matrix_complement(M), accum, op,
+                C, get_internal_matrix(M), accum, op,
                 strip_transpose(A), strip_transpose(B), replace_flag);
         }
 
