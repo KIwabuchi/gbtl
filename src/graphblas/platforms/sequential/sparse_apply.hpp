@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,9 +26,6 @@
  *
  * DM18-0559
  */
-
-#ifndef GB_SEQUENTIAL_SPARSE_APPLY_HPP
-#define GB_SEQUENTIAL_SPARSE_APPLY_HPP
 
 #pragma once
 
@@ -77,19 +74,6 @@ namespace GraphBLAS
                 for (auto&& [idx, val] : u.getContents()) {
                     t_contents.emplace_back(idx, op(val));
                 }
-
-                //auto u_contents(u.getContents());
-                //auto row_iter = u_contents.begin();
-                //while (row_iter != u_contents.end())
-                //{
-                //   //GraphBLAS::IndexType u_idx;
-                //    //UScalarType          u_val;
-                //    //std::tie(u_idx, u_val) = *row_iter;
-                //    auto&& [u_idx, u_val] = *row_iter;
-                //    auto t_val = op(u_val);
-                //    t_contents.push_back(std::make_tuple(u_idx,t_val));
-                //    ++row_iter;
-                //}
             }
 
             GRB_LOG_VERBOSE("t: " << t_contents);
@@ -120,9 +104,9 @@ namespace GraphBLAS
                  typename AccumT,
                  typename UnaryOpT,
                  typename AMatrixT,
-                 typename ...CTags>
+                 typename ...CTagsT>
         inline void apply(
-            GraphBLAS::backend::Matrix<CScalarT, CTags...>  &C,
+            GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
             MaskT                                     const &mask,
             AccumT                                    const &accum,
             UnaryOpT                                         op,
@@ -132,10 +116,8 @@ namespace GraphBLAS
             typedef typename AMatrixT::ScalarType                   AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
 
-
             using TScalarType = decltype(op(std::declval<AScalarType>()));
             typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
-
 
             IndexType nrows(A.nrows());
             IndexType ncols(A.ncols());
@@ -144,12 +126,7 @@ namespace GraphBLAS
             // Apply the unary operator from A into T.
             // This is really the guts of what makes this special.
             LilSparseMatrix<TScalarType> T(nrows, ncols);
-
-            //ARowType a_row;
             TRowType t_row;
-
-            //IndexType a_idx;
-            //AScalarType a_val;
 
             for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
             {
@@ -161,14 +138,6 @@ namespace GraphBLAS
                     for (auto&& [a_idx, a_val] : a_row) {
                         t_row.emplace_back(a_idx, op(a_val));
                     }
-                    //auto row_iter = a_row.begin();
-                    //while (row_iter != a_row.end())
-                    //{
-                    //    std::tie(a_idx, a_val) = *row_iter;
-                    //    TScalarType t_val = static_cast<TScalarType>(op(a_val));
-                    //    t_row.push_back(std::make_tuple(a_idx,t_val));
-                    //    ++row_iter;
-                    //}
 
                     if (!t_row.empty())
                         T.setRow(row_idx, t_row);
@@ -227,18 +196,6 @@ namespace GraphBLAS
                 for (auto&& [idx, u_val] : u.getContents()) {
                     t_contents.emplace_back(idx, op(val, u_val));
                 }
-
-                //auto u_contents(u.getContents());
-                //auto row_iter = u_contents.begin();
-                //while (row_iter != u_contents.end())
-                //{
-                //    GraphBLAS::IndexType u_idx;
-                //    UScalarType          u_val;
-                //    std::tie(u_idx, u_val) = *row_iter;
-                //    TScalarType t_val = static_cast<TScalarType>(op(val, u_val));
-                //    t_contents.push_back(std::make_tuple(u_idx,t_val));
-                //    ++row_iter;
-                //}
             }
 
             GRB_LOG_VERBOSE("t: " << t_contents);
@@ -293,18 +250,6 @@ namespace GraphBLAS
                 for (auto&& [idx, u_val] : u.getContents()) {
                     t_contents.emplace_back(idx, op(u_val, val));
                 }
-
-                // auto u_contents(u.getContents());
-                // auto row_iter = u_contents.begin();
-                // while (row_iter != u_contents.end())
-                // {
-                //     GraphBLAS::IndexType u_idx;
-                //     UScalarType          u_val;
-                //     std::tie(u_idx, u_val) = *row_iter;
-                //     TScalarType t_val = static_cast<TScalarType>(op(u_val, val));
-                //     t_contents.push_back(std::make_tuple(u_idx, t_val));
-                //     ++row_iter;
-                // }
             }
 
             GRB_LOG_VERBOSE("t: " << t_contents);
@@ -362,16 +307,11 @@ namespace GraphBLAS
             // Apply the unary operator from A into T.
             // This is really the guts of what makes this special.
             LilSparseMatrix<TScalarType> T(nrows, ncols);
-
-            ARowType a_row;
             TRowType t_row;
-
-            IndexType a_idx;
-            AScalarType a_val;
 
             for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
             {
-                a_row = A.getRow(row_idx);
+                auto a_row = A.getRow(row_idx);
                 if (!a_row.empty())
                 {
                     t_row.clear();
@@ -379,15 +319,6 @@ namespace GraphBLAS
                     for (auto&& [a_idx, a_val] : a_row) {
                         t_row.emplace_back(a_idx, op(val, a_val));
                     }
-                    // auto row_iter = a_row.begin();
-                    // while (row_iter != a_row.end())
-                    // {
-                    //     std::tie(a_idx, a_val) = *row_iter;
-                    //     TScalarType t_val =
-                    //         static_cast<TScalarType>(op(val, a_val));
-                    //     t_row.push_back(std::make_tuple(a_idx,t_val));
-                    //     ++row_iter;
-                    // }
 
                     if (!t_row.empty())
                         T.setRow(row_idx, t_row);
@@ -424,9 +355,9 @@ namespace GraphBLAS
                  typename BinaryOpT,
                  typename AMatrixT,
                  typename ValueT,
-                 typename ...CTags>
+                 typename ...CTagsT>
         inline void apply_binop_2nd(
-            GraphBLAS::backend::Matrix<CScalarT, CTags...>  &C,
+            GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
             MaskT                                     const &mask,
             AccumT                                    const &accum,
             BinaryOpT                                        op,
@@ -449,32 +380,17 @@ namespace GraphBLAS
             // Apply the unary operator from A into T.
             // This is really the guts of what makes this special.
             LilSparseMatrix<TScalarType> T(nrows, ncols);
-
-            ARowType a_row;
             TRowType t_row;
-
-            IndexType a_idx;
-            AScalarType a_val;
 
             for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
             {
-                a_row = A.getRow(row_idx);
+                auto a_row = A.getRow(row_idx);
                 if (!a_row.empty())
                 {
                     t_row.clear();
                     for (auto&& [a_idx, a_val] : a_row) {
                         t_row.emplace_back(a_idx, op(a_val, val));
                     }
-
-                    // auto row_iter = a_row.begin();
-                    // while (row_iter != a_row.end())
-                    // {
-                    //     std::tie(a_idx, a_val) = *row_iter;
-                    //     TScalarType t_val =
-                    //         static_cast<TScalarType>(op(a_val, val));
-                    //     t_row.push_back(std::make_tuple(a_idx,t_val));
-                    //     ++row_iter;
-                    // }
 
                     if (!t_row.empty())
                         T.setRow(row_idx, t_row);
@@ -503,7 +419,3 @@ namespace GraphBLAS
         }
     }
 }
-
-
-
-#endif //GB_SEQUENTIAL_SPARSE_APPLY_HPP

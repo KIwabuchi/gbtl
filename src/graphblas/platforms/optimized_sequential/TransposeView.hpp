@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include <graphblas/platforms/sequential/Matrix.hpp>
+#include <graphblas/platforms/optimized_sequential/Matrix.hpp>
 
 //****************************************************************************
 

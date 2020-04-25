@@ -32,9 +32,6 @@
  * (CPU) backend.
  */
 
-#ifndef GB_SEQUENTIAL_SPARSE_HELPERS_HPP
-#define GB_SEQUENTIAL_SPARSE_HELPERS_HPP
-
 #pragma once
 
 #include <functional>
@@ -284,7 +281,6 @@ namespace GraphBLAS
                  SemiringT                                                op)
         {
             bool value_set(false);
-            ans = op.zero();
 
             if (vec2.empty() || vec1.empty())
             {
@@ -312,7 +308,14 @@ namespace GraphBLAS
                 if (u_idx == a_idx)
                 {
                     //std::cerr << ans << " + " << a_val << " * " << u_val << " = ";
-                    ans = op.add(ans, op.mult(a_val, u_val));
+                    if (value_set)
+                    {
+                        ans = op.add(ans, op.mult(a_val, u_val));
+                    }
+                    else
+                    {
+                        ans = op.mult(a_val, u_val);
+                    }
                     value_set = true;
                     //std::cerr << ans << std::endl;
 
@@ -438,7 +441,7 @@ namespace GraphBLAS
 
         //********************************************************************
         // ALL SUPPORT
-        // This is where we turns alls into the correct range
+        // This is where we turn alls into the correct range
 
         template <typename SequenceT>
         bool searchIndices(SequenceT seq, IndexType n)
@@ -1301,7 +1304,6 @@ namespace GraphBLAS
             w.setContents(tmp_row);
         }
 
-
         //**********************************************************************
         // Vector version specialized for no mask
         template <typename WVectorT,
@@ -1353,5 +1355,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif

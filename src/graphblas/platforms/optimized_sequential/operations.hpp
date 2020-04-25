@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -55,7 +55,7 @@
 #include <graphblas/platforms/optimized_sequential/sparse_apply.hpp>
 #include <graphblas/platforms/optimized_sequential/sparse_reduce.hpp>
 #include <graphblas/platforms/optimized_sequential/sparse_transpose.hpp>
-
+#include <graphblas/platforms/optimized_sequential/sparse_kronecker.hpp>
 
 namespace GraphBLAS
 {
