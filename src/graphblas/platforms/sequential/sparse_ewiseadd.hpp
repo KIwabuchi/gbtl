@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,9 +26,6 @@
  *
  * DM18-0559
  */
-
-#ifndef GB_SEQUENTIAL_SPARSE_EWISEADD_HPP
-#define GB_SEQUENTIAL_SPARSE_EWISEADD_HPP
 
 #pragma once
 
@@ -62,7 +59,7 @@ namespace GraphBLAS
         inline void eWiseAdd(
             GraphBLAS::backend::Vector<WScalarT, WTagsT...> &w,
             MaskT                                     const &mask,
-            AccumT                                           accum,
+            AccumT                                    const &accum,
             BinaryOpT                                        op,
             UVectorT                                  const &u,
             VVectorT                                  const &v,
@@ -85,7 +82,12 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            std::vector<std::tuple<IndexType,WScalarT> > z_contents;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                D3ScalarType,
+                decltype(accum(std::declval<WScalarT>(),
+                               std::declval<D3ScalarType>()))>::type ZScalarType;
+            std::vector<std::tuple<IndexType,ZScalarType> > z_contents;
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
 
             // =================================================================
@@ -105,7 +107,7 @@ namespace GraphBLAS
         inline void eWiseAdd(
             GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
             MaskT                                     const &Mask,
-            AccumT                                           accum,
+            AccumT                                    const &accum,
             BinaryOpT                                        op,
             AMatrixT                                  const &A,
             BMatrixT                                  const &B,
@@ -161,8 +163,13 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                D3ScalarType,
+                decltype(accum(std::declval<CScalarT>(),
+                               std::declval<D3ScalarType>()))>::type ZScalarType;
 
-            LilSparseMatrix<CScalarT> Z(num_rows, num_cols);
+            LilSparseMatrix<ZScalarType> Z(num_rows, num_cols);
             ewise_or_opt_accum(Z, C, T, accum);
 
             // =================================================================
@@ -172,5 +179,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif

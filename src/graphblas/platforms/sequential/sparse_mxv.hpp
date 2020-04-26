@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,9 +26,6 @@
  *
  * DM18-0559
  */
-
-#ifndef GB_SEQUENTIAL_SPARSE_MXV_HPP
-#define GB_SEQUENTIAL_SPARSE_MXV_HPP
 
 #pragma once
 
@@ -58,7 +55,7 @@ namespace GraphBLAS
                  typename UVectorT>
         inline void mxv(WVectorT          &w,
                         MaskT       const &mask,
-                        AccumT             accum,
+                        AccumT      const &accum,
                         SemiringT          op,
                         AMatrixT    const &A,
                         UVectorT    const &u,
@@ -109,5 +106,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif

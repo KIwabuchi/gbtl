@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,9 +26,6 @@
  *
  * DM18-0559
  */
-
-#ifndef GB_SEQUENTIAL_SPARSE_REDUCE_HPP
-#define GB_SEQUENTIAL_SPARSE_REDUCE_HPP
 
 #pragma once
 
@@ -56,7 +53,7 @@ namespace GraphBLAS
                  typename AMatrixT>
         inline void reduce(WVectorT          &w,
                            MaskT       const &mask,
-                           AccumT             accum,
+                           AccumT      const &accum,
                            BinaryOpT          op,
                            AMatrixT    const &A,
                            OutputControlEnum  outp)
@@ -114,7 +111,7 @@ namespace GraphBLAS
                  typename MonoidT, // monoid only
                  typename UVectorT>
         inline void reduce_vector_to_scalar(ValueT         &val,
-                                            AccumT          accum,
+                                            AccumT   const &accum,
                                             MonoidT         op,
                                             UVectorT const &u)
         {
@@ -144,10 +141,6 @@ namespace GraphBLAS
                                std::declval<TScalarType>()))>::type
                 ZScalarType;
 
-            /// @todo Do we need a type generator for z: D(t) if no accum,
-            /// or D3(accum). I think that D(z) := D(val) should be equivalent, but
-            /// still need to work the proof.
-
             ZScalarType z;
             opt_accum_scalar(z, val, t, accum);
 
@@ -162,7 +155,7 @@ namespace GraphBLAS
                  typename MonoidT, // monoid only
                  typename AMatrixT>
         inline void reduce_matrix_to_scalar(ValueT         &val,
-                                            AccumT          accum,
+                                            AccumT   const &accum,
                                             MonoidT         op,
                                             AMatrixT const &A)
         {
@@ -205,9 +198,6 @@ namespace GraphBLAS
                                std::declval<TScalarType>()))>::type
                 ZScalarType;
 
-            /// @todo Do we need a type generator for z: D(w) if no accum,
-            /// or D3(accum). I think that D(z) := D(val) should be equivalent, but
-            /// still need to work the proof.
             ZScalarType z;
             opt_accum_scalar(z, val, t, accum);
 
@@ -217,5 +207,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif

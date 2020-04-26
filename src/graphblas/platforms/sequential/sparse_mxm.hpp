@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,9 +26,6 @@
  *
  * DM18-0559
  */
-
-#ifndef GB_SEQUENTIAL_SPARSE_MXM_HPP
-#define GB_SEQUENTIAL_SPARSE_MXM_HPP
 
 #pragma once
 
@@ -72,16 +69,9 @@ namespace GraphBLAS
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
             IndexType ncol_B(B.ncols());
-            //Frontend checks the dimensions, but use C explicitly
-            IndexType nrow_C(C.nrows());
-            IndexType ncol_C(C.ncols());
 
             typedef typename SemiringT::result_type TScalarType;
-            typedef typename AMatrixT::ScalarType AScalarType;
-            typedef typename BMatrixT::ScalarType BScalarType;
-            typedef typename CMatrixT::ScalarType CScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarType> > CColType;
-            typedef std::vector<std::tuple<IndexType,TScalarType> > TColType;
+            typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
 
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
@@ -118,6 +108,7 @@ namespace GraphBLAS
                         }
                     }
                 }
+                T.recomputeNvals();
             }
 
             GRB_LOG_VERBOSE("T: " << T);
@@ -131,7 +122,7 @@ namespace GraphBLAS
                                std::declval<TScalarType>()))>::type
                 ZScalarType;
 
-            LilSparseMatrix<ZScalarType> Z(nrow_C, ncol_C);
+            LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
 
             ewise_or_opt_accum(Z, C, T, accum);
 
@@ -144,5 +135,3 @@ namespace GraphBLAS
         } // mxm
     } // backend
 } // GraphBLAS
-
-#endif

@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,13 +27,6 @@
  * DM18-0559
  */
 
-/**
- * Implementations of sparse vxm for the sequential (CPU) backend.
- */
-
-#ifndef GB_SEQUENTIAL_SPARSE_VXM_HPP
-#define GB_SEQUENTIAL_SPARSE_VXM_HPP
-
 #pragma once
 
 #include <functional>
@@ -44,7 +37,6 @@
 #include <graphblas/algebra.hpp>
 
 #include "sparse_helpers.hpp"
-
 
 //****************************************************************************
 
@@ -62,7 +54,7 @@ namespace GraphBLAS
                  typename UVectorT>
         inline void vxm(WVectorT          &w,
                         MaskT       const &mask,
-                        AccumT             accum,
+                        AccumT      const &accum,
                         SemiringT          op,
                         UVectorT    const &u,
                         AMatrixT    const &A,
@@ -113,5 +105,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif

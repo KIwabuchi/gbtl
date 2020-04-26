@@ -32,9 +32,6 @@
  * (CPU) backend.
  */
 
-#ifndef GB_SEQUENTIAL_OPERATIONS_HPP
-#define GB_SEQUENTIAL_OPERATIONS_HPP
-
 #pragma once
 
 #include <functional>
@@ -67,23 +64,6 @@ namespace GraphBLAS
         /**
          *
          */
-
-        template<typename MatrixT>
-        inline MatrixComplementView<MatrixT> matrix_complement(MatrixT const &Mask)
-        {
-            return MatrixComplementView<MatrixT>(Mask);
-        }
-
-        template<typename VectorT>
-        inline VectorComplementView<VectorT> vector_complement(VectorT const &mask)
-        {
-            return VectorComplementView<VectorT>(mask);
-        }
-
-
-        /**
-         *
-         */
         template<typename MatrixT>
         inline TransposeView<MatrixT> transpose(MatrixT const &A)
         {
@@ -92,5 +72,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif // GB_SEQUENTIAL_OPERATIONS_HPP

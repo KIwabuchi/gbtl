@@ -27,9 +27,6 @@
  * DM18-0559
  */
 
-#ifndef GB_SEQUENTIAL_SPARSE_KRONECKER_HPP
-#define GB_SEQUENTIAL_SPARSE_KRONECKER_HPP
-
 #pragma once
 
 #include <functional>
@@ -147,8 +144,6 @@ namespace GraphBLAS
             // Copy Z into the final output considering mask and replace/merge
             write_with_opt_mask(C, Z, M, outp);
 
-        } // mxm
+        }
     } // backend
 } // GraphBLAS
-
-#endif

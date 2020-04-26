@@ -165,7 +165,6 @@ namespace GraphBLAS
             write_with_opt_mask(C, Z, mask, outp);
         }
 
-
         //**********************************************************************
         // Implementation of 4.3.8.3 Vector variant of Apply w/ binaryop+bind1st
         template<typename WScalarT,

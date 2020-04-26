@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,9 +26,6 @@
  *
  * DM18-0559
  */
-
-#ifndef GB_SEQUENTIAL_SPARSE_ASSIGN_HPP
-#define GB_SEQUENTIAL_SPARSE_ASSIGN_HPP
 
 #pragma once
 
@@ -309,7 +306,7 @@ namespace GraphBLAS
                            AccumT       const &accum,
                            UVectorT     const &u,
                            SequenceT    const &indices,
-                           bool                replace_flag)
+                           OutputControlEnum   outp)
         {
             GRB_LOG_VERBOSE("reference backend - 4.3.7.1");
 
@@ -330,10 +327,12 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into z
-
-            typedef typename std::conditional<std::is_same<AccumT, NoAccumulate>::value,
-                    typename WVectorT::ScalarType,
-                    typename AccumT::result_type>::type ZScalarType;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                typename WVectorT::ScalarType, /// @todo UScalarType?
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<UScalarType>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_stencil_opt_accum_1D(z, w, t,
@@ -343,8 +342,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("z: " << z);
 
             // =================================================================
-            // Copy z into the final output considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy z into the final output considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
         }
 
         //=====================================================================
@@ -363,7 +362,7 @@ namespace GraphBLAS
                            AMatrixT         const &A,
                            RowSequenceT     const &row_indices,
                            ColSequenceT     const &col_indices,
-                           bool                    replace = false)
+                           OutputControlEnum       outp)
         {
             typedef typename CMatrixT::ScalarType  CScalarType;
             typedef typename AMatrixT::ScalarType  AScalarType;
@@ -385,9 +384,12 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<std::is_same<AccumT, NoAccumulate>::value,
-                    typename CMatrixT::ScalarType,
-                    typename AccumT::result_type>::type ZScalarType;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                typename CMatrixT::ScalarType, /// @todo AScalarType?
+                decltype(accum(std::declval<typename CMatrixT::ScalarType>(),
+                               std::declval<AScalarType>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
             ewise_or_stencil_opt_accum(Z, C, T,
@@ -398,8 +400,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("Z:  " << Z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, mask, replace);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, mask, outp);
         }
 
         //=====================================================================
@@ -417,7 +419,7 @@ namespace GraphBLAS
                            UVectorT         const &u,
                            SequenceT        const &row_indices,
                            IndexType               col_index,
-                           bool                    replace = false)
+                           OutputControlEnum       outp)
         {
             // IMPLEMENTATION NOTE: This function does not directly follow our
             // standard implementation method.  We leverage a different assign
@@ -437,7 +439,7 @@ namespace GraphBLAS
             }
 
             // ----------- standard vector variant 4.3.7.1 -----------
-            assign(c_vec, mask, accum, u, row_indices, replace);
+            assign(c_vec, mask, accum, u, row_indices, outp);
             // ----------- standard vector variant 4.3.7.1 -----------
 
             // REPLACE the column of C matrix
@@ -470,7 +472,7 @@ namespace GraphBLAS
                            UVectorT         const &u,
                            IndexType               row_index,
                            SequenceT        const &col_indices,
-                           bool                    replace = false)
+                           OutputControlEnum       outp)
         {
             // IMPLEMENTATION NOTE: This function does not directly follow our
             // standard implementation method.  We leverage a different assign
@@ -490,7 +492,7 @@ namespace GraphBLAS
             }
 
             // ----------- standard vector variant 4.3.7.1 -----------
-            assign(c_vec, mask, accum, u, col_indices, replace);
+            assign(c_vec, mask, accum, u, col_indices, outp);
             // ----------- standard vector variant 4.3.7.1 -----------
 
             // REPLACE the row of C matrix
@@ -522,7 +524,7 @@ namespace GraphBLAS
                                     AccumT         const &accum,
                                     ValueT                val,
                                     SequenceT      const &indices,
-                                    bool                  replace_flag = false)
+                                    OutputControlEnum     outp)
         {
             // execution error checks
             check_index_array_content(indices, w.size(),
@@ -539,11 +541,12 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
-                typename WVectorT::ScalarType,
-                typename AccumT::result_type>::type ZScalarType;
+                typename WVectorT::ScalarType,  /// @todo ValueT?
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<ValueT>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_stencil_opt_accum_1D(z, w, t,
@@ -553,8 +556,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("z: " << z);
 
             // =================================================================
-            // Copy Z into the final output, w, considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
         }
 
         //======================================================================
@@ -571,9 +574,9 @@ namespace GraphBLAS
                                     MaskT          const &Mask,
                                     AccumT         const &accum,
                                     ValueT                val,
-                                    RowIndicesT  const &row_indices,
-                                    ColIndicesT  const &col_indices,
-                                    bool                  replace_flag = false)
+                                    RowIndicesT    const &row_indices,
+                                    ColIndicesT    const &col_indices,
+                                    OutputControlEnum     outp)
         {
             typedef typename CMatrixT::ScalarType CScalarType;
 
@@ -594,9 +597,12 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<std::is_same<AccumT, NoAccumulate>::value,
-                    typename CMatrixT::ScalarType,
-                    typename AccumT::result_type>::type ZScalarType;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                typename CMatrixT::ScalarType,  /// @todo ValueT?
+                decltype(accum(std::declval<CScalarType>(),
+                               std::declval<ValueT>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<CScalarType> Z(C.nrows(), C.ncols());
             ewise_or_stencil_opt_accum(Z, C, T,
@@ -607,10 +613,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("Z: " << Z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, Mask, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, Mask, outp);
         }
     }
 }
-
-#endif //GB_SEQUENTIAL_SPARSE_ASSIGN_HPP

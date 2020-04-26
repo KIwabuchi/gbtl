@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,13 +26,6 @@
  *
  * DM18-0559
  */
-
-/**
- * Implementation of all sparse mxv for the sequential (CPU) backend.
- */
-
-#ifndef GB_SEQUENTIAL_SPARSE_MXV_HPP
-#define GB_SEQUENTIAL_SPARSE_MXV_HPP
 
 #pragma once
 
@@ -60,21 +53,21 @@ namespace GraphBLAS
                  typename SemiringT,
                  typename AMatrixT,
                  typename UVectorT>
-        inline void mxv(WVectorT        &w,
-                        MaskT     const &mask,
-                        AccumT    const &accum,
-                        SemiringT        op,
-                        AMatrixT  const &A,
-                        UVectorT  const &u,
-                        bool             replace_flag = false)
+        inline void mxv(WVectorT          &w,
+                        MaskT       const &mask,
+                        AccumT      const &accum,
+                        SemiringT          op,
+                        AMatrixT    const &A,
+                        UVectorT    const &u,
+                        OutputControlEnum  outp)
         {
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
-            typedef typename SemiringT::result_type D3ScalarType;
+            typedef typename SemiringT::result_type TScalarType;
             typedef typename AMatrixT::ScalarType AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> >  ARowType;
 
-            std::vector<std::tuple<IndexType, D3ScalarType> > t;
+            std::vector<std::tuple<IndexType, TScalarType> > t;
 
             if ((A.nvals() > 0) && (u.nvals() > 0))
             {
@@ -85,7 +78,7 @@ namespace GraphBLAS
 
                     if (!A_row.empty())
                     {
-                        D3ScalarType t_val;
+                        TScalarType t_val;
                         if (dot(t_val, A_row, u_contents, op))
                         {
                             t.push_back(std::make_tuple(row_idx, t_val));
@@ -96,18 +89,20 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<std::is_same<AccumT, NoAccumulate>::value,
-                                              D3ScalarType,
-                                              typename AccumT::result_type>::type ZScalarType;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                TScalarType,
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);
 
             // =================================================================
-            // Copy Z into the final output, w, considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
         }
 
     } // backend
 } // GraphBLAS
-
-#endif

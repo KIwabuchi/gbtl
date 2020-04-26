@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,13 +26,6 @@
  *
  * DM18-0559
  */
-
-/**
- * Implementation of the sparse matrix apply function.
- */
-
-#ifndef GB_SEQUENTIAL_SPARSE_TRANSPOSE_HPP
-#define GB_SEQUENTIAL_SPARSE_TRANSPOSE_HPP
 
 #pragma once
 
@@ -62,7 +55,7 @@ namespace GraphBLAS
                  typename AMatrixT>
         inline void transpose(CMatrixT          &C,
                               MaskT       const &mask,
-                              AccumT             accum,
+                              AccumT      const &accum,
                               AMatrixT    const &A,
                               OutputControlEnum  outp)
         {
@@ -99,7 +92,7 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("T: " << T);
 
             // =================================================================
-            // Accumulate T via C into Z;
+            // Accumulate T via C into Z
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 AScalarType,
@@ -118,7 +111,3 @@ namespace GraphBLAS
         }
     }
 }
-
-
-
-#endif //GB_SEQUENTIAL_SPARSE_TRANSPOSE_HPP

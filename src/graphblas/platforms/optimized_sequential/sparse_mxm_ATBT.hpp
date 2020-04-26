@@ -27,13 +27,6 @@
  * DM18-0559
  */
 
-/**
- * Implementation of sparse mxm for the sequential (CPU) backend.
- */
-
-#ifndef GB_SEQUENTIAL_SPARSE_MXM_ATBT_HPP
-#define GB_SEQUENTIAL_SPARSE_MXM_ATBT_HPP
-
 #pragma once
 
 #include <functional>
@@ -207,19 +200,19 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             // C<M,z> = A +.* B
             //        =               [M .* (A' +.* B')], z = "replace"
             //        = [!M .* C]  U  [M .* (A' +.* B')], z = "merge"
             // short circuit conditions
-            if (replace_flag &&
+            if ((outp == REPLACE) &&
                 ((A.nvals() == 0) || (B.nvals() == 0) || (M.nvals() == 0)))
             {
                 C.clear();
                 return;
             }
-            else if (!replace_flag && (M.nvals() == 0))
+            else if (!(outp == REPLACE) && (M.nvals() == 0))
             {
                 return; // do nothing
             }
@@ -274,7 +267,7 @@ namespace GraphBLAS
                     }
                 }
 
-                if (replace_flag)
+                if ((outp == REPLACE))
                 {
                     C.setRow(i, Z_row);
                 }
@@ -302,18 +295,18 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             // C<M,z> = C + (A' +.* B')
             //        =               [M .* [C + (A' +.* B')]], z = "replace"
             //        = [!M .* C]  U  [M .* [C + (A' +.* B')]], z = "merge"
             // short circuit conditions
-            if (replace_flag && (M.nvals() == 0))
+            if ((outp == REPLACE) && (M.nvals() == 0))
             {
                 C.clear();
                 return;
             }
-            else if (!replace_flag && (M.nvals() == 0))
+            else if (!(outp == REPLACE) && (M.nvals() == 0))
             {
                 return; // do nothing
             }
@@ -321,7 +314,8 @@ namespace GraphBLAS
             // =================================================================
 
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef typename AccumT::result_type ZScalarType;
+            typedef decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>())) ZScalarType;
             typename LilSparseMatrix<D3ScalarType>::RowType T_row;
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
             typename LilSparseMatrix<CScalarT>::RowType C_row;
@@ -372,7 +366,7 @@ namespace GraphBLAS
                 Z_row.clear();
                 masked_accum(Z_row, M[i], false, accum, C[i], T_row);
 
-                if (!replace_flag) /* z = merge */
+                if (!(outp == REPLACE)) /* z = merge */
                 {
                     // C[i]  = [!M .* C]  U  Z[i]
                     C_row.clear();
@@ -399,13 +393,13 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             // C<M,z> = A +.* B
             //        =               [M .* (A' +.* B')], z = "replace"
             //        = [!M .* C]  U  [M .* (A' +.* B')], z = "merge"
             // short circuit conditions
-            if (replace_flag && ((A.nvals() == 0) || (B.nvals() == 0)))
+            if ((outp == REPLACE) && ((A.nvals() == 0) || (B.nvals() == 0)))
             {
                 C.clear();
                 return;
@@ -461,7 +455,7 @@ namespace GraphBLAS
                     }
                 }
 
-                if (replace_flag)
+                if ((outp == REPLACE))
                 {
                     C.setRow(i, Z_row);
                 }
@@ -489,13 +483,13 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             // C<!M,z> = C + (A' +.* B')
             //         =              [!M .* [C + (A' +.* B')]], z = "replace"
             //         = [M .* C]  U  [!M .* [C + (A' +.* B')]], z = "merge"
             // short circuit conditions
-            if (replace_flag &&
+            if ((outp == REPLACE) &&
                 (M.nvals() == 0) &&
                 ((A.nvals() == 0) || (B.nvals() == 0)))
             {
@@ -505,7 +499,8 @@ namespace GraphBLAS
             // =================================================================
 
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef typename AccumT::result_type ZScalarType;
+            typedef decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>())) ZScalarType;
             typename LilSparseMatrix<D3ScalarType>::RowType T_row;
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
             typename LilSparseMatrix<CScalarT>::RowType C_row;
@@ -556,7 +551,7 @@ namespace GraphBLAS
                 Z_row.clear();
                 masked_accum(Z_row, M[i], true, accum, C[i], T_row);
 
-                if (!replace_flag) /* z = merge */
+                if (!(outp == REPLACE)) /* z = merge */
                 {
                     // C[i]  = [!M .* C]  U  Z[i]
                     C_row.clear();
@@ -573,5 +568,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif

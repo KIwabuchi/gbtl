@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,12 +26,6 @@
  *
  * DM18-0559
  */
-
-/**
- * Implementation of the sparse matrix extract function.
- */
-#ifndef GB_SEQUENTIAL_SPARSE_EXTRACT_HPP
-#define GB_SEQUENTIAL_SPARSE_EXTRACT_HPP
 
 #pragma once
 
@@ -332,7 +326,7 @@ namespace GraphBLAS
                      AccumT             const &accum,
                      UVectorT           const &u,
                      SequenceT          const &indices,
-                     bool                      replace_flag = false)
+                     OutputControlEnum         outp)
         {
             check_index_array_content(indices, u.size(),
                                       "extract(std vec): indices >= u.size");
@@ -358,7 +352,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 UScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<UScalarType>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);
@@ -366,8 +362,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("z: " << z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
 
             GRB_LOG_VERBOSE("w (Result): " << w);
         };
@@ -391,7 +387,7 @@ namespace GraphBLAS
                      AMatrixT           const   &A,
                      RowSequenceT       const   &row_indices,
                      ColSequenceT       const   &col_indices,
-                     bool                        replace_flag = false)
+                     OutputControlEnum           outp)
         {
             check_index_array_content(row_indices, A.nrows(),
                                       "extract(std mat): row_indices >= A.nrows");
@@ -415,7 +411,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 AScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<typename CMatrixT::ScalarType>(),
+                               std::declval<AScalarType>()))>::type
+                ZScalarType;
 
             LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
             ewise_or_opt_accum(Z, C, T, accum);
@@ -423,8 +421,8 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("Z: " << Z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, Mask, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, Mask, outp);
 
             GRB_LOG_VERBOSE("C (Result): " << C);
         };
@@ -450,7 +448,7 @@ namespace GraphBLAS
                      AMatrixT           const &A,
                      SequenceT          const &row_indices,
                      IndexType                 col_index,
-                     bool                      replace_flag = false)
+                     OutputControlEnum         outp)
         {
             check_index_array_content(row_indices, A.nrows(),
                                       "extract(col): row_indices >= A.nrows");
@@ -472,7 +470,9 @@ namespace GraphBLAS
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 AScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<AScalarType>()))>::type
+                ZScalarType;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);
@@ -480,14 +480,10 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("z: " << z);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
 
             GRB_LOG_VERBOSE("w (Result): " << w);
         }
     }
 }
-
-
-
-#endif //GB_SEQUENTIAL_SPARSE_EXTRACT_HPP

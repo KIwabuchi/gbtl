@@ -27,13 +27,6 @@
  * DM18-0559
  */
 
-/**
- * Implementation of sparse mxm for the sequential (CPU) backend.
- */
-
-#ifndef GB_SEQUENTIAL_SPARSE_MXM_AB_HPP
-#define GB_SEQUENTIAL_SPARSE_MXM_AB_HPP
-
 #pragma once
 
 #include <functional>
@@ -147,7 +140,7 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             typedef typename SemiringT::result_type D3ScalarType;
             typename LilSparseMatrix<D3ScalarType>::RowType T_row;
@@ -172,7 +165,7 @@ namespace GraphBLAS
                     }
                 }
 
-                if (!replace_flag)
+                if (!(outp == REPLACE))
                 {
                     // C[i] = [!M .* C]  U  T[i], z = "merge"
                     C_row.clear();
@@ -202,10 +195,11 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             typedef typename SemiringT::result_type D3ScalarType;
-            typedef typename AccumT::result_type ZScalarType;
+            typedef decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>())) ZScalarType;
 
             typename LilSparseMatrix<D3ScalarType>::RowType T_row;
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
@@ -232,7 +226,7 @@ namespace GraphBLAS
                 Z_row.clear();
                 masked_accum(Z_row, M[i], false, accum, C[i], T_row);
 
-                if (!replace_flag) /* z = merge */
+                if (!(outp == REPLACE)) /* z = merge */
                 {
                     // C[i]  = [!M .* C]  U  Z[i]
                     C_row.clear();
@@ -260,7 +254,7 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
 
             typedef typename SemiringT::result_type D3ScalarType;
@@ -283,7 +277,7 @@ namespace GraphBLAS
                     masked_axpy(T_row, M[i], true, semiring, a_ik, B[k]);
                 }
 
-                if (replace_flag || M[i].empty())
+                if ((outp == REPLACE) || M[i].empty())
                 {
                     // C[i] = T[i]
                     C.setRow(i, T_row);  // set even if it is empty.
@@ -313,7 +307,7 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             typedef typename SemiringT::result_type D3ScalarType;
             typename LilSparseMatrix<D3ScalarType>::RowType T_row;
@@ -340,7 +334,7 @@ namespace GraphBLAS
                 Z_row.clear();
                 masked_accum(Z_row, M[i], true, accum, C[i], T_row);
 
-                if (replace_flag || M[i].empty())
+                if ((outp == REPLACE) || M[i].empty())
                 {
                     C.setRow(i, Z_row);
                 }
@@ -447,19 +441,19 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             // C<M,z> = A +.* B
             //        =               [M .* (A +.* B)], z = "replace"
             //        = [!M .* C]  U  [M .* (A +.* B)], z = "merge"
             // short circuit conditions
-            if (replace_flag &&
+            if ((outp == REPLACE) &&
                 ((A.nvals() == 0) || (B.nvals() == 0) || (M.nvals() == 0)))
             {
                 C.clear();
                 return;
             }
-            else if (!replace_flag && (M.nvals() == 0))
+            else if (!(outp == REPLACE) && (M.nvals() == 0))
             {
                 return; // do nothing
             }
@@ -472,7 +466,7 @@ namespace GraphBLAS
                 LilSparseMatrix<CScalarT> Ctmp(C.nrows(), C.ncols());
                 AB_Mask_NoAccum_kernel(Ctmp, M, semiring, A, B, true);
 
-                if (replace_flag)
+                if ((outp == REPLACE))
                 {
                     C.swap(Ctmp);
                 }
@@ -490,7 +484,7 @@ namespace GraphBLAS
             }
             else
             {
-                AB_Mask_NoAccum_kernel(C, M, semiring, A, B, replace_flag);
+                AB_Mask_NoAccum_kernel(C, M, semiring, A, B, outp);
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -510,18 +504,18 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             // C<M,z> = C + (A +.* B)
             //        =               [M .* [C + (A +.* B)]], z = "replace"
             //        = [!M .* C]  U  [M .* [C + (A +.* B)]], z = "merge"
             // short circuit conditions
-            if (replace_flag && (M.nvals() == 0))
+            if ((outp == REPLACE) && (M.nvals() == 0))
             {
                 C.clear();
                 return;
             }
-            else if (!replace_flag && (M.nvals() == 0))
+            else if (!(outp == REPLACE) && (M.nvals() == 0))
             {
                 return; // do nothing
             }
@@ -531,7 +525,8 @@ namespace GraphBLAS
             if ((void*)&C == (void*)&B)
             {
                 typedef typename SemiringT::result_type D3ScalarType;
-                typedef typename AccumT::result_type ZScalarType;
+                typedef decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>())) ZScalarType;
 
                 // create temporary to prevent overwrite of inputs
                 LilSparseMatrix<D3ScalarType> Ctmp(C.nrows(), C.ncols());
@@ -545,7 +540,7 @@ namespace GraphBLAS
                     // Z[i] = (M .* C) + Ctmp[i]
                     masked_accum(Z_row, M[i], false, accum, C[i], Ctmp[i]);
 
-                    if (replace_flag)
+                    if ((outp == REPLACE))
                     {
                         C.setRow(i, Z_row);
                     }
@@ -561,7 +556,7 @@ namespace GraphBLAS
             }
             else
             {
-                AB_Mask_Accum_kernel(C, M, accum, semiring, A, B, replace_flag);
+                AB_Mask_Accum_kernel(C, M, accum, semiring, A, B, outp);
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -579,13 +574,13 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             // C<!M,z> = A +.* B
             //        =              [!M .* (A +.* B)], z = "replace"
             //        = [M .* C]  U  [!M .* (A +.* B)], z = "merge"
             // short circuit conditions
-            if (replace_flag && ((A.nvals() == 0) || (B.nvals() == 0)))
+            if ((outp == REPLACE) && ((A.nvals() == 0) || (B.nvals() == 0)))
             {
                 C.clear();
                 return;
@@ -599,7 +594,7 @@ namespace GraphBLAS
                 LilSparseMatrix<CScalarT> Ctmp(C.nrows(), C.ncols());
                 AB_CompMask_NoAccum_kernel(Ctmp, M, semiring, A, B, true);
 
-                if (replace_flag)
+                if ((outp == REPLACE))
                 {
                     C.swap(Ctmp);
                 }
@@ -617,7 +612,7 @@ namespace GraphBLAS
             }
             else
             {
-                AB_CompMask_NoAccum_kernel(C, M, semiring, A, B, replace_flag);
+                AB_CompMask_NoAccum_kernel(C, M, semiring, A, B, outp);
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -637,13 +632,13 @@ namespace GraphBLAS
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
-            bool                             replace_flag)
+            OutputControlEnum                outp)
         {
             // C<!M,z> = C + (A +.* B)
             //         =              [!M .* [C + (A +.* B)]], z = "replace"
             //         = [M .* C]  U  [!M .* [C + (A +.* B)]], z = "merge"
             // short circuit conditions
-            if (replace_flag &&
+            if ((outp == REPLACE) &&
                 (M.nvals() == 0) &&
                 ((A.nvals() == 0) || (B.nvals() == 0)))
             {
@@ -655,7 +650,8 @@ namespace GraphBLAS
             if ((void*)&C == (void*)&B)
             {
                 typedef typename SemiringT::result_type D3ScalarType;
-                typedef typename AccumT::result_type ZScalarType;
+                typedef decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>())) ZScalarType;
 
                 // create temporary to prevent overwrite of inputs
                 LilSparseMatrix<D3ScalarType> Ctmp(C.nrows(), C.ncols());
@@ -669,7 +665,7 @@ namespace GraphBLAS
                     // Z[i] = (M .* C) + Ctmp[i]
                     masked_accum(Z_row, M[i], true, accum, C[i], Ctmp[i]);
 
-                    if (replace_flag)
+                    if ((outp == REPLACE))
                     {
                         C.setRow(i, Z_row);
                     }
@@ -685,7 +681,7 @@ namespace GraphBLAS
             }
             else
             {
-                AB_CompMask_Accum_kernel(C, M, accum, semiring, A, B, replace_flag);
+                AB_CompMask_Accum_kernel(C, M, accum, semiring, A, B, outp);
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -693,5 +689,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif

@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,13 +26,6 @@
  *
  * DM18-0559
  */
-
-/**
- * Implementation of sparse mxm for the sequential (CPU) backend.
- */
-
-#ifndef GB_SEQUENTIAL_SPARSE_MXM_HPP
-#define GB_SEQUENTIAL_SPARSE_MXM_HPP
 
 #pragma once
 
@@ -76,18 +69,18 @@ namespace GraphBLAS
                                  SemiringT            op,
                                  AMatrixT    const   &A,
                                  BMatrixT    const   &B,
-                                 bool                 replace_flag)
+                                 OutputControlEnum    outp)
         {
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
             IndexType ncol_B(B.ncols());
 
-            typedef typename SemiringT::result_type D3ScalarType;
-            typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
+            typedef typename SemiringT::result_type TScalarType;
+            typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
 
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
-            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
+            LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
 
             // Build this completely based on the semiring
             if ((A.nvals() > 0) && (B.nvals() > 0))
@@ -103,7 +96,7 @@ namespace GraphBLAS
                         typename AMatrixT::RowType A_row(A.getRow(row_idx));
                         if (A_row.empty()) continue;
 
-                        D3ScalarType T_val;
+                        TScalarType T_val;
                         if (dot(T_val, A_row, B_col, op))
                         {
                             T[row_idx].push_back(
@@ -120,8 +113,11 @@ namespace GraphBLAS
             // Accumulate into Z
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
-                D3ScalarType,
-                typename AccumT::result_type>::type ZScalarType;
+                TScalarType,
+                decltype(accum(std::declval<CScalarType>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
             LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
 
             ewise_or_opt_accum(Z, C, T, accum);
@@ -130,7 +126,7 @@ namespace GraphBLAS
 
             // =================================================================
             // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, M, replace_flag);
+            write_with_opt_mask(C, Z, M, outp);
 
         } // mxm
 #endif
@@ -149,7 +145,7 @@ namespace GraphBLAS
                         SR                    op,
                         AMat         const   &A,
                         BMat         const   &B,
-                        bool                  replace_flag)
+                        OutputControlEnum     outp)
         {
             std::cout << "C := (A*B)" << std::endl;
             sparse_mxm_NoMask_NoAccum_AB(C, op, A, B);
@@ -162,7 +158,7 @@ namespace GraphBLAS
                         SR                    op,
                         AMat         const   &A,
                         BMat         const   &B,
-                        bool                  replace_flag)
+                        OutputControlEnum     outp)
         {
             std::cout << "C := C + (A*B)" << std::endl;
             sparse_mxm_NoMask_Accum_AB(C, accum, op, A, B);
@@ -175,25 +171,25 @@ namespace GraphBLAS
                         SR                    op,
                         AMat         const   &A,
                         BMat         const   &B,
-                        bool                  replace_flag)
+                        OutputControlEnum     outp)
         {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A*B)" << std::endl;
-            sparse_mxm_Mask_NoAccum_AB(C, M, op, A, B, replace_flag);
+            sparse_mxm_Mask_NoAccum_AB(C, M, op, A, B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
-        inline void mxm(CMat            &C,
-                        MMat    const   &M,
-                        Accum   const   &accum,
-                        SR               op,
-                        AMat    const   &A,
-                        BMat    const   &B,
-                        bool             replace_flag)
+        inline void mxm(CMat              &C,
+                        MMat      const   &M,
+                        Accum     const   &accum,
+                        SR                 op,
+                        AMat      const   &A,
+                        BMat      const   &B,
+                        OutputControlEnum  outp)
         {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A*B)" << std::endl;
-            sparse_mxm_Mask_Accum_AB(C, M, accum, op, A, B, replace_flag);
+            sparse_mxm_Mask_Accum_AB(C, M, accum, op, A, B, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -203,12 +199,12 @@ namespace GraphBLAS
                         SR                                op,
                         AMat                       const &A,
                         BMat                       const &B,
-                        bool                              replace_flag)
+                        OutputControlEnum                 outp)
         {
-            std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A*B)" << std::endl;
             sparse_mxm_CompMask_NoAccum_AB(C, get_internal_matrix(M),
-                                           op, A, B, replace_flag);
+                                           op, A, B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -218,12 +214,12 @@ namespace GraphBLAS
                         SR                                op,
                         AMat                       const &A,
                         BMat                       const &B,
-                        bool                              replace_flag)
+                        OutputControlEnum                 outp)
         {
-            std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A*B)" << std::endl;
             sparse_mxm_CompMask_Accum_AB(C, get_internal_matrix(M), accum,
-                                         op, A, B, replace_flag);
+                                         op, A, B, outp);
         }
 
         //**********************************************************************
@@ -236,7 +232,7 @@ namespace GraphBLAS
                         SR                         op,
                         AMat                const &A,
                         TransposeView<BMat> const &B,
-                        bool                       replace_flag)
+                        OutputControlEnum          outp)
         {
             std::cout << "C := (A*B')" << std::endl;
             sparse_mxm_NoMask_NoAccum_ABT(C, op, A, strip_transpose(B));
@@ -249,7 +245,7 @@ namespace GraphBLAS
                         SR                         op,
                         AMat                const &A,
                         TransposeView<BMat> const &B,
-                        bool                       replace_flag)
+                        OutputControlEnum          outp)
         {
             std::cout << "C := C + (A*B')" << std::endl;
             sparse_mxm_NoMask_Accum_ABT(C, accum, op, A, strip_transpose(B));
@@ -262,12 +258,12 @@ namespace GraphBLAS
                         SR                         op,
                         AMat                const &A,
                         TransposeView<BMat> const &B,
-                        bool                       replace_flag)
+                        OutputControlEnum          outp)
         {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A*B')" << std::endl;
             sparse_mxm_Mask_NoAccum_ABT(C, M, op,
-                                        A, strip_transpose(B), replace_flag);
+                                        A, strip_transpose(B), outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -277,12 +273,12 @@ namespace GraphBLAS
                         SR                         op,
                         AMat                const &A,
                         TransposeView<BMat> const &B,
-                        bool                       replace_flag)
+                        OutputControlEnum          outp)
         {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A*B')" << std::endl;
             sparse_mxm_Mask_Accum_ABT(C, M, accum, op,
-                                      A, strip_transpose(B), replace_flag);
+                                      A, strip_transpose(B), outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -292,13 +288,13 @@ namespace GraphBLAS
                         SR                                op,
                         AMat                       const &A,
                         TransposeView<BMat>        const &B,
-                        bool                              replace_flag)
+                        OutputControlEnum                 outp)
         {
-            std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A*B')" << std::endl;
             sparse_mxm_CompMask_NoAccum_ABT(
                 C, get_internal_matrix(M), op,
-                A, strip_transpose(B), replace_flag);
+                A, strip_transpose(B), outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -308,13 +304,13 @@ namespace GraphBLAS
                         SR                                   op,
                         AMat                         const  &A,
                         TransposeView<BMat>          const  &B,
-                        bool                                 replace_flag)
+                        OutputControlEnum                    outp)
         {
-            std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A*B')" << std::endl;
             sparse_mxm_CompMask_Accum_ABT(
                 C, get_internal_matrix(M), accum, op,
-                A, strip_transpose(B), replace_flag);
+                A, strip_transpose(B), outp);
         }
 
         //**********************************************************************
@@ -327,7 +323,7 @@ namespace GraphBLAS
                         SR                           op,
                         TransposeView<AMat> const   &A,
                         BMat                const   &B,
-                        bool                         replace_flag)
+                        OutputControlEnum            outp)
         {
             std::cout << "C := (A'*B)" << std::endl;
             sparse_mxm_NoMask_NoAccum_ATB(C, op, strip_transpose(A), B);
@@ -340,7 +336,7 @@ namespace GraphBLAS
                         SR                           op,
                         TransposeView<AMat> const   &A,
                         BMat                const   &B,
-                        bool                         replace_flag)
+                        OutputControlEnum            outp)
         {
             std::cout << "C := C + (A'*B)" << std::endl;
             sparse_mxm_NoMask_Accum_ATB(C, accum, op, strip_transpose(A), B);
@@ -353,12 +349,12 @@ namespace GraphBLAS
                         SR                           op,
                         TransposeView<AMat> const   &A,
                         BMat                const   &B,
-                        bool                         replace_flag)
+                        OutputControlEnum            outp)
         {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A'*B)" << std::endl;
             sparse_mxm_Mask_NoAccum_ATB(C, M, op,
-                                        strip_transpose(A), B, replace_flag);
+                                        strip_transpose(A), B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -368,12 +364,12 @@ namespace GraphBLAS
                         SR                         op,
                         TransposeView<AMat> const &A,
                         BMat                const &B,
-                        bool                       replace_flag)
+                        OutputControlEnum          outp)
         {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A'*B)" << std::endl;
             sparse_mxm_Mask_Accum_ATB(C, M, accum, op,
-                                      strip_transpose(A), B, replace_flag);
+                                      strip_transpose(A), B, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -383,13 +379,13 @@ namespace GraphBLAS
                         SR                                op,
                         TransposeView<AMat>        const &A,
                         BMat                       const &B,
-                        bool                              replace_flag)
+                        OutputControlEnum                 outp)
         {
-            std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A'*B)" << std::endl;
             sparse_mxm_CompMask_NoAccum_ATB(
                 C, get_internal_matrix(M), op,
-                strip_transpose(A), B, replace_flag);
+                strip_transpose(A), B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -399,13 +395,13 @@ namespace GraphBLAS
                         SR                                op,
                         TransposeView<AMat>        const &A,
                         BMat                       const &B,
-                        bool                              replace_flag)
+                        OutputControlEnum                 outp)
         {
-            std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A'*B)" << std::endl;
             sparse_mxm_CompMask_Accum_ATB(
                 C, get_internal_matrix(M), accum, op,
-                strip_transpose(A), B, replace_flag);
+                strip_transpose(A), B, outp);
         }
 
         //**********************************************************************
@@ -418,7 +414,7 @@ namespace GraphBLAS
                         SR                         op,
                         TransposeView<AMat> const &A,
                         TransposeView<BMat> const &B,
-                        bool                       replace_flag)
+                        OutputControlEnum          outp)
         {
             std::cout << "C := (A'*B')" << std::endl;
             sparse_mxm_NoMask_NoAccum_ATBT(C, op, strip_transpose(A),
@@ -432,7 +428,7 @@ namespace GraphBLAS
                         SR                         op,
                         TransposeView<AMat> const &A,
                         TransposeView<BMat> const &B,
-                        bool                       replace_flag)
+                        OutputControlEnum          outp)
         {
             std::cout << "C := C + (A'*B')" << std::endl;
             sparse_mxm_NoMask_Accum_ATBT(
@@ -447,13 +443,13 @@ namespace GraphBLAS
                         SR                         op,
                         TransposeView<AMat> const &A,
                         TransposeView<BMat> const &B,
-                        bool                       replace_flag)
+                        OutputControlEnum          outp)
         {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A'*B')" << std::endl;
             sparse_mxm_Mask_NoAccum_ATBT(
                 C, M, op,
-                strip_transpose(A), strip_transpose(B), replace_flag);
+                strip_transpose(A), strip_transpose(B), outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -463,13 +459,13 @@ namespace GraphBLAS
                         SR                         op,
                         TransposeView<AMat> const &A,
                         TransposeView<BMat> const &B,
-                        bool                       replace_flag)
+                        OutputControlEnum          outp)
         {
-            std::cout << "C<M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A'*B')" << std::endl;
             sparse_mxm_Mask_Accum_ATBT(
                 C, M, accum, op,
-                strip_transpose(A), strip_transpose(B), replace_flag);
+                strip_transpose(A), strip_transpose(B), outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -479,13 +475,13 @@ namespace GraphBLAS
                         SR                                op,
                         TransposeView<AMat>        const &A,
                         TransposeView<BMat>        const &B,
-                        bool                              replace_flag)
+                        OutputControlEnum                 outp)
         {
-            std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A'*B')" << std::endl;
             sparse_mxm_CompMask_NoAccum_ATBT(
                 C, get_internal_matrix(M), op,
-                strip_transpose(A), strip_transpose(B), replace_flag);
+                strip_transpose(A), strip_transpose(B), outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -495,16 +491,14 @@ namespace GraphBLAS
                         SR                                 op,
                         TransposeView<AMat>        const &A,
                         TransposeView<BMat>        const &B,
-                        bool                              replace_flag)
+                        OutputControlEnum                 outp)
         {
-            std::cout << "C<!M" << (replace_flag ? ",z>" : ">")
+            std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A'*B')" << std::endl;
             sparse_mxm_CompMask_Accum_ATBT(
                 C, get_internal_matrix(M), accum, op,
-                strip_transpose(A), strip_transpose(B), replace_flag);
+                strip_transpose(A), strip_transpose(B), outp);
         }
 
     } // backend
 } // GraphBLAS
-
-#endif

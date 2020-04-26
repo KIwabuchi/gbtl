@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,13 +27,6 @@
  * DM18-0559
  */
 
-/**
- * Implementations of sparse vxm for the sequential (CPU) backend.
- */
-
-#ifndef GB_SEQUENTIAL_SPARSE_VXM_HPP
-#define GB_SEQUENTIAL_SPARSE_VXM_HPP
-
 #pragma once
 
 #include <functional>
@@ -44,7 +37,6 @@
 #include <graphblas/algebra.hpp>
 
 #include "sparse_helpers.hpp"
-
 
 //****************************************************************************
 
@@ -60,21 +52,21 @@ namespace GraphBLAS
                  typename SemiringT,
                  typename AMatrixT,
                  typename UVectorT>
-        inline void vxm(WVectorT        &w,
-                        MaskT     const &mask,
-                        AccumT    const &accum,
-                        SemiringT        op,
-                        UVectorT  const &u,
-                        AMatrixT  const &A,
-                        bool             replace_flag = false)
+        inline void vxm(WVectorT          &w,
+                        MaskT       const &mask,
+                        AccumT      const &accum,
+                        SemiringT          op,
+                        UVectorT    const &u,
+                        AMatrixT    const &A,
+                        OutputControlEnum  outp)
         {
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
-            typedef typename SemiringT::result_type D3ScalarType;
+            typedef typename SemiringT::result_type TScalarType;
             typedef typename AMatrixT::ScalarType AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> > AColType;
 
-            std::vector<std::tuple<IndexType, D3ScalarType> > t;
+            std::vector<std::tuple<IndexType, TScalarType> > t;
 
             if ((A.nvals() > 0) && (u.nvals() > 0))
             {
@@ -85,7 +77,7 @@ namespace GraphBLAS
 
                     if (!A_col.empty())
                     {
-                        D3ScalarType t_val;
+                        TScalarType t_val;
                         if (dot(t_val, u_contents, A_col, op))
                         {
                             t.push_back(std::make_tuple(col_idx, t_val));
@@ -96,19 +88,20 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            /// @todo Do we need a type generator for z: D(w) if no accum,
-            /// or D3(accum). I think that output type should be equivalent, but
-            /// still need to work the proof.
-            typedef typename WVectorT::ScalarType WScalarType;
-            std::vector<std::tuple<IndexType, WScalarType> > z;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                TScalarType,
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
+            std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);
 
             // =================================================================
-            // Copy Z into the final output, w, considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
         }
 
     } // backend
 } // GraphBLAS
-
-#endif

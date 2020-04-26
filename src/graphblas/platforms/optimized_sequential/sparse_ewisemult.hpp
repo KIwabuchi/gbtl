@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,14 +26,6 @@
  *
  * DM18-0559
  */
-
-/**
- * Implementations of all GraphBLAS functions optimized for the sequential
- * (CPU) backend.
- */
-
-#ifndef GB_SEQUENTIAL_SPARSE_EWISEMULT_HPP
-#define GB_SEQUENTIAL_SPARSE_EWISEMULT_HPP
 
 #pragma once
 
@@ -72,11 +64,13 @@ namespace GraphBLAS
             BinaryOpT                                        op,
             UVectorT                                  const &u,
             VVectorT                                  const &v,
-            bool                                             replace_flag = false)
+            OutputControlEnum                                outp)
         {
             // =================================================================
             // Do the basic ewise-and work: t = u .* v
-            typedef typename BinaryOpT::result_type D3ScalarType;
+            using D3ScalarType =
+                decltype(op(std::declval<typename UVectorT::ScalarType>(),
+                            std::declval<typename VVectorT::ScalarType>()));
             std::vector<std::tuple<IndexType,D3ScalarType> > t_contents;
 
             if ((u.nvals() > 0) && (v.nvals() > 0))
@@ -89,12 +83,17 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            std::vector<std::tuple<IndexType,WScalarT> > z_contents;
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                D3ScalarType,
+                decltype(accum(std::declval<WScalarT>(),
+                               std::declval<D3ScalarType>()))>::type ZScalarType;
+            std::vector<std::tuple<IndexType,ZScalarType> > z_contents;
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
 
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask_1D(w, z_contents, mask, replace_flag);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask_1D(w, z_contents, mask, outp);
         }
 
         //**********************************************************************
@@ -113,7 +112,7 @@ namespace GraphBLAS
             BinaryOpT                                        op,
             AMatrixT                                  const &A,
             BMatrixT                                  const &B,
-            bool                                             replace_flag = false)
+            OutputControlEnum                                outp)
         {
             IndexType num_rows(A.nrows());
             IndexType num_cols(A.ncols());
@@ -127,7 +126,9 @@ namespace GraphBLAS
 
             // =================================================================
             // Do the basic ewise-and work: T = A .* B
-            typedef typename BinaryOpT::result_type D3ScalarType;
+            using D3ScalarType =
+                decltype(op(std::declval<typename AMatrixT::ScalarType>(),
+                            std::declval<typename BMatrixT::ScalarType>()));
             typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
             LilSparseMatrix<D3ScalarType> T(num_rows, num_cols);
 
@@ -156,28 +157,21 @@ namespace GraphBLAS
                 }
             }
 
-//            GRB_LOG_E(">>> T <<<");
-//            GRB_LOG_E(T);
-
             // =================================================================
             // Accumulate into Z
-
-            LilSparseMatrix<CScalarT> Z(num_rows, num_cols);
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                D3ScalarType,
+                decltype(accum(std::declval<CScalarT>(),
+                               std::declval<D3ScalarType>()))>::type ZScalarType;
+            LilSparseMatrix<ZScalarType> Z(num_rows, num_cols);
             ewise_or_opt_accum(Z, C, T, accum);
 
-//            GRB_LOG_E(">>> Z <<< ");
-//            GRB_LOG_E(Z);
-
             // =================================================================
-            // Copy Z into the final output considering mask and replace
-            write_with_opt_mask(C, Z, Mask, replace_flag);
-
-//            GRB_LOG_E(">>> C <<< ");
-//            GRB_LOG_E(C);
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, Mask, outp);
 
         } // ewisemult
 
     } // backend
 } // GraphBLAS
-
-#endif

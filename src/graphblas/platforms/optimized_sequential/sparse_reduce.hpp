@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,13 +27,6 @@
  * DM18-0559
  */
 
-/**
- * Implementation of all sparse reduce variants for the sequential (CPU) backend.
- */
-
-#ifndef GB_SEQUENTIAL_SPARSE_REDUCE_HPP
-#define GB_SEQUENTIAL_SPARSE_REDUCE_HPP
-
 #pragma once
 
 #include <functional>
@@ -58,20 +51,22 @@ namespace GraphBLAS
                  typename AccumT,
                  typename BinaryOpT,  // monoid or binary op only
                  typename AMatrixT>
-        inline void reduce(WVectorT        &w,
-                           MaskT     const &mask,
-                           AccumT    const &accum,
-                           BinaryOpT        op,
-                           AMatrixT  const &A,
-                           bool             replace_flag = false)
+        inline void reduce(WVectorT          &w,
+                           MaskT       const &mask,
+                           AccumT      const &accum,
+                           BinaryOpT          op,
+                           AMatrixT    const &A,
+                           OutputControlEnum  outp)
         {
             // =================================================================
             // Do the basic reduction work with the binary op
-            typedef typename BinaryOpT::result_type D3ScalarType;
+            using TScalarType =
+                decltype(op(std::declval<typename AMatrixT::ScalarType>(),
+                            std::declval<typename AMatrixT::ScalarType>()));
             typedef typename AMatrixT::ScalarType AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> >  ARowType;
 
-            std::vector<std::tuple<IndexType, D3ScalarType> > t;
+            std::vector<std::tuple<IndexType, TScalarType> > t;
 
             if (A.nvals() > 0)
             {
@@ -84,7 +79,7 @@ namespace GraphBLAS
                     /// @todo There is something hinky with domains here.  How
                     /// does one perform the reduction in A domain but produce
                     /// partial results in D3(op)?
-                    D3ScalarType t_val;
+                    TScalarType t_val;
                     if (reduction(t_val, A_row, op))
                     {
                         t.push_back(std::make_tuple(row_idx, t_val));
@@ -97,14 +92,16 @@ namespace GraphBLAS
             // Type generator for z: D3(accum), or D(w) if no accum.
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
-                D3ScalarType,
-                typename AccumT::result_type>::type  ZScalarType;
+                TScalarType,
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);
 
             // =================================================================
-            // Copy Z into the final output, w, considering mask and replace
-            write_with_opt_mask_1D(w, z, mask, replace_flag);
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
         }
 
         //********************************************************************
@@ -120,11 +117,12 @@ namespace GraphBLAS
         {
             // =================================================================
             // Do the basic reduction work with the monoid
-            typedef typename MonoidT::result_type D3ScalarType;
             typedef typename UVectorT::ScalarType UScalarType;
+            using TScalarType = decltype(op(std::declval<UScalarType>(),
+                                            std::declval<UScalarType>()));
             typedef std::vector<std::tuple<IndexType,UScalarType> >  UColType;
 
-            D3ScalarType t = op.identity();
+            TScalarType t = op.identity();
 
             if (u.nvals() > 0)
             {
@@ -135,10 +133,15 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            /// @todo Do we need a type generator for z: D(w) if no accum,
-            /// or D3(accum). I think that D(z) := D(val) should be equivalent, but
-            /// still need to work the proof.
-            ValueT z;
+            // Type generator for z: D3(accum), or D(w) if no accum.
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                TScalarType,
+                decltype(accum(std::declval<ValueT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
+            ZScalarType z;
             opt_accum_scalar(z, val, t, accum);
 
             // Copy Z into the final output
@@ -158,11 +161,13 @@ namespace GraphBLAS
         {
             // =================================================================
             // Do the basic reduction work with the monoid
-            typedef typename MonoidT::result_type D3ScalarType;
+            using TScalarType =
+                decltype(op(std::declval<typename AMatrixT::ScalarType>(),
+                            std::declval<typename AMatrixT::ScalarType>()));
             typedef typename AMatrixT::ScalarType AScalarType;
             typedef std::vector<std::tuple<IndexType,AScalarType> >  ARowType;
 
-            D3ScalarType t = op.identity();
+            TScalarType t = op.identity();
 
             if (A.nvals() > 0)
             {
@@ -175,7 +180,7 @@ namespace GraphBLAS
                     /// @todo There is something hinky with domains here.  How
                     /// does one perform the reduction in A domain but produce
                     /// partial results in D3(op)?
-                    D3ScalarType tmp;
+                    TScalarType tmp;
                     if (reduction(tmp, A_row, op))
                     {
                         t = op(t, tmp); // reduce each row
@@ -185,10 +190,15 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            /// @todo Do we need a type generator for z: D(w) if no accum,
-            /// or D3(accum). I think that D(z) := D(val) should be equivalent, but
-            /// still need to work the proof.
-            ValueT z;
+            // Type generator for z: D3(accum), or D(w) if no accum.
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                TScalarType,
+                decltype(accum(std::declval<ValueT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
+            ZScalarType z;
             opt_accum_scalar(z, val, t, accum);
 
             // Copy Z into the final output
@@ -197,5 +207,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif

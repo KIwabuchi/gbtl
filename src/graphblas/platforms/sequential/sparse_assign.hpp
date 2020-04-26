@@ -1,7 +1,7 @@
 /*
  * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -26,9 +26,6 @@
  *
  * DM18-0559
  */
-
-#ifndef GB_SEQUENTIAL_SPARSE_ASSIGN_HPP
-#define GB_SEQUENTIAL_SPARSE_ASSIGN_HPP
 
 #pragma once
 
@@ -306,7 +303,7 @@ namespace GraphBLAS
                  typename SequenceT>
         inline void assign(WVectorT           &w,
                            MaskT        const &mask,
-                           AccumT              accum,
+                           AccumT       const &accum,
                            UVectorT     const &u,
                            SequenceT    const &indices,
                            OutputControlEnum   outp)
@@ -330,7 +327,6 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into z
-
             typedef typename std::conditional<
                 std::is_same<AccumT, NoAccumulate>::value,
                 typename WVectorT::ScalarType, /// @todo UScalarType?
@@ -362,7 +358,7 @@ namespace GraphBLAS
                  typename ColSequenceT>
         inline void assign(CMatrixT               &C,
                            MaskT            const &mask,
-                           AccumT                  accum,
+                           AccumT           const &accum,
                            AMatrixT         const &A,
                            RowSequenceT     const &row_indices,
                            ColSequenceT     const &col_indices,
@@ -419,7 +415,7 @@ namespace GraphBLAS
                  typename SequenceT>
         inline void assign(CMatrixT               &C,
                            MaskT            const &mask,
-                           AccumT                  accum,
+                           AccumT           const &accum,
                            UVectorT         const &u,
                            SequenceT        const &row_indices,
                            IndexType               col_index,
@@ -472,7 +468,7 @@ namespace GraphBLAS
                  typename SequenceT>
         inline void assign(CMatrixT               &C,
                            MaskT            const &mask,
-                           AccumT                  accum,
+                           AccumT           const &accum,
                            UVectorT         const &u,
                            IndexType               row_index,
                            SequenceT        const &col_indices,
@@ -525,7 +521,7 @@ namespace GraphBLAS
                  typename SequenceT>
         inline void assign_constant(WVectorT             &w,
                                     MaskT          const &mask,
-                                    AccumT                accum,
+                                    AccumT         const &accum,
                                     ValueT                val,
                                     SequenceT      const &indices,
                                     OutputControlEnum     outp)
@@ -576,7 +572,7 @@ namespace GraphBLAS
                  typename ColIndicesT>
         inline void assign_constant(CMatrixT             &C,
                                     MaskT          const &Mask,
-                                    AccumT                accum,
+                                    AccumT         const &accum,
                                     ValueT                val,
                                     RowIndicesT    const &row_indices,
                                     ColIndicesT    const &col_indices,
@@ -622,5 +618,3 @@ namespace GraphBLAS
         }
     }
 }
-
-#endif //GB_SEQUENTIAL_SPARSE_ASSIGN_HPP

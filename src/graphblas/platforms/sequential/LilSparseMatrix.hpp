@@ -27,8 +27,7 @@
  * DM18-0559
  */
 
-#ifndef GB_SEQUENTIAL_LILSPARSEMATRIX_HPP
-#define GB_SEQUENTIAL_LILSPARSEMATRIX_HPP
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -202,13 +201,6 @@ namespace GraphBLAS
             IndexType nrows() const { return m_num_rows; }
             IndexType ncols() const { return m_num_cols; }
             IndexType nvals() const { return m_nvals; }
-
-            /// Version 1 of getshape that assigns to two passed parameters
-            // void get_shape(IndexType &num_rows, IndexType &num_cols) const
-            // {
-            //     num_rows = m_num_rows;
-            //     num_cols = m_num_cols;
-            // }
 
             /**
              * @brief Resize the matrix dimensions (smaller or larger)
@@ -433,6 +425,32 @@ namespace GraphBLAS
                 }
             }
 
+            void recomputeNvals()
+            {
+                IndexType nvals(0);
+
+                for (auto elt : m_data)
+                {
+                    nvals += elt.size();
+                }
+                m_nvals = nvals;
+            }
+
+            // TODO: add error checking on dimensions?
+            void swap(LilSparseMatrix<ScalarT> &rhs)
+            {
+                for (IndexType idx = 0; idx < m_data.size(); ++idx)
+                {
+                    m_data[idx].swap(rhs.m_data[idx]);
+                }
+                m_nvals = rhs.m_nvals;
+            }
+
+            // Row access
+            // Warning if you use this non-const row accessor then you should
+            // call recomputeNvals() at some point to fix it
+            RowType &operator[](IndexType row_index) { return m_data[row_index]; }
+
             RowType const &operator[](IndexType row_index) const
             {
                 return m_data[row_index];
@@ -463,16 +481,16 @@ namespace GraphBLAS
                 }
             }
 
-            // When not casting vector assignment used
+            // When not casting vector swap used...should we use move semantics?
             void setRow(
                 IndexType row_index,
-                std::vector<std::tuple<IndexType, ScalarT> > const &row_data)
+                std::vector<std::tuple<IndexType, ScalarT> > &&row_data)
             {
                 IndexType old_nvals = m_data[row_index].size();
                 IndexType new_nvals = row_data.size();
 
                 m_nvals = m_nvals + new_nvals - old_nvals;
-                m_data[row_index] = row_data;   // swap here?
+                m_data[row_index].swap(row_data); // = row_data;
             }
 
             /// @todo need move semantics.
@@ -665,7 +683,7 @@ namespace GraphBLAS
             {
                 // Used to print data in storage format instead of like a matrix
                 #ifdef GRB_SEQUENTIAL_MATRIX_PRINT_STORAGE
-                    os << "LilSparseMatrix<" << typeid(ScalarT).name() << ">"
+                    os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << ">"
                        << std::endl;
                     os << "dimensions: " << m_num_rows << " x " << m_num_cols
                        << std::endl;
@@ -688,7 +706,8 @@ namespace GraphBLAS
 
                     os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << ">"
                        << std::endl;
-                    os << "(" << num_rows << "x" << num_cols << ")" << std::endl;
+                    os << "(" << num_rows << "x" << num_cols << "), nvals = "
+                       << nvals() << std::endl;
 
                     for (IndexType row_idx = 0; row_idx < num_rows; ++row_idx)
                     {
@@ -754,12 +773,10 @@ namespace GraphBLAS
             IndexType m_num_cols;
             IndexType m_nvals;
 
-            // List-of-lists storage (LIL)
-            std::vector<RowType>                   m_data;
+            // List-of-lists storage (LIL) really VOV
+            std::vector<RowType> m_data;
         };
 
     } // namespace backend
 
 } // namespace GraphBLAS
-
-#endif // GB_SEQUENTIAL_LILSPARSEMATRIX_HPP
