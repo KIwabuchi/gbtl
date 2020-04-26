@@ -165,8 +165,8 @@ namespace GraphBLAS
             }
 
             // =================================================================
-            typedef typename SemiringT::result_type D3ScalarType;
-            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
+            typedef typename SemiringT::result_type TScalarType;
+            LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
 
             ATB_NoMask_kernel(T, semiring, A, B);
 
@@ -201,8 +201,8 @@ namespace GraphBLAS
 
             // =================================================================
 
-            typedef typename SemiringT::result_type D3ScalarType;
-            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
+            typedef typename SemiringT::result_type TScalarType;
+            LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
 
             ATB_NoMask_kernel(T, semiring, A, B);
 
@@ -240,20 +240,20 @@ namespace GraphBLAS
                 C.clear();
                 return;
             }
-            else if (!(outp == REPLACE) && (M.nvals() == 0))
+            else if ((outp == MERGE) && (M.nvals() == 0))
             {
                 return; // do nothing
             }
 
             // =================================================================
 
-            typedef typename SemiringT::result_type D3ScalarType;
-            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
+            typedef typename SemiringT::result_type TScalarType;
+            LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
             typename LilSparseMatrix<CScalarT>::RowType C_row;
 
             ATB_Mask_kernel(T, M, semiring, A, B);
 
-            if (!(outp == REPLACE))
+            if (outp == MERGE)
             {
                 for (IndexType i = 0; i < C.nrows(); ++i)
                 {
@@ -299,18 +299,18 @@ namespace GraphBLAS
                 C.clear();
                 return;
             }
-            else if (!(outp == REPLACE) && (M.nvals() == 0))
+            else if ((outp == MERGE) && (M.nvals() == 0))
             {
                 return; // do nothing
             }
 
             // =================================================================
 
-            typedef typename SemiringT::result_type D3ScalarType;
-            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
+            typedef typename SemiringT::result_type TScalarType;
+            LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
 
             typedef decltype(accum(std::declval<CScalarT>(),
-                               std::declval<TScalarType>())) ZScalarType;
+                                   std::declval<TScalarType>())) ZScalarType;
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
             typename LilSparseMatrix<CScalarT>::RowType     C_row;
 
@@ -322,7 +322,7 @@ namespace GraphBLAS
                 Z_row.clear();
                 masked_accum(Z_row, M[i], false, accum, C[i], T[i]);
 
-                if (!(outp == REPLACE)) /* z = merge */
+                if (outp == MERGE)
                 {
                     // C[i] = [!M .* C]  U  Z[i], z = "merge"
                     C_row.clear();
@@ -365,8 +365,8 @@ namespace GraphBLAS
 
             // =================================================================
 
-            typedef typename SemiringT::result_type D3ScalarType;
-            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
+            typedef typename SemiringT::result_type TScalarType;
+            LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
             typename LilSparseMatrix<CScalarT>::RowType C_row;
 
             ATB_CompMask_kernel(T, M, semiring, A, B);
@@ -418,11 +418,11 @@ namespace GraphBLAS
 
             // =================================================================
 
-            typedef typename SemiringT::result_type D3ScalarType;
-            LilSparseMatrix<D3ScalarType> T(C.nrows(), C.ncols());
+            typedef typename SemiringT::result_type TScalarType;
+            LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
 
             typedef decltype(accum(std::declval<CScalarT>(),
-                               std::declval<TScalarType>())) ZScalarType;
+                                   std::declval<TScalarType>())) ZScalarType;
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
             typename LilSparseMatrix<CScalarT>::RowType     C_row;
 

@@ -176,5 +176,3 @@ namespace GraphBLAS
 
     } // backend
 } // GraphBLAS
-
-#endif

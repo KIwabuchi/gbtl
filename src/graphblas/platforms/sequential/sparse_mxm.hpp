@@ -70,8 +70,9 @@ namespace GraphBLAS
             IndexType nrow_A(A.nrows());
             IndexType ncol_B(B.ncols());
 
+            typedef typename CMatrixT::ScalarType   CScalarType;
             typedef typename SemiringT::result_type TScalarType;
-            typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
+            typedef std::vector<std::tuple<IndexType,TScalarType> > TColType;
 
             // =================================================================
             // Do the basic dot-product work with the semi-ring.

@@ -75,6 +75,7 @@ namespace GraphBLAS
             IndexType nrow_A(A.nrows());
             IndexType ncol_B(B.ncols());
 
+            typedef typename CMatrixT::ScalarType   CScalarType;
             typedef typename SemiringT::result_type TScalarType;
             typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
 
@@ -194,7 +195,7 @@ namespace GraphBLAS
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
         inline void mxm(CMat                             &C,
-                        MatrixComplementView<MMat> const &M,
+                        MatrixComplementView<MMat> const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
                         AMat                       const &A,
@@ -203,13 +204,13 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A*B)" << std::endl;
-            sparse_mxm_CompMask_NoAccum_AB(C, get_internal_matrix(M),
+            sparse_mxm_CompMask_NoAccum_AB(C, M_view.m_mat,
                                            op, A, B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
         inline void mxm(CMat                             &C,
-                        MatrixComplementView<MMat> const &M,
+                        MatrixComplementView<MMat> const &M_view,
                         Accum                      const &accum,
                         SR                                op,
                         AMat                       const &A,
@@ -218,8 +219,72 @@ namespace GraphBLAS
         {
             std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A*B)" << std::endl;
-            sparse_mxm_CompMask_Accum_AB(C, get_internal_matrix(M), accum,
+            sparse_mxm_CompMask_Accum_AB(C, M_view.m_mat, accum,
                                          op, A, B, outp);
+        }
+
+        template<class CMat, class MMat, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructureView<MMat>  const &M_view,
+                        NoAccumulate               const &,
+                        SR                                op,
+                        AMat                       const &A,
+                        BMat                       const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (A*B)" << std::endl;
+            throw 1;
+            //sparse_mxm_StructMask_NoAccum_AB(C, M_view.m_mat,
+            //                                 op, A, B, outp);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructureView<MMat>  const &M_view,
+                        Accum                      const &accum,
+                        SR                                op,
+                        AMat                       const &A,
+                        BMat                       const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (C + A*B)" << std::endl;
+            throw 1;
+            //sparse_mxm_StructMask_Accum_AB(C, M_view.m_mat, accum,
+            //                               op, A, B, outp);
+        }
+
+        template<class CMat, class MMat, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructuralComplementView<MMat> const &M_view,
+                        NoAccumulate               const &,
+                        SR                                op,
+                        AMat                       const &A,
+                        BMat                       const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (A*B)" << std::endl;
+            throw 1;
+            //sparse_mxm_StructCompMask_NoAccum_AB(C, M_view.m_mat,
+            //                                     op, A, B, outp);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructuralComplementView<MMat> const &M_view,
+                        Accum                      const &accum,
+                        SR                                op,
+                        AMat                       const &A,
+                        BMat                       const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (C + A*B)" << std::endl;
+            throw 1;
+            //sparse_mxm_StructCompMask_Accum_AB(C, M_view.m_mat, accum,
+            //                                   op, A, B, outp);
         }
 
         //**********************************************************************
@@ -283,7 +348,7 @@ namespace GraphBLAS
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
         inline void mxm(CMat                             &C,
-                        MatrixComplementView<MMat> const &M,
+                        MatrixComplementView<MMat> const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
                         AMat                       const &A,
@@ -293,13 +358,13 @@ namespace GraphBLAS
             std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A*B')" << std::endl;
             sparse_mxm_CompMask_NoAccum_ABT(
-                C, get_internal_matrix(M), op,
+                C, M_view.m_mat, op,
                 A, strip_transpose(B), outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
         inline void mxm(CMat                                &C,
-                        MatrixComplementView<MMat>   const  &M,
+                        MatrixComplementView<MMat>   const  &M_view,
                         Accum                        const  &accum,
                         SR                                   op,
                         AMat                         const  &A,
@@ -309,8 +374,76 @@ namespace GraphBLAS
             std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A*B')" << std::endl;
             sparse_mxm_CompMask_Accum_ABT(
-                C, get_internal_matrix(M), accum, op,
+                C, M_view.m_mat, accum, op,
                 A, strip_transpose(B), outp);
+        }
+
+        template<class CMat, class MMat, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructureView<MMat> const &M_view,
+                        NoAccumulate               const &,
+                        SR                                op,
+                        AMat                       const &A,
+                        TransposeView<BMat>        const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (A*B')" << std::endl;
+            throw 1;
+            //sparse_mxm_StructMask_NoAccum_ABT(
+            //    C, M_view.m_mat, op,
+            //    A, strip_transpose(B), outp);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat                                &C,
+                        MatrixStructureView<MMat>   const  &M_view,
+                        Accum                        const  &accum,
+                        SR                                   op,
+                        AMat                         const  &A,
+                        TransposeView<BMat>          const  &B,
+                        OutputControlEnum                    outp)
+        {
+            std::cout << "C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (C + A*B')" << std::endl;
+            throw 1;
+            //sparse_mxm_StructMask_Accum_ABT(
+            //    C, M_view.m_mat, accum, op,
+            //    A, strip_transpose(B), outp);
+        }
+
+        template<class CMat, class MMat, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructuralComplementView<MMat> const &M_view,
+                        NoAccumulate               const &,
+                        SR                                op,
+                        AMat                       const &A,
+                        TransposeView<BMat>        const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (A*B')" << std::endl;
+            throw 1;
+            //sparse_mxm_StructCompMask_NoAccum_ABT(
+            //    C, M_view.m_mat, op,
+            //    A, strip_transpose(B), outp);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat                                &C,
+                        MatrixStructuralComplementView<MMat>   const  &M_view,
+                        Accum                        const  &accum,
+                        SR                                   op,
+                        AMat                         const  &A,
+                        TransposeView<BMat>          const  &B,
+                        OutputControlEnum                    outp)
+        {
+            std::cout << "C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (C + A*B')" << std::endl;
+            throw 1;
+            //sparse_mxm_StructCompMask_Accum_ABT(
+            //    C, M_view.m_mat, accum, op,
+            //    A, strip_transpose(B), outp);
         }
 
         //**********************************************************************
@@ -374,7 +507,7 @@ namespace GraphBLAS
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
         inline void mxm(CMat                             &C,
-                        MatrixComplementView<MMat> const &M,
+                        MatrixComplementView<MMat> const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
                         TransposeView<AMat>        const &A,
@@ -384,13 +517,13 @@ namespace GraphBLAS
             std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A'*B)" << std::endl;
             sparse_mxm_CompMask_NoAccum_ATB(
-                C, get_internal_matrix(M), op,
+                C, M_view.m_mat, op,
                 strip_transpose(A), B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
         inline void mxm(CMat                             &C,
-                        MatrixComplementView<MMat> const &M,
+                        MatrixComplementView<MMat> const &M_view,
                         Accum                      const &accum,
                         SR                                op,
                         TransposeView<AMat>        const &A,
@@ -400,8 +533,76 @@ namespace GraphBLAS
             std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A'*B)" << std::endl;
             sparse_mxm_CompMask_Accum_ATB(
-                C, get_internal_matrix(M), accum, op,
+                C, M_view.m_mat, accum, op,
                 strip_transpose(A), B, outp);
+        }
+
+        template<class CMat, class MMat, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructureView<MMat> const &M_view,
+                        NoAccumulate               const &,
+                        SR                                op,
+                        TransposeView<AMat>        const &A,
+                        BMat                       const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (A'*B)" << std::endl;
+            throw 1;
+            //sparse_mxm_StructMask_NoAccum_ATB(
+            //    C, M_view.m_mat, op,
+            //    strip_transpose(A), B, outp);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructureView<MMat> const &M_view,
+                        Accum                      const &accum,
+                        SR                                op,
+                        TransposeView<AMat>        const &A,
+                        BMat                       const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (C + A'*B)" << std::endl;
+            throw 1;
+            //sparse_mxm_StructMask_Accum_ATB(
+            //    C, M_view.m_mat, accum, op,
+            //    strip_transpose(A), B, outp);
+        }
+
+        template<class CMat, class MMat, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructuralComplementView<MMat> const &M_view,
+                        NoAccumulate               const &,
+                        SR                                op,
+                        TransposeView<AMat>        const &A,
+                        BMat                       const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (A'*B)" << std::endl;
+            throw 1;
+            //sparse_mxm_StructCompMask_NoAccum_ATB(
+            //    C, M_view.m_mat, op,
+            //    strip_transpose(A), B, outp);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructuralComplementView<MMat> const &M_view,
+                        Accum                      const &accum,
+                        SR                                op,
+                        TransposeView<AMat>        const &A,
+                        BMat                       const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (C + A'*B)" << std::endl;
+            throw 1;
+            //sparse_mxm_StructCompMask_Accum_ATB(
+            //    C, M_view.m_mat, accum, op,
+            //    strip_transpose(A), B, outp);
         }
 
         //**********************************************************************
@@ -470,7 +671,7 @@ namespace GraphBLAS
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
         inline void mxm(CMat                             &C,
-                        MatrixComplementView<MMat> const &M,
+                        MatrixComplementView<MMat> const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
                         TransposeView<AMat>        const &A,
@@ -480,13 +681,13 @@ namespace GraphBLAS
             std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (A'*B')" << std::endl;
             sparse_mxm_CompMask_NoAccum_ATBT(
-                C, get_internal_matrix(M), op,
+                C, M_view.m_mat, op,
                 strip_transpose(A), strip_transpose(B), outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
         inline void mxm(CMat                             &C,
-                        MatrixComplementView<MMat> const &M,
+                        MatrixComplementView<MMat> const &M_view,
                         Accum                      const &accum,
                         SR                                 op,
                         TransposeView<AMat>        const &A,
@@ -496,8 +697,76 @@ namespace GraphBLAS
             std::cout << "C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A'*B')" << std::endl;
             sparse_mxm_CompMask_Accum_ATBT(
-                C, get_internal_matrix(M), accum, op,
+                C, M_view.m_mat, accum, op,
                 strip_transpose(A), strip_transpose(B), outp);
+        }
+
+        template<class CMat, class MMat, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructureView<MMat> const &M_view,
+                        NoAccumulate               const &,
+                        SR                                op,
+                        TransposeView<AMat>        const &A,
+                        TransposeView<BMat>        const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (A'*B')" << std::endl;
+            throw 1;
+            //sparse_mxm_StructMask_NoAccum_ATBT(
+            //    C, M_view.m_mat, op,
+            //    strip_transpose(A), strip_transpose(B), outp);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructureView<MMat> const &M_view,
+                        Accum                      const &accum,
+                        SR                                 op,
+                        TransposeView<AMat>        const &A,
+                        TransposeView<BMat>        const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (C + A'*B')" << std::endl;
+            throw 1;
+            //sparse_mxm_StructMask_Accum_ATBT(
+            //    C, M_view.m_mat, accum, op,
+            //    strip_transpose(A), strip_transpose(B), outp);
+        }
+
+        template<class CMat, class MMat, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructuralComplementView<MMat> const &M_view,
+                        NoAccumulate               const &,
+                        SR                                op,
+                        TransposeView<AMat>        const &A,
+                        TransposeView<BMat>        const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (A'*B')" << std::endl;
+            throw 1;
+            //sparse_mxm_StructCompMask_NoAccum_ATBT(
+            //    C, M_view.m_mat, op,
+            //    strip_transpose(A), strip_transpose(B), outp);
+        }
+
+        template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
+        inline void mxm(CMat                             &C,
+                        MatrixStructuralComplementView<MMat> const &M_view,
+                        Accum                      const &accum,
+                        SR                                 op,
+                        TransposeView<AMat>        const &A,
+                        TransposeView<BMat>        const &B,
+                        OutputControlEnum                 outp)
+        {
+            std::cout << "C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
+                      << " := (C + A'*B')" << std::endl;
+            throw 1;
+            //sparse_mxm_StructCompMask_Accum_ATBT(
+            //    C, M_view.m_mat, accum, op,
+            //    strip_transpose(A), strip_transpose(B), outp);
         }
 
     } // backend
