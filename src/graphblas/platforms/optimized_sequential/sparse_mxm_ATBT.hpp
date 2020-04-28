@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -93,6 +93,8 @@ namespace GraphBLAS
             }
             C.recomputeNvals();
         }
+
+        //**********************************************************************
         //**********************************************************************
         //**********************************************************************
 
@@ -197,6 +199,7 @@ namespace GraphBLAS
         inline void sparse_mxm_Mask_NoAccum_ATBT(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
@@ -259,7 +262,8 @@ namespace GraphBLAS
                 for (auto t_ij : T[i])
                 {
                     IndexType j(std::get<0>(t_ij));
-                    if (advance_and_check_mask_iterator(m_it, M[i].end(), j))
+                    if (advance_and_check_mask_iterator(
+                            m_it, M[i].end(), structure_flag, j))
                     {
                         Z_row.push_back(
                             std::make_tuple(
@@ -275,7 +279,7 @@ namespace GraphBLAS
                 {
                     // C[i] = !M[i].*C[i] U Z_row
                     C_row.clear();
-                    masked_merge(C_row, M[i], false, C[i], Z_row);
+                    masked_merge(C_row, M[i], structure_flag, false, C[i], Z_row);
                     C.setRow(i, C_row);
                 }
             }
@@ -291,6 +295,7 @@ namespace GraphBLAS
         inline void sparse_mxm_Mask_Accum_ATBT(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             AccumT                    const &accum,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
@@ -317,8 +322,8 @@ namespace GraphBLAS
             typedef decltype(accum(std::declval<CScalarT>(),
                                    std::declval<TScalarType>())) ZScalarType;
             typename LilSparseMatrix<TScalarType>::RowType T_row;
-            typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
-            typename LilSparseMatrix<CScalarT>::RowType C_row;
+            typename LilSparseMatrix<ZScalarType>::RowType Z_row;
+            typename LilSparseMatrix<CScalarT>::RowType    C_row;
             LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
 
             // compute transpose T' = B +.* A (one row at a time and transpose)
@@ -348,6 +353,8 @@ namespace GraphBLAS
                 }
             }
 
+            bool const complement_flag = false;
+
             for (IndexType i = 0; i < C.nrows(); ++i)
             {
                 // T_row = M[i] .* T[i]
@@ -356,7 +363,8 @@ namespace GraphBLAS
                 for (auto t_ij : T[i])
                 {
                     IndexType j(std::get<0>(t_ij));
-                    if (advance_and_check_mask_iterator(m_it, M[i].end(), j))
+                    if (advance_and_check_mask_iterator(
+                            m_it, M[i].end(), structure_flag, j))
                     {
                         T_row.push_back(t_ij);
                     }
@@ -364,13 +372,17 @@ namespace GraphBLAS
 
                 // Z[i] = (M[i] .* C[i]) + T[i]
                 Z_row.clear();
-                masked_accum(Z_row, M[i], false, accum, C[i], T_row);
+                masked_accum(Z_row,
+                             M[i], structure_flag, complement_flag,
+                             accum, C[i], T_row);
 
                 if (outp == MERGE)
                 {
                     // C[i]  = [!M .* C]  U  Z[i]
                     C_row.clear();
-                    masked_merge(C_row, M[i], false, C[i], Z_row);
+                    masked_merge(C_row,
+                                 M[i], structure_flag, complement_flag,
+                                 C[i], Z_row);
                     C.setRow(i, C_row);  // set even if it is empty.
                 }
                 else // z = replace
@@ -390,6 +402,7 @@ namespace GraphBLAS
         inline void sparse_mxm_CompMask_NoAccum_ATBT(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
@@ -447,7 +460,8 @@ namespace GraphBLAS
                 for (auto t_ij : T[i])
                 {
                     IndexType j(std::get<0>(t_ij));
-                    if (!advance_and_check_mask_iterator(m_it, M[i].end(), j))
+                    if (!advance_and_check_mask_iterator(
+                            m_it, M[i].end(), structure_flag, j))
                     {
                         Z_row.push_back(
                             std::make_tuple(
@@ -463,7 +477,9 @@ namespace GraphBLAS
                 {
                     // C[i] = M[i].*C[i] U Z_row
                     C_row.clear();
-                    masked_merge(C_row, M[i], true, C[i], Z_row);
+                    masked_merge(C_row,
+                                 M[i], structure_flag, true,
+                                 C[i], Z_row);
                     C.setRow(i, C_row);
                 }
             }
@@ -479,6 +495,7 @@ namespace GraphBLAS
         inline void sparse_mxm_CompMask_Accum_ATBT(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             AccumT                    const &accum,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
@@ -533,6 +550,8 @@ namespace GraphBLAS
                 }
             }
 
+            bool const complement_flag = true;
+
             for (IndexType i = 0; i < C.nrows(); ++i)
             {
                 // T_row = M[i] .* T[i]
@@ -541,7 +560,8 @@ namespace GraphBLAS
                 for (auto t_ij : T[i])
                 {
                     IndexType j(std::get<0>(t_ij));
-                    if (!advance_and_check_mask_iterator(m_it, M[i].end(), j))
+                    if (!advance_and_check_mask_iterator(
+                            m_it, M[i].end(), structure_flag, j))
                     {
                         T_row.push_back(t_ij);
                     }
@@ -549,19 +569,23 @@ namespace GraphBLAS
 
                 // Z[i] = (M[i] .* C[i]) + T[i]
                 Z_row.clear();
-                masked_accum(Z_row, M[i], true, accum, C[i], T_row);
+                masked_accum(Z_row,
+                             M[i], structure_flag, complement_flag,
+                             accum, C[i], T_row);
 
-                if (outp == MERGE)
-                {
-                    // C[i]  = [!M .* C]  U  Z[i]
-                    C_row.clear();
-                    masked_merge(C_row, M[i], true, C[i], Z_row);
-                    C.setRow(i, C_row);  // set even if it is empty.
-                }
-                else // z = replace
+                if (outp == REPLACE)
                 {
                     // C[i] = Z[i]
                     C.setRow(i, Z_row);
+                }
+                else
+                {
+                    // C[i]  = [!M .* C]  U  Z[i]
+                    C_row.clear();
+                    masked_merge(C_row,
+                                 M[i], structure_flag, complement_flag,
+                                 C[i], Z_row);
+                    C.setRow(i, C_row);  // set even if it is empty.
                 }
             }
         }

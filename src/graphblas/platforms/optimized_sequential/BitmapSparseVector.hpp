@@ -459,8 +459,7 @@ namespace GraphBLAS
             void printInfo(std::ostream &os) const
             {
                 os << "backend::BitmapSparseVector<" << typeid(ScalarT).name() << ">";
-                os << ", size  = " << m_size;
-                os << ", nvals = " << m_nvals << std::endl;
+                os << ", size = " << m_size << ", nvals = " << m_nvals << std::endl;
 
                 os << "[";
                 if (m_bitmap[0]) os << m_vals[0]; else os << "-";

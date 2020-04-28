@@ -752,13 +752,12 @@ namespace GraphBLAS
             // output specific to the storage layout of this type of matrix
             void printInfo(std::ostream &os) const
             {
+                os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << "> ";
+                os << "(" << m_num_rows << " x " << m_num_cols << "), nvals = "
+                   << nvals() << std::endl;
+
                 // Used to print data in storage format instead of like a matrix
-                #ifdef GRB_SEQUENTIAL_MATRIX_PRINT_STORAGE
-                    os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << ">"
-                       << std::endl;
-                    os << "dimensions: " << m_num_rows << " x " << m_num_cols
-                       << std::endl;
-                    os << "num stored values = " << m_nvals << std::endl;
+                #ifdef GRB_MATRIX_PRINT_RAW_STORAGE
                     for (IndexType row = 0; row < m_data.size(); ++row)
                     {
                         os << row << " :";
@@ -772,15 +771,7 @@ namespace GraphBLAS
                         os << std::endl;
                     }
                 #else
-                    IndexType num_rows = nrows();
-                    IndexType num_cols = ncols();
-
-                    os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << ">"
-                       << std::endl;
-                    os << "(" << num_rows << "x" << num_cols << "), nvals = "
-                       << nvals() << std::endl;
-
-                    for (IndexType row_idx = 0; row_idx < num_rows; ++row_idx)
+                    for (IndexType row_idx = 0; row_idx < m_num_rows; ++row_idx)
                     {
                         // We like to start with a little whitespace indent
                         os << ((row_idx == 0) ? "  [[" : "   [");
@@ -790,7 +781,7 @@ namespace GraphBLAS
 
                         if (row.empty())
                         {
-                            while (curr_idx < num_cols)
+                            while (curr_idx < m_num_cols)
                             {
                                 os << ((curr_idx == 0) ? " " : ",  " );
                                 ++curr_idx;
@@ -821,13 +812,13 @@ namespace GraphBLAS
                             }
 
                             // Fill in the rest to the end
-                            while (curr_idx < num_cols)
+                            while (curr_idx < m_num_cols)
                             {
                                 os << ",  ";
                                 ++curr_idx;
                             }
                         }
-                        os << ((row_idx == num_rows - 1 ) ? "]]" : "]\n");
+                        os << ((row_idx == m_num_rows - 1 ) ? "]]" : "]\n");
                     }
                 #endif
             }

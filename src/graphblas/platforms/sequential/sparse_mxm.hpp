@@ -75,7 +75,7 @@ namespace GraphBLAS
             typedef std::vector<std::tuple<IndexType,TScalarType> > TColType;
 
             // =================================================================
-            // Do the basic dot-product work with the semi-ring.
+            // Do the basic dot-product work with the semiring.
             LilSparseMatrix<TScalarType> T(nrow_A, ncol_B);
 
             // Build this completely based on the semiring

@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -137,6 +137,7 @@ namespace GraphBLAS
         inline void AB_Mask_NoAccum_kernel(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
@@ -148,6 +149,7 @@ namespace GraphBLAS
 
             for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
             {
+                bool const complement_flag = false;
                 T_row.clear();
 
                 // don't compute row if mask row is empty
@@ -161,21 +163,25 @@ namespace GraphBLAS
                         if (B[k].empty()) continue;
 
                         // T[i] += M[i] .* a_ik*B[k]
-                        masked_axpy(T_row, M[i], false, semiring, a_ik, B[k]);
+                        masked_axpy(T_row,
+                                    M[i], structure_flag, complement_flag,
+                                    semiring, a_ik, B[k]);
                     }
                 }
 
-                if (outp == MERGE)
-                {
-                    // C[i] = [!M .* C]  U  T[i], z = "merge"
-                    C_row.clear();
-                    masked_merge(C_row, M[i], false, C[i], T_row);
-                    C.setRow(i, C_row);
-                }
-                else
+                if (outp == REPLACE)
                 {
                     // C[i] = T[i], z = "replace"
                     C.setRow(i, T_row);  // set even if it is empty.
+                }
+                else
+                {
+                    // C[i] = [!M .* C]  U  T[i], z = "merge"
+                    C_row.clear();
+                    masked_merge(C_row,
+                                 M[i], structure_flag, complement_flag,
+                                 C[i], T_row);
+                    C.setRow(i, C_row);
                 }
             }
         }
@@ -191,6 +197,7 @@ namespace GraphBLAS
         inline void AB_Mask_Accum_kernel(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             AccumT                    const &accum,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
@@ -200,14 +207,15 @@ namespace GraphBLAS
             typedef typename SemiringT::result_type TScalarType;
             typedef decltype(accum(std::declval<CScalarT>(),
                                    std::declval<TScalarType>())) ZScalarType;
-
             typename LilSparseMatrix<TScalarType>::RowType T_row;
-            typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
-            typename LilSparseMatrix<CScalarT>::RowType     C_row;
+            typename LilSparseMatrix<ZScalarType>::RowType Z_row;
+            typename LilSparseMatrix<CScalarT>::RowType    C_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
             {
+                bool const complement_flag = false;  /// @todo constexpr?
                 T_row.clear();
+
                 if (!M[i].empty())
                 {
                     for (auto const &Ai_elt : A[i])
@@ -218,19 +226,25 @@ namespace GraphBLAS
                         if (B[k].empty()) continue;
 
                         // T[i] += M[i] .* a_ik*B[k]
-                        masked_axpy(T_row, M[i], false, semiring, a_ik, B[k]);
+                        masked_axpy(T_row,
+                                    M[i], structure_flag, complement_flag,
+                                    semiring, a_ik, B[k]);
                     }
                 }
 
                 // Z[i] = (M .* C) + T[i]
                 Z_row.clear();
-                masked_accum(Z_row, M[i], false, accum, C[i], T_row);
+                masked_accum(Z_row,
+                             M[i], structure_flag, complement_flag,
+                             accum, C[i], T_row);
 
                 if (outp == MERGE)
                 {
                     // C[i]  = [!M .* C]  U  Z[i]
                     C_row.clear();
-                    masked_merge(C_row, M[i], false, C[i], Z_row);
+                    masked_merge(C_row,
+                                 M[i], structure_flag, complement_flag,
+                                 C[i], Z_row);
                     C.setRow(i, C_row);  // set even if it is empty.
                 }
                 else // z = replace
@@ -251,6 +265,7 @@ namespace GraphBLAS
         inline void AB_CompMask_NoAccum_kernel(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
@@ -259,11 +274,13 @@ namespace GraphBLAS
 
             typedef typename SemiringT::result_type TScalarType;
             typename LilSparseMatrix<TScalarType>::RowType T_row;
-            typename LilSparseMatrix<CScalarT>::RowType     Z_row;
+            typename LilSparseMatrix<CScalarT>::RowType    Z_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
             {
                 // if M[i] is empty it is like NoMask_NoAccum
+
+                bool const complement_flag = true;
 
                 T_row.clear();
                 for (auto const &Ai_elt : A[i])
@@ -274,7 +291,9 @@ namespace GraphBLAS
                     if (B[k].empty()) continue;
 
                     // T[i] += !M[i] .* (a_ik*B[k])  // must reduce in D3
-                    masked_axpy(T_row, M[i], true, semiring, a_ik, B[k]);
+                    masked_axpy(T_row,
+                                M[i], structure_flag, complement_flag,
+                                semiring, a_ik, B[k]);
                 }
 
                 if ((outp == REPLACE) || M[i].empty())
@@ -286,7 +305,9 @@ namespace GraphBLAS
                 {
                     Z_row.clear();
                     // Z[i] = (M[i] .* C[i]) U T[i]
-                    masked_merge(Z_row, M[i], true, C[i], T_row);
+                    masked_merge(Z_row,
+                                 M[i], structure_flag, complement_flag,
+                                 C[i], T_row);
                     C.setRow(i, Z_row);
                 }
             }
@@ -303,6 +324,7 @@ namespace GraphBLAS
         inline void AB_CompMask_Accum_kernel(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             AccumT                    const &accum,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
@@ -310,13 +332,17 @@ namespace GraphBLAS
             OutputControlEnum                outp)
         {
             typedef typename SemiringT::result_type TScalarType;
+            typedef decltype(accum(std::declval<CScalarT>(),
+                                   std::declval<TScalarType>())) ZScalarType;
             typename LilSparseMatrix<TScalarType>::RowType T_row;
-            typename LilSparseMatrix<CScalarT>::RowType     Z_row; // domain okay?
-            typename LilSparseMatrix<CScalarT>::RowType     C_row;
+            typename LilSparseMatrix<ZScalarType>::RowType Z_row;
+            typename LilSparseMatrix<CScalarT>::RowType    C_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i) // compute row i of answer
             {
                 // if M[i] is empty it is like NoMask_NoAccum
+
+                bool const complement_flag = true;
 
                 T_row.clear();
                 for (auto const &Ai_elt : A[i])
@@ -327,12 +353,16 @@ namespace GraphBLAS
                     if (B[k].empty()) continue;
 
                     // T[i] += !M[i] .* (a_ik*B[k])  // must reduce in D3
-                    masked_axpy(T_row, M[i], true, semiring, a_ik, B[k]);
+                    masked_axpy(T_row,
+                                M[i], structure_flag, complement_flag,
+                                semiring, a_ik, B[k]);
                 }
 
                 // Z[i] = (!M[i] .* C[i]) + T[i], where T[i] is masked by !M[i]
                 Z_row.clear();
-                masked_accum(Z_row, M[i], true, accum, C[i], T_row);
+                masked_accum(Z_row,
+                             M[i], structure_flag, complement_flag,
+                             accum, C[i], T_row);
 
                 if ((outp == REPLACE) || M[i].empty())
                 {
@@ -342,7 +372,9 @@ namespace GraphBLAS
                 {
                     // C[i] = [M[i] .* C[i]]  U  Z[i], where Z is disjoint from M
                     C_row.clear();  // TODO: is an extra vector necessary?
-                    masked_merge(C_row, M[i], true, C[i], Z_row);
+                    masked_merge(C_row,
+                                 M[i], structure_flag, complement_flag,
+                                 C[i], Z_row);
                     C.setRow(i, C_row);
                 }
 
@@ -438,6 +470,7 @@ namespace GraphBLAS
         inline void sparse_mxm_Mask_NoAccum_AB(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
@@ -453,7 +486,7 @@ namespace GraphBLAS
                 C.clear();
                 return;
             }
-            else if (!(outp == REPLACE) && (M.nvals() == 0))
+            else if ((outp == MERGE) && (M.nvals() == 0))
             {
                 return; // do nothing
             }
@@ -462,9 +495,13 @@ namespace GraphBLAS
 
             if ((void*)&C == (void*)&B)
             {
+                bool const complement_flag = false;
+
                 // create temporary to prevent overwrite of inputs
                 LilSparseMatrix<CScalarT> Ctmp(C.nrows(), C.ncols());
-                AB_Mask_NoAccum_kernel(Ctmp, M, semiring, A, B, REPLACE);
+                AB_Mask_NoAccum_kernel(Ctmp,
+                                       M, structure_flag,
+                                       semiring, A, B, REPLACE);
 
                 if (outp == REPLACE)
                 {
@@ -477,14 +514,18 @@ namespace GraphBLAS
                     {
                         // C[i] = [!M .* C]  U  T[i], z = "merge"
                         C_row.clear();
-                        masked_merge(C_row, M[i], false, C[i], Ctmp[i]);
+                        masked_merge(C_row,
+                                     M[i], structure_flag, complement_flag,
+                                     C[i], Ctmp[i]);
                         C.setRow(i, C_row);
                     }
                 }
             }
             else
             {
-                AB_Mask_NoAccum_kernel(C, M, semiring, A, B, outp);
+                AB_Mask_NoAccum_kernel(C,
+                                       M, structure_flag,
+                                       semiring, A, B, outp);
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -500,6 +541,7 @@ namespace GraphBLAS
         inline void sparse_mxm_Mask_Accum_AB(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             AccumT                    const &accum,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
@@ -524,13 +566,17 @@ namespace GraphBLAS
 
             if ((void*)&C == (void*)&B)
             {
+                bool const complement_flag = false;
+
                 typedef typename SemiringT::result_type TScalarType;
                 typedef decltype(accum(std::declval<CScalarT>(),
                                        std::declval<TScalarType>())) ZScalarType;
 
                 // create temporary to prevent overwrite of inputs
                 LilSparseMatrix<TScalarType> Ctmp(C.nrows(), C.ncols());
-                AB_Mask_NoAccum_kernel(Ctmp, M, semiring, A, B, REPLACE);
+                AB_Mask_NoAccum_kernel(Ctmp,
+                                       M, structure_flag,
+                                       semiring, A, B, REPLACE);
 
                 typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
 
@@ -538,7 +584,9 @@ namespace GraphBLAS
                 {
                     Z_row.clear();
                     // Z[i] = (M .* C) + Ctmp[i]
-                    masked_accum(Z_row, M[i], false, accum, C[i], Ctmp[i]);
+                    masked_accum(Z_row,
+                                 M[i], structure_flag, complement_flag,
+                                 accum, C[i], Ctmp[i]);
 
                     if (outp == REPLACE)
                     {
@@ -549,14 +597,18 @@ namespace GraphBLAS
                         typename LilSparseMatrix<CScalarT>::RowType C_row;
                         // C[i] = [!M .* C]  U  Ctmp[i], z = "merge"
                         C_row.clear();
-                        masked_merge(C_row, M[i], false, C[i], Z_row);
+                        masked_merge(C_row,
+                                     M[i], structure_flag, complement_flag,
+                                     C[i], Z_row);
                         C.setRow(i, C_row);
                     }
                 }
             }
             else
             {
-                AB_Mask_Accum_kernel(C, M, accum, semiring, A, B, outp);
+                AB_Mask_Accum_kernel(C,
+                                     M, structure_flag,
+                                     accum, semiring, A, B, outp);
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -571,6 +623,7 @@ namespace GraphBLAS
         inline void sparse_mxm_CompMask_NoAccum_AB(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
@@ -590,9 +643,13 @@ namespace GraphBLAS
 
             if ((void*)&C == (void*)&B)
             {
+                bool const complement_flag = true;
+
                 // create temporary to prevent overwrite of inputs
                 LilSparseMatrix<CScalarT> Ctmp(C.nrows(), C.ncols());
-                AB_CompMask_NoAccum_kernel(Ctmp, M, semiring, A, B, REPLACE);
+                AB_CompMask_NoAccum_kernel(Ctmp,
+                                           M, structure_flag,
+                                           semiring, A, B, REPLACE);
 
                 if (outp == REPLACE)
                 {
@@ -605,14 +662,18 @@ namespace GraphBLAS
                     {
                         // C[i] = [!M .* C]  U  T[i], z = "merge"
                         C_row.clear();
-                        masked_merge(C_row, M[i], true, C[i], Ctmp[i]);
+                        masked_merge(C_row,
+                                     M[i], structure_flag, complement_flag,
+                                     C[i], Ctmp[i]);
                         C.setRow(i, C_row);
                     }
                 }
             }
             else
             {
-                AB_CompMask_NoAccum_kernel(C, M, semiring, A, B, outp);
+                AB_CompMask_NoAccum_kernel(C,
+                                           M, structure_flag,
+                                           semiring, A, B, outp);
             }
 
             GRB_LOG_VERBOSE("C: " << C);
@@ -628,6 +689,7 @@ namespace GraphBLAS
         inline void sparse_mxm_CompMask_Accum_AB(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             AccumT                    const &accum,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
@@ -649,13 +711,17 @@ namespace GraphBLAS
 
             if ((void*)&C == (void*)&B)
             {
+                bool const complement_flag = true;
+
                 typedef typename SemiringT::result_type TScalarType;
                 typedef decltype(accum(std::declval<CScalarT>(),
                                        std::declval<TScalarType>())) ZScalarType;
 
                 // create temporary to prevent overwrite of inputs
                 LilSparseMatrix<TScalarType> Ctmp(C.nrows(), C.ncols());
-                AB_CompMask_NoAccum_kernel(Ctmp, M, semiring, A, B, REPLACE);
+                AB_CompMask_NoAccum_kernel(Ctmp,
+                                           M, structure_flag,
+                                           semiring, A, B, REPLACE);
 
                 typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
 
@@ -663,7 +729,9 @@ namespace GraphBLAS
                 {
                     Z_row.clear();
                     // Z[i] = (M .* C) + Ctmp[i]
-                    masked_accum(Z_row, M[i], true, accum, C[i], Ctmp[i]);
+                    masked_accum(Z_row,
+                                 M[i], structure_flag, complement_flag,
+                                 accum, C[i], Ctmp[i]);
 
                     if (outp == REPLACE)
                     {
@@ -674,14 +742,18 @@ namespace GraphBLAS
                         typename LilSparseMatrix<CScalarT>::RowType C_row;
                         // C[i] = [!M .* C]  U  Ctmp[i], z = "merge"
                         C_row.clear();
-                        masked_merge(C_row, M[i], true, C[i], Z_row);
+                        masked_merge(C_row,
+                                     M[i], structure_flag, complement_flag,
+                                     C[i], Z_row);
                         C.setRow(i, C_row);
                     }
                 }
             }
             else
             {
-                AB_CompMask_Accum_kernel(C, M, accum, semiring, A, B, outp);
+                AB_CompMask_Accum_kernel(C,
+                                         M, structure_flag,
+                                         accum, semiring, A, B, outp);
             }
 
             GRB_LOG_VERBOSE("C: " << C);

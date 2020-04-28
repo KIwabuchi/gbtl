@@ -1390,16 +1390,17 @@ namespace GraphBLAS
         bool advance_and_check_mask_iterator(
             TupleIteratorT       &it,
             TupleIteratorT const &it_end,
+            bool                  structure_flag,
             IndexType             target_index)
         {
-            GRB_LOG_FN_BEGIN("advance_and_check_mask_iterator: tgt = "
-                             << target_index);
+            GRB_LOG_FN_BEGIN("advance_and_check_mask_iterator: sflag = "
+                             << structure_flag << ", tgt = " << target_index);
 
             bool tmp =
                 (advance_and_check_tuple_iterator(it, it_end, target_index) &&
-                 (static_cast<bool>(std::get<1>(*it))));
+                 (structure_flag || static_cast<bool>(std::get<1>(*it))));
 
-            GRB_LOG_FN_END("advance_and_check_mask_iterator res = " << tmp);
+            GRB_LOG_FN_END("advance_and_check_mask_iterator: result = " << tmp);
             return tmp;
         }
 
@@ -1461,14 +1462,15 @@ namespace GraphBLAS
         void masked_axpy(
             std::vector<std::tuple<IndexType, CScalarT>>       &c,
             std::vector<std::tuple<IndexType, MScalarT>> const &m,
-            bool                                                scmp_flag,
+            bool                                                structure_flag,
+            bool                                                complement_flag,
             SemiringT                                           semiring,
             AScalarT                                            a,
             std::vector<std::tuple<IndexType, BScalarT>> const &b)
         {
             GRB_LOG_FN_BEGIN("masked_axpy");
 
-            if (m.empty() && scmp_flag)
+            if (m.empty() && complement_flag)
             {
                 axpy(c, semiring, a, b);
                 return;
@@ -1483,7 +1485,8 @@ namespace GraphBLAS
                 GRB_LOG_VERBOSE("j = " << j);
 
                 // scan through M[i] to see if mask allows write.
-                if (advance_and_check_mask_iterator(m_it, m.end(), j) == scmp_flag)
+                if (advance_and_check_mask_iterator(
+                        m_it, m.end(), structure_flag, j) == complement_flag)
                 {
                     GRB_LOG_VERBOSE("Skipping j = " << j);
                     continue;
@@ -1525,7 +1528,8 @@ namespace GraphBLAS
         void masked_accum(
             std::vector<std::tuple<IndexType, CScalarT>>       &z,
             std::vector<std::tuple<IndexType, MScalarT>> const &m,
-            bool                                                scmp_flag,
+            bool                                                structure_flag,
+            bool                                                complement_flag,
             AccumT                                       const &accum,
             std::vector<std::tuple<IndexType, AScalarT>> const &c,
             std::vector<std::tuple<IndexType, BScalarT>> const &t)
@@ -1550,7 +1554,8 @@ namespace GraphBLAS
                 }
                 else if (c_idx < t_idx)
                 {
-                    if (advance_and_check_mask_iterator(m_it, m.end(), c_idx) != scmp_flag)
+                    if (advance_and_check_mask_iterator(
+                            m_it, m.end(), structure_flag, c_idx) != complement_flag)
                     {
                         z.push_back(std::make_tuple(
                                         c_idx,
@@ -1581,7 +1586,8 @@ namespace GraphBLAS
             while (c_it != c.end())
             {
                 IndexType c_idx(std::get<0>(*c_it));
-                if (advance_and_check_mask_iterator(m_it, m.end(), c_idx) != scmp_flag)
+                if (advance_and_check_mask_iterator(
+                        m_it, m.end(), structure_flag, c_idx) != complement_flag)
                 {
                     z.push_back(std::make_tuple(c_idx, std::get<1>(*c_it)));
                 }
@@ -1595,7 +1601,7 @@ namespace GraphBLAS
         /// Perform the following operation on sparse vectors implemented as
         /// vector<tuple<Index, value>>
         ///
-        /// if scmp_flag == false:
+        /// if complement_flag == false:
         ///    c = (!m ^ ci) U z, where z = (m ^ t);  i.e., union assumes disjoint sets
         /// else:
         ///   c =   (m ^ ci) U z, where z = (!m ^ t)
@@ -1605,7 +1611,8 @@ namespace GraphBLAS
         void masked_merge(
             std::vector<std::tuple<IndexType, CScalarT>>       &c,
             std::vector<std::tuple<IndexType, MScalarT>> const &m,
-            bool                                                scmp_flag,
+            bool                                                structure_flag,
+            bool                                                complement_flag,
             std::vector<std::tuple<IndexType, CScalarT>> const &ci,
             std::vector<std::tuple<IndexType, ZScalarT>> const &z)
         {
@@ -1623,7 +1630,8 @@ namespace GraphBLAS
                 while (c_it != ci.end() && (std::get<0>(*c_it) < next_z))
                 {
                     IndexType next_c(std::get<0>(*c_it));
-                    if (advance_and_check_mask_iterator(m_it, m.end(), next_c) == scmp_flag)
+                    if (advance_and_check_mask_iterator(
+                            m_it, m.end(), structure_flag, next_c) == complement_flag)
                     {
                         c.push_back(std::make_tuple(next_c, std::get<1>(*c_it)));
                     }
@@ -1641,7 +1649,8 @@ namespace GraphBLAS
             while (c_it != ci.end())
             {
                 IndexType next_c(std::get<0>(*c_it));
-                if (advance_and_check_mask_iterator(m_it, m.end(), next_c) == scmp_flag)
+                if (advance_and_check_mask_iterator(
+                        m_it, m.end(), structure_flag, next_c) == complement_flag)
                 {
                     c.push_back(std::make_tuple(next_c, std::get<1>(*c_it)));
                 }

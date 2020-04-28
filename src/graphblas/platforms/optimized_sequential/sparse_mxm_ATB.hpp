@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -91,6 +91,7 @@ namespace GraphBLAS
         inline void ATB_Mask_kernel(
             LilSparseMatrix<TScalarT>       &T,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
@@ -107,7 +108,9 @@ namespace GraphBLAS
                     if (M[i].empty()) continue;
 
                     // T[i] += M[i] .* (a_ki*B[k])  // must reduce in D3, hence T.
-                    masked_axpy(T[i], M[i], false, semiring, a_ki, B[k]);
+                    masked_axpy(T[i],
+                                M[i], structure_flag, false,
+                                semiring, a_ki, B[k]);
                 }
             }
         }
@@ -122,6 +125,7 @@ namespace GraphBLAS
         inline void ATB_CompMask_kernel(
             LilSparseMatrix<TScalarT>       &T,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
@@ -136,7 +140,9 @@ namespace GraphBLAS
                     AScalarT  a_ki(std::get<1>(Ak_elt));
 
                     // T[i] += !M[i] .* (a_ki*B[k])  // must reduce in D3, hence T.
-                    masked_axpy(T[i], M[i], true, semiring, a_ki, B[k]);
+                    masked_axpy(T[i],
+                                M[i], structure_flag, true,
+                                semiring, a_ki, B[k]);
                 }
             }
         }
@@ -225,6 +231,7 @@ namespace GraphBLAS
         inline void sparse_mxm_Mask_NoAccum_ATB(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
@@ -251,7 +258,7 @@ namespace GraphBLAS
             LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
             typename LilSparseMatrix<CScalarT>::RowType C_row;
 
-            ATB_Mask_kernel(T, M, semiring, A, B);
+            ATB_Mask_kernel(T, M, structure_flag, semiring, A, B);
 
             if (outp == MERGE)
             {
@@ -259,7 +266,9 @@ namespace GraphBLAS
                 {
                     // C[i] = (!M[i] .* C[i])  U  T[i], z = "merge"
                     C_row.clear();
-                    masked_merge(C_row, M[i], false, C[i], T[i]);
+                    masked_merge(C_row,
+                                 M[i], structure_flag, false,
+                                 C[i], T[i]);
                     C.setRow(i, C_row);
                 }
             }
@@ -284,6 +293,7 @@ namespace GraphBLAS
         inline void sparse_mxm_Mask_Accum_ATB(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             AccumT                    const &accum,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
@@ -311,22 +321,27 @@ namespace GraphBLAS
 
             typedef decltype(accum(std::declval<CScalarT>(),
                                    std::declval<TScalarType>())) ZScalarType;
+
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
             typename LilSparseMatrix<CScalarT>::RowType     C_row;
 
-            ATB_Mask_kernel(T, M, semiring, A, B);
+            ATB_Mask_kernel(T, M, structure_flag, semiring, A, B);
 
             for (IndexType i = 0; i < C.nrows(); ++i)
             {
                 // Z[i] = (M[i] .* C[i]) + T[i]
                 Z_row.clear();
-                masked_accum(Z_row, M[i], false, accum, C[i], T[i]);
+                masked_accum(Z_row,
+                             M[i], structure_flag, false,
+                             accum, C[i], T[i]);
 
                 if (outp == MERGE)
                 {
                     // C[i] = [!M .* C]  U  Z[i], z = "merge"
                     C_row.clear();
-                    masked_merge(C_row, M[i], false, C[i], Z_row);
+                    masked_merge(C_row,
+                                 M[i], structure_flag, false,
+                                 C[i], Z_row);
                     C.setRow(i, C_row);
                 }
                 else // z = replace
@@ -348,6 +363,7 @@ namespace GraphBLAS
         inline void sparse_mxm_CompMask_NoAccum_ATB(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B,
@@ -369,7 +385,7 @@ namespace GraphBLAS
             LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
             typename LilSparseMatrix<CScalarT>::RowType C_row;
 
-            ATB_CompMask_kernel(T, M, semiring, A, B);
+            ATB_CompMask_kernel(T, M, structure_flag, semiring, A, B);
 
             for (IndexType i = 0; i < C.nrows(); ++i)
             {
@@ -382,7 +398,7 @@ namespace GraphBLAS
                 {
                     // C[i] = [M .* C]  U  T[i], z = "merge"
                     C_row.clear();
-                    masked_merge(C_row, M[i], true, C[i], T[i]);
+                    masked_merge(C_row, M[i], structure_flag, true, C[i], T[i]);
                     C.setRow(i, C_row);
                 }
             }
@@ -400,6 +416,7 @@ namespace GraphBLAS
         inline void sparse_mxm_CompMask_Accum_ATB(
             LilSparseMatrix<CScalarT>       &C,
             LilSparseMatrix<MScalarT> const &M,
+            bool                             structure_flag,
             AccumT                    const &accum,
             SemiringT                        semiring,
             LilSparseMatrix<AScalarT> const &A,
@@ -426,13 +443,15 @@ namespace GraphBLAS
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
             typename LilSparseMatrix<CScalarT>::RowType     C_row;
 
-            ATB_CompMask_kernel(T, M, semiring, A, B);
+            ATB_CompMask_kernel(T, M, structure_flag, semiring, A, B);
 
             for (IndexType i = 0; i < C.nrows(); ++i)
             {
                 // Z[i] = (!M .* C) + T[i]
                 Z_row.clear();
-                masked_accum(Z_row, M[i], true, accum, C[i], T[i]);
+                masked_accum(Z_row,
+                             M[i], structure_flag, true,
+                             accum, C[i], T[i]);
 
                 if ((outp == REPLACE) || M[i].empty())
                 {
@@ -443,7 +462,9 @@ namespace GraphBLAS
                 {
                     // C[i] = [M .* C]  U  Z[i], z = "merge"
                     C_row.clear();
-                    masked_merge(C_row, M[i], true, C[i], Z_row);
+                    masked_merge(C_row,
+                                 M[i], structure_flag, true,
+                                 C[i], Z_row);
                     C.setRow(i, C_row);
                 }
             }
