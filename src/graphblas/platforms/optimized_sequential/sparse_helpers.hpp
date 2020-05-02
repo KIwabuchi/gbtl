@@ -53,19 +53,13 @@ namespace GraphBLAS
         void print_vec(std::ostream &os, std::string label,
                        std::vector<std::tuple<IndexType, ScalarT> > vec)
         {
-            auto vec_it = vec.begin();
+            os << label << " ";
             bool first = true;
 
-            IndexType idx;
-            ScalarT val;
-
-            os << label << " ";
-            while (vec_it != vec.end())
+            for (auto&& [idx, val] : vec)
             {
-                std::tie(idx, val) = *vec_it;
                 os << (!first ? "," : " ") << idx << ":" << val;
                 first = false;
-                ++vec_it;
             }
             os << std::endl;
         }
@@ -77,11 +71,8 @@ namespace GraphBLAS
         void sparse_copy(DstMatrixT &dstMatrix,
                          SrcMatrixT const &srcMatrix)
         {
-            typedef typename SrcMatrixT::ScalarType SrcScalarType;
-            typedef typename DstMatrixT::ScalarType DstScalarType;
-
-            typedef std::vector<std::tuple<IndexType, SrcScalarType> > SrcRowType;
-            typedef std::vector<std::tuple<IndexType, DstScalarType> > DstRowType;
+            using DstScalarType = typename DstMatrixT::ScalarType;
+            std::vector<std::tuple<IndexType, DstScalarType> > dstRow;
 
             // Copying removes the contents of the other matrix so clear it first.
             dstMatrix.clear();
@@ -89,16 +80,13 @@ namespace GraphBLAS
             IndexType nrows(dstMatrix.nrows());
             for (IndexType row_idx = 0; row_idx < nrows; ++row_idx)
             {
-                SrcRowType srcRow = srcMatrix.getRow(row_idx);
-                DstRowType dstRow;
+                auto&& srcRow = srcMatrix.getRow(row_idx);
+                dstRow.clear();
 
                 // We need to construct a new row with the appropriate cast!
-                for (auto it = srcRow.begin(); it != srcRow.end(); ++it)
+                for (auto&& [idx, srcVal] : srcRow)
                 {
-                    IndexType idx;
-                    SrcScalarType srcVal;
-                    std::tie(idx, srcVal) = *it;
-                    dstRow.push_back(std::make_tuple(idx, static_cast<DstScalarType>(srcVal)));
+                    dstRow.emplace_back(idx, static_cast<DstScalarType>(srcVal));
                 }
 
                 if (!dstRow.empty())
@@ -109,107 +97,47 @@ namespace GraphBLAS
         // @todo: Make a sparse copy where they are the same type for efficiency
 
         //**********************************************************************
-        /// Increments the provided iterate while the value is less
-        /// than the provided index
-        template <typename I>
-        void increment_until_true(
-            // std::vector<std::tuple<GraphBLAS::IndexType,D> >::const_iterator    &iter,
-            // std::vector<std::tuple<GraphBLAS::IndexType,D> >::const_iterator    &iter_end,
-            I          &iter,
-            I const    &iter_end)
+        /// Advance the provided iterator until the value evaluates to true or
+        /// the end is reached.
+        ///
+        /// Iter is iterator to std::vector<std::tuple<GraphBLAS::IndexType,T>>
+        template <typename Iter>
+        void increment_until_true(Iter &iter, Iter const &iter_end)
         {
-            using value_type = typename std::iterator_traits<I>::value_type;
-            using data_type = typename std::tuple_element<1, value_type>::type;
-
-            GraphBLAS::IndexType tmp_idx;
-            data_type tmp_val;
-
-            if (iter == iter_end)
-                return;
-
-            std::tie(tmp_idx, tmp_val) = *iter;
-            while (!tmp_val && iter != iter_end)
-            {
-                //std::cout << "Iter not true. index: " + std::to_string(tmp_idx) +
-                //    " incrementing."  << std::endl;;
+            while ((iter != iter_end) && !(std::get<1>(*iter))) {
                 ++iter;
-                if (iter == iter_end)
-                    return;
-
-                // Reload
-                std::tie(tmp_idx, tmp_val) = *iter;
             }
         }
 
         //**********************************************************************
-
-        /// Increments the provided iterate while the value is less than the provided index
-        template <typename I>
-        void increment_while_below(
-                // std::vector<std::tuple<GraphBLAS::IndexType,D> >::const_iterator    &iter,
-                // std::vector<std::tuple<GraphBLAS::IndexType,D> >::const_iterator    &iter_end,
-                I         &iter,
-                I const   &iter_end,
-                GraphBLAS::IndexType                                                 idx)
+        /// Increment the provided iterator while the index is less than the
+        /// provided index
+        template <typename Iter>
+        void increment_while_below(Iter                 &iter,
+                                   Iter const           &iter_end,
+                                   GraphBLAS::IndexType  idx)
         {
-            using value_type = typename std::iterator_traits<I>::value_type;
-            using data_type = typename std::tuple_element<1, value_type>::type;
-
-            GraphBLAS::IndexType tmp_idx;
-            data_type tmp_val;
-
-            if (iter == iter_end)
-                return;
-
-            std::tie(tmp_idx, tmp_val) = *iter;
-            while (tmp_idx < idx && iter != iter_end)
-            {
-                //std::cerr << "Iter at: " + std::to_string(tmp_idx) +  ", below index: " +
-                //    std::to_string(idx) + " incrementing."  << std::endl;;
+            while ((iter != iter_end) && (std::get<0>(*iter) < idx)) {
                 ++iter;
-                if (iter == iter_end)
-                    return;
-
-                // Reload
-                std::tie(tmp_idx, tmp_val) = *iter;
             }
         }
 
         //**********************************************************************
-        template <typename I, typename V>
-        void increment_and_add_while_below(
-                I                              &iter,
-                I                       const  &iter_end,
-                GraphBLAS::IndexType            idx,
-                V                               &vec)
+        /// Increment the provided iterator while the index is less than the
+        /// provided index
+        template <typename Iter, typename V>
+        void increment_and_add_while_below(Iter                 &iter,
+                                           Iter          const  &iter_end,
+                                           GraphBLAS::IndexType  idx,
+                                           V                    &vec)
         {
-            // @todo: Tighten up the template types above to bind the vector
-            // type to the iter type explicitly
-            using value_type = typename std::iterator_traits<I>::value_type;
-            using data_type = typename std::tuple_element<1, value_type>::type;
-
-            GraphBLAS::IndexType tmp_idx;
-            data_type tmp_val;
-
-            if (iter == iter_end)
-                return;
-
-            std::tie(tmp_idx, tmp_val) = *iter;
-            while (iter != iter_end && tmp_idx < idx )
-            {
-                vec.push_back(*iter);
-
+            while ((iter != iter_end) && (std::get<0>(*iter) < idx)) {
+                vec.push_back(*iter);  // anything more efficient?
                 ++iter;
-                if (iter == iter_end)
-                    return;
-
-                // Reload
-                std::tie(tmp_idx, tmp_val) = *iter;
             }
         }
 
         //**********************************************************************
-
         /// Perform the dot product of a row of a matrix with a sparse vector without
         /// pulling the indices out of the vector first.
         template <typename D1, typename D2, typename D3, typename SemiringT>
@@ -287,49 +215,37 @@ namespace GraphBLAS
                 return value_set;
             }
 
+            // point to first entries of the vectors
             auto v1_it = vec1.begin();
             auto v2_it = vec2.begin();
 
-            // pull first value out of the row
-            D1 a_val;
-            D2 u_val;
-            GraphBLAS::IndexType a_idx, u_idx;
-
             // loop through both ordered sets to compute sparse dot prod
-            while ((v1_it != vec1.end()) &&
-                   (v2_it != vec2.end()))
+            while ((v1_it != vec1.end()) && (v2_it != vec2.end()))
             {
-                std::tie(a_idx, a_val) = *v1_it;
-                std::tie(u_idx, u_val) = *v2_it;
-
-                //std::cerr << "Examine u idx,val = " << u_idx << "," << u_val
-                //          << "; A col_idx,val = " << a_idx << "," << a_val << std::endl;
-
-                if (u_idx == a_idx)
+                if (std::get<0>(*v2_it) == std::get<0>(*v1_it))
                 {
-                    //std::cerr << ans << " + " << a_val << " * " << u_val << " = ";
+                    //std::cerr << ans << " + " << v1_val << " * " << v2_val << " = ";
                     if (value_set)
                     {
-                        ans = op.add(ans, op.mult(a_val, u_val));
+                        ans = op.add(ans, op.mult(std::get<1>(*v1_it),
+                                                  std::get<1>(*v2_it)));
                     }
                     else
                     {
-                        ans = op.mult(a_val, u_val);
+                        ans = op.mult(std::get<1>(*v1_it),
+                                      std::get<1>(*v2_it));
                     }
                     value_set = true;
-                    //std::cerr << ans << std::endl;
 
                     ++v2_it;
                     ++v1_it;
                 }
-                else if (u_idx > a_idx)
+                else if (std::get<0>(*v2_it) > std::get<0>(*v1_it))
                 {
-                    //std::cerr << "Advancing v1_it" << std::endl;
                     ++v1_it;
                 }
                 else
                 {
-                    //std::cerr << "Advancing v2_it" << std::endl;
                     ++v2_it;
                 }
             }
@@ -862,11 +778,6 @@ namespace GraphBLAS
             MScalarT mask_val;
             GraphBLAS::IndexType c_idx, z_idx, mask_idx;
 
-            //std::cerr << "Executing apply_with_mask with mask and replace: " << replace << std::endl;
-            //print_vec(std::cerr, "c_vec", c_vec);
-            //print_vec(std::cerr, "z_vec", z_vec);
-            //print_vec(std::cerr, "m_vec", mask_vec);
-
             result.clear();
 
             // Design: This approach is driven by the mask.
@@ -939,9 +850,6 @@ namespace GraphBLAS
                     ++c_it;
                 }
             }
-
-            //print_vec(std::cerr, "result", result);
-
         } // apply_with_mask
 
         //**********************************************************************

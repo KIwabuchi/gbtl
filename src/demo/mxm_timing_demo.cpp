@@ -109,6 +109,13 @@ int main(int argc, char **argv)
     //===================
     // Perform matrix multiplies with reference implementation
     std::cout << "OPTIMIZED IMPLEMENTATION:" << std::endl;
+    // C.clear();
+    // my_timer.start();
+    // GraphBLAS::mxm_original(C, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
+    //                         GraphBLAS::ArithmeticSemiring<double>(),
+    //                         A, B);
+    // my_timer.stop();
+    // std::cout << "C := A+.*B                : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
     //===================
     // A*B
@@ -142,6 +149,20 @@ int main(int argc, char **argv)
                    A, B, GraphBLAS::REPLACE);
     my_timer.stop();
     std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    GraphBLAS::mxm(C, GraphBLAS::structure(M), GraphBLAS::NoAccumulate(),
+                   GraphBLAS::ArithmeticSemiring<double>(),
+                   A, B);
+    my_timer.stop();
+    std::cout << "C<s(M),merge> := A+.*B    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    GraphBLAS::mxm(C, GraphBLAS::structure(M), GraphBLAS::NoAccumulate(),
+                   GraphBLAS::ArithmeticSemiring<double>(),
+                   A, B, GraphBLAS::REPLACE);
+    my_timer.stop();
+    std::cout << "C<s(M),replace> := A+.*B  : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
@@ -216,7 +237,7 @@ int main(int argc, char **argv)
                    GraphBLAS::ArithmeticSemiring<double>(),
                    GraphBLAS::transpose(A), B, GraphBLAS::REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := A+.*B      : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
     GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),

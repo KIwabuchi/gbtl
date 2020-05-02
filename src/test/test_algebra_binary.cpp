@@ -1593,22 +1593,31 @@ BOOST_AUTO_TEST_CASE(times_different_domain_test)
     BOOST_CHECK_EQUAL((Times<uint64_t,bool    >()(0, false)), 0);
     BOOST_CHECK_EQUAL((Times<uint64_t,int32_t >()(1, -1)), (uint64_t)-1L);
     BOOST_CHECK_EQUAL((Times<uint64_t,uint64_t>()(0, 1UL)),   0);
-    BOOST_CHECK_EQUAL((Times<uint64_t,float   >()(1, -1.1f)),  (uint64_t)-1L);
+    float    opfl = -1.1f;
+    uint64_t op64 = 1;
+    uint64_t ans64 = op64*opfl;  // debug and opt builds are different.
+    BOOST_CHECK_EQUAL((Times<uint64_t,float   >()(1, -1.1f)), ans64);
 
     BOOST_CHECK_EQUAL((Times<uint32_t,bool    >()(0, false)), 0);
     BOOST_CHECK_EQUAL((Times<uint32_t,int32_t >()(1, -1)), (uint32_t)-1);
-    BOOST_CHECK_EQUAL((Times<uint32_t,uint64_t>()(0, 1UL)),  0U);
-    BOOST_CHECK_EQUAL((Times<uint32_t,float   >()(1, -1.1f)), (uint32_t)-1);
+    BOOST_CHECK_EQUAL((Times<uint32_t,uint64_t>()(0, 1UL)),   0U);
+    uint32_t op32 = 1;
+    uint32_t ans32 = op32*opfl;  // debug and opt builds are different.
+    BOOST_CHECK_EQUAL((Times<uint32_t,float   >()(1, -1.1f)), ans32);
 
     BOOST_CHECK_EQUAL((Times<uint16_t,bool    >()(0, false)), 0);
     BOOST_CHECK_EQUAL((Times<uint16_t,int32_t >()(1, -1)), (uint16_t)-1);
     BOOST_CHECK_EQUAL((Times<uint16_t,uint64_t>()(0, 1)), 0);
-    BOOST_CHECK_EQUAL((Times<uint16_t,float   >()(1, -1.1f)), (uint16_t)-1);
+    uint16_t op16 = 1;
+    uint16_t ans16 = op16*opfl;  // debug and opt builds are different.
+    BOOST_CHECK_EQUAL((Times<uint16_t,float   >()(1, -1.1f)), ans16);
 
     BOOST_CHECK_EQUAL((Times<uint8_t,bool    >()(0, false)), 0);
     BOOST_CHECK_EQUAL((Times<uint8_t,int32_t >()(1, -1)), (uint8_t)-1);
     BOOST_CHECK_EQUAL((Times<uint8_t,uint64_t>()(0, 1)), 0);
-    BOOST_CHECK_EQUAL((Times<uint8_t,float   >()(1, -1.1f)), (uint8_t)-1);
+    uint8_t op8 = 1;
+    uint8_t ans8 = op8*opfl;  // debug and opt builds are different.
+    BOOST_CHECK_EQUAL((Times<uint8_t,float   >()(1, -1.1f)), ans8);
 
     BOOST_CHECK_EQUAL((Times<int64_t,bool    >()( 0,  false)), 0);
     BOOST_CHECK_EQUAL((Times<int64_t,uint32_t>()(-1,  0)), 0);

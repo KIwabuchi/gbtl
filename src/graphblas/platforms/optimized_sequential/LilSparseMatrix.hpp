@@ -429,7 +429,7 @@ namespace GraphBLAS
             {
                 IndexType nvals(0);
 
-                for (auto elt : m_data)
+                for (auto &elt : m_data)
                 {
                     nvals += elt.size();
                 }

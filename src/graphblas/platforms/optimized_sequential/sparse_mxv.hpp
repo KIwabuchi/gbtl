@@ -53,13 +53,13 @@ namespace GraphBLAS
                  typename SemiringT,
                  typename AMatrixT,
                  typename UVectorT>
-        inline void mxv(WVectorT          &w,
-                        MaskT       const &mask,
-                        AccumT      const &accum,
-                        SemiringT          op,
-                        AMatrixT    const &A,
-                        UVectorT    const &u,
-                        OutputControlEnum  outp)
+        inline void original_mxv(WVectorT          &w,
+                                 MaskT       const &mask,
+                                 AccumT      const &accum,
+                                 SemiringT          op,
+                                 AMatrixT    const &A,
+                                 UVectorT    const &u,
+                                 OutputControlEnum  outp)
         {
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
@@ -102,6 +102,160 @@ namespace GraphBLAS
             // =================================================================
             // Copy Z into the final output, w, considering mask and replace/merge
             write_with_opt_mask_1D(w, z, mask, outp);
+        }
+
+        //**********************************************************************
+        //**********************************************************************
+        //**********************************************************************
+        template<typename WScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename UScalarT>
+        inline void sparse_mxv_A(BitmapSparseVector<WScalarT>       &w,
+                                 MaskT                        const &mask,
+                                 AccumT                       const &accum,
+                                 SemiringT                           op,
+                                 LilSparseMatrix<AScalarT>    const &A,
+                                 BitmapSparseVector<UScalarT> const &u,
+                                 OutputControlEnum                   outp)
+        {
+            GRB_LOG_VERBOSE("w<M,z> := A +.*u");
+
+            // =================================================================
+            // Do the basic dot-product work with the semi-ring.
+            typedef typename SemiringT::result_type TScalarType;
+            std::vector<std::tuple<IndexType, TScalarType> > t;
+
+            if ((A.nvals() > 0) && (u.nvals() > 0))
+            {
+                for (IndexType row_idx = 0; row_idx < w.size(); ++row_idx)
+                {
+                    if (!A[row_idx].empty())
+                    {
+                        TScalarType t_val;
+                        if (dot2(t_val, A[row_idx],
+                                 u.get_bitmap(), u.get_vals(), u.nvals(), op))
+                        {
+                            t.push_back(std::make_tuple(row_idx, t_val));
+                        }
+                    }
+                }
+            }
+
+            // =================================================================
+            // Accumulate into Z
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                TScalarType,
+                decltype(accum(std::declval<WScalarT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
+            std::vector<std::tuple<IndexType, ZScalarType> > z;
+            ewise_or_opt_accum_1D(z, w, t, accum);
+
+            // =================================================================
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
+        }
+
+        //**********************************************************************
+        template<typename WScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename UScalarT>
+        inline void sparse_mxv_AT(BitmapSparseVector<WScalarT>       &w,
+                                  MaskT                        const &mask,
+                                  AccumT                       const &accum,
+                                  SemiringT                           op,
+                                  LilSparseMatrix<AScalarT>    const &A,
+                                  BitmapSparseVector<UScalarT> const &u,
+                                  OutputControlEnum                   outp)
+        {
+            GRB_LOG_VERBOSE("w<M,z> := A' +.* u");
+
+            // =================================================================
+            // Do the basic dot-product work with the semi-ring.
+            typedef typename SemiringT::result_type TScalarType;
+            std::vector<std::tuple<IndexType, TScalarType> > t;
+
+            if ((A.nvals() > 0) && (u.nvals() > 0))
+            {
+                for (IndexType row_idx = 0; row_idx < u.size(); ++row_idx)
+                {
+                    if (u.hasElement(row_idx) && !A[row_idx].empty())
+                    {
+                        axpy(t, op, u.extractElement(row_idx), A[row_idx]);
+                    }
+                }
+            }
+
+            // =================================================================
+            // Accumulate into Z
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                TScalarType,
+                decltype(accum(std::declval<WScalarT>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
+            std::vector<std::tuple<IndexType, ZScalarType> > z;
+            ewise_or_opt_accum_1D(z, w, t, accum);
+
+            // =================================================================
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
+        }
+
+        //**********************************************************************
+        //**********************************************************************
+        //**********************************************************************
+
+        //**********************************************************************
+        /// Dispatch for 4.3.2 mxv: A * u
+        //**********************************************************************
+        template<typename WVectorT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AMatrixT,
+                 typename UVectorT>
+        inline void mxv(WVectorT          &w,
+                        MaskT       const &mask,
+                        AccumT      const &accum,
+                        SemiringT          op,
+                        AMatrixT    const &A,
+                        UVectorT    const &u,
+                        OutputControlEnum  outp)
+        {
+            GRB_LOG_VERBOSE("C := (A*B)");
+            //sparse_mxv_A(w, mask, accum, op, A, u, outp);
+            original_mxv(w, mask, accum, op, A, u, outp);
+        }
+
+        //**********************************************************************
+        /// Dispatch for 4.3.2 mxv: A' * u
+        //**********************************************************************
+        template<typename WVectorT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AMatrixT,
+                 typename UVectorT>
+        inline void mxv(WVectorT                       &w,
+                        MaskT                    const &mask,
+                        AccumT                   const &accum,
+                        SemiringT                       op,
+                        TransposeView<AMatrixT>  const &A,
+                        UVectorT                 const &u,
+                        OutputControlEnum               outp)
+        {
+            GRB_LOG_VERBOSE("C := (A*B)");
+            sparse_mxv_AT(w, mask, accum, op, strip_transpose(A), u, outp);
         }
 
     } // backend

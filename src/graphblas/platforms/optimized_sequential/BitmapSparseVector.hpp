@@ -443,7 +443,7 @@ namespace GraphBLAS
                 {
                     if (m_bitmap[idx])
                     {
-                        *i_it = idx; ++i_it;
+                        *i_it = idx;         ++i_it;
                         *v_it = m_vals[idx]; ++v_it;
                     }
                 }
@@ -459,7 +459,8 @@ namespace GraphBLAS
             void printInfo(std::ostream &os) const
             {
                 os << "backend::BitmapSparseVector<" << typeid(ScalarT).name() << ">";
-                os << ", size = " << m_size << ", nvals = " << m_nvals << std::endl;
+                os << ", size  = " << m_size;
+                os << ", nvals = " << m_nvals << std::endl;
 
                 os << "[";
                 if (m_bitmap[0]) os << m_vals[0]; else os << "-";
@@ -477,8 +478,8 @@ namespace GraphBLAS
                 return os;
             }
 
-            std::vector<bool> const &get_bitmap() const { return m_bitmap; }
-            std::vector<ScalarT> const &get_vals() const { return m_vals; }
+            std::vector<bool>    const &get_bitmap() const { return m_bitmap; }
+            std::vector<ScalarT> const &get_vals() const   { return m_vals; }
 
             std::vector<std::tuple<IndexType,ScalarT> > getContents() const
             {
@@ -488,7 +489,7 @@ namespace GraphBLAS
                 {
                     if (m_bitmap[idx])
                     {
-                        contents.push_back(std::make_tuple(idx, m_vals[idx]));
+                        contents.emplace_back(idx, m_vals[idx]);
                     }
                 }
                 return contents;
@@ -499,11 +500,11 @@ namespace GraphBLAS
                 std::vector<std::tuple<IndexType,OtherScalarT> > const &contents)
             {
                 clear();
-                for (auto tupl : contents)
+                for (auto&& [idx, val] : contents)
                 {
+                    m_bitmap[idx] = true;
+                    m_vals[idx]   = static_cast<ScalarT>(val);
                     ++m_nvals;
-                    m_bitmap[std::get<0>(tupl)] = true;
-                    m_vals[std::get<0>(tupl)] = static_cast<ScalarT>(std::get<1>(tupl));
                 }
             }
 

@@ -85,8 +85,7 @@ namespace GraphBLAS
                     // C[i][j] = T_ij = (CScalarT) (A[i] . B[j])
                     if (dot(t_ij, A[i], B[j], semiring))
                     {
-                        C_row.push_back(
-                            std::make_tuple(j, static_cast<CScalarT>(t_ij)));
+                        C_row.emplace_back(j, static_cast<CScalarT>(t_ij));
                     }
                 }
 
