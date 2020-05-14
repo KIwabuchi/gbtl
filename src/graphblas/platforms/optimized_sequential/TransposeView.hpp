@@ -257,7 +257,10 @@ namespace GraphBLAS
             // PUT ALL FRIEND DECLARATIONS HERE
             template<typename InternalMatrixT>
             friend inline InternalMatrixT const &strip_transpose(
-                TransposeView<InternalMatrixT> const &AT);
+                GraphBLAS::backend::TransposeView<InternalMatrixT> const &AT)
+            {
+                return AT.m_matrix;
+            }
         };
 
     } //backend

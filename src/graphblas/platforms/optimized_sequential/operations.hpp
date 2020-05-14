@@ -65,18 +65,9 @@ namespace GraphBLAS
          *
          */
         template<typename MatrixT>
-        inline TransposeView<MatrixT> transpose(MatrixT const &A)
+        inline GraphBLAS::backend::TransposeView<MatrixT> transpose(MatrixT const &A)
         {
-            return TransposeView<MatrixT>(A);
-        }
-
-        /**
-         *
-         */
-        template<typename MatrixT>
-        inline MatrixT const &strip_transpose(TransposeView<MatrixT> const &AT)
-        {
-            return AT.m_matrix;
+            return GraphBLAS::backend::TransposeView<MatrixT>(A);
         }
 
     } // backend

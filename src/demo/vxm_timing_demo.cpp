@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     Timer<std::chrono::system_clock> my_timer;
 
     // warm up
-    mxv(w, NoMask(), NoAccumulate(), ArithmeticSemiring<double>(), A, u);
+    vxm(w, NoMask(), NoAccumulate(), ArithmeticSemiring<double>(), u, A);
 
     //=====================================================
     // Perform matrix vector multiplies
@@ -126,9 +126,9 @@ int main(int argc, char **argv)
     std::cout << "OPTIMIZED IMPLEMENTATION: A*u" << std::endl;
     w.clear();
     my_timer.start();
-    mxv(w, NoMask(), NoAccumulate(),
+    vxm(w, NoMask(), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w := A+.*u                : " << my_timer.elapsed()
@@ -136,9 +136,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, NoMask(), Plus<double>(),
+    vxm(w, NoMask(), Plus<double>(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w := w + A+.*u            : " << my_timer.elapsed()
@@ -146,9 +146,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, M, NoAccumulate(),
+    vxm(w, M, NoAccumulate(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<M,merge> := A+.*u       : " << my_timer.elapsed()
@@ -156,9 +156,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, M, NoAccumulate(),
+    vxm(w, M, NoAccumulate(),
         ArithmeticSemiring<double>(),
-        A, u, REPLACE);
+        u, A, REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<M,replace> := A+.*u     : " << my_timer.elapsed()
@@ -166,9 +166,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, M, Plus<double>(),
+    vxm(w, M, Plus<double>(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<M,merge> := w + A+.*u   : " << my_timer.elapsed()
@@ -176,9 +176,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, M, Plus<double>(),
+    vxm(w, M, Plus<double>(),
         ArithmeticSemiring<double>(),
-        A, u, REPLACE);
+        u, A, REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<M,replace> := w + A+.*u : " << my_timer.elapsed()
@@ -186,9 +186,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, complement(M), NoAccumulate(),
+    vxm(w, complement(M), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<!M,merge> := A+.*u      : " << my_timer.elapsed()
@@ -196,9 +196,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, complement(M), NoAccumulate(),
+    vxm(w, complement(M), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        A, u, REPLACE);
+        u, A, REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<!M,replace> := A+.*u    : " << my_timer.elapsed()
@@ -206,9 +206,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, complement(M), Plus<double>(),
+    vxm(w, complement(M), Plus<double>(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<!M,merge> := w + A+.*u  : " << my_timer.elapsed()
@@ -216,9 +216,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, complement(M), Plus<double>(),
+    vxm(w, complement(M), Plus<double>(),
         ArithmeticSemiring<double>(),
-        A, u, REPLACE);
+        u, A, REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<!M,replace> := w + A+.*u: " << my_timer.elapsed()
@@ -227,9 +227,9 @@ int main(int argc, char **argv)
 
     //----
     my_timer.start();
-    mxv(w, structure(M), NoAccumulate(),
+    vxm(w, structure(M), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<s(M),merge> := A+.*u    : " << my_timer.elapsed()
@@ -237,9 +237,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, structure(M), NoAccumulate(),
+    vxm(w, structure(M), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        A, u, REPLACE);
+        u, A, REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<s(M),replace> := A+.*u  : " << my_timer.elapsed()
@@ -247,9 +247,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, structure(M), Plus<double>(),
+    vxm(w, structure(M), Plus<double>(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<s(M),merge> := w + A+.*u   : " << my_timer.elapsed()
@@ -257,9 +257,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, structure(M), Plus<double>(),
+    vxm(w, structure(M), Plus<double>(),
         ArithmeticSemiring<double>(),
-        A, u, REPLACE);
+        u, A, REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<s(M),replace> := w + A+.*u : " << my_timer.elapsed()
@@ -267,9 +267,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, complement(structure(M)), NoAccumulate(),
+    vxm(w, complement(structure(M)), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<!s(M),merge> := A+.*u      : " << my_timer.elapsed()
@@ -277,9 +277,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, complement(structure(M)), NoAccumulate(),
+    vxm(w, complement(structure(M)), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        A, u, REPLACE);
+        u, A, REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<!s(M),replace> := A+.*u    : " << my_timer.elapsed()
@@ -287,9 +287,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, complement(structure(M)), Plus<double>(),
+    vxm(w, complement(structure(M)), Plus<double>(),
         ArithmeticSemiring<double>(),
-        A, u);
+        u, A);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<!s(M),merge> := w + A+.*u  : " << my_timer.elapsed()
@@ -297,9 +297,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w, complement(structure(M)), Plus<double>(),
+    vxm(w, complement(structure(M)), Plus<double>(),
         ArithmeticSemiring<double>(),
-        A, u, REPLACE);
+        u, A, REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<!s(M),replace> := w + A+.*u: " << my_timer.elapsed()
@@ -312,9 +312,9 @@ int main(int argc, char **argv)
     std::cout << "OPTIMIZED IMPLEMENTATION: A'*u" << std::endl;
     w1.clear();
     my_timer.start();
-    mxv(w1, NoMask(), NoAccumulate(),
+    vxm(w1, NoMask(), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w := A'+.*u                : " << my_timer.elapsed()
@@ -322,9 +322,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, NoMask(), Plus<double>(),
+    vxm(w1, NoMask(), Plus<double>(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w := w + A'+.*u            : " << my_timer.elapsed()
@@ -332,9 +332,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, M, NoAccumulate(),
+    vxm(w1, M, NoAccumulate(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<M,merge> := A'+.*u       : " << my_timer.elapsed()
@@ -342,9 +342,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, M, NoAccumulate(),
+    vxm(w1, M, NoAccumulate(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u, REPLACE);
+        u, transpose(AT), REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<M,replace> := A+.*u      : " << my_timer.elapsed()
@@ -352,9 +352,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, M, Plus<double>(),
+    vxm(w1, M, Plus<double>(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<M,merge> := w + A'+.*u   : " << my_timer.elapsed()
@@ -362,9 +362,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, M, Plus<double>(),
+    vxm(w1, M, Plus<double>(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u, REPLACE);
+        u, transpose(AT), REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<M,replace> := w + A'+.*u : " << my_timer.elapsed()
@@ -372,9 +372,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, complement(M), NoAccumulate(),
+    vxm(w1, complement(M), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<!M,merge> := A'+.*u      : " << my_timer.elapsed()
@@ -382,9 +382,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, complement(M), NoAccumulate(),
+    vxm(w1, complement(M), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u, REPLACE);
+        u, transpose(AT), REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<!M,replace> := A'+.*u    : " << my_timer.elapsed()
@@ -392,9 +392,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, complement(M), Plus<double>(),
+    vxm(w1, complement(M), Plus<double>(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<!M,merge> := w + A'+.*u  : " << my_timer.elapsed()
@@ -402,9 +402,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, complement(M), Plus<double>(),
+    vxm(w1, complement(M), Plus<double>(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u, REPLACE);
+        u, transpose(AT), REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<!M,replace> := w + A'+.*u: " << my_timer.elapsed()
@@ -414,9 +414,9 @@ int main(int argc, char **argv)
     //-----
 
     my_timer.start();
-    mxv(w1, structure(M), NoAccumulate(),
+    vxm(w1, structure(M), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<s(M),merge> := A'+.*u       : " << my_timer.elapsed()
@@ -424,9 +424,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, structure(M), NoAccumulate(),
+    vxm(w1, structure(M), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u, REPLACE);
+        u, transpose(AT), REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<s(M),replace> := A+.*u      : " << my_timer.elapsed()
@@ -434,9 +434,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, structure(M), Plus<double>(),
+    vxm(w1, structure(M), Plus<double>(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<s(M),merge> := w + A'+.*u   : " << my_timer.elapsed()
@@ -444,9 +444,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, structure(M), Plus<double>(),
+    vxm(w1, structure(M), Plus<double>(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u, REPLACE);
+        u, transpose(AT), REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<s(M),replace> := w + A'+.*u : " << my_timer.elapsed()
@@ -454,9 +454,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, complement(structure(M)), NoAccumulate(),
+    vxm(w1, complement(structure(M)), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<!s(M),merge> := A'+.*u      : " << my_timer.elapsed()
@@ -464,9 +464,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, complement(structure(M)), NoAccumulate(),
+    vxm(w1, complement(structure(M)), NoAccumulate(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u, REPLACE);
+        u, transpose(AT), REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<!s(M),replace> := A'+.*u    : " << my_timer.elapsed()
@@ -474,9 +474,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, complement(structure(M)), Plus<double>(),
+    vxm(w1, complement(structure(M)), Plus<double>(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u);
+        u, transpose(AT));
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<!s(M),merge> := w + A'+.*u  : " << my_timer.elapsed()
@@ -484,9 +484,9 @@ int main(int argc, char **argv)
               << " reduce = " << count << std::endl;
 
     my_timer.start();
-    mxv(w1, complement(structure(M)), Plus<double>(),
+    vxm(w1, complement(structure(M)), Plus<double>(),
         ArithmeticSemiring<double>(),
-        transpose(AT), u, REPLACE);
+        u, transpose(AT), REPLACE);
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w1);
     std::cout << "w<!s(M),replace> := w + A'+.*u: " << my_timer.elapsed()
