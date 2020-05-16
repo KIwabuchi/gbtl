@@ -249,7 +249,7 @@ namespace GraphBLAS
              *       a reference.
              */
             TransposeView<MatrixT>&
-            operator=(TransposeView<MatrixT> const &rhs);
+            operator=(TransposeView<MatrixT> const &rhs) = delete;
 
         private:
             MatrixT const &m_matrix;
@@ -257,10 +257,7 @@ namespace GraphBLAS
             // PUT ALL FRIEND DECLARATIONS HERE
             template<typename InternalMatrixT>
             friend inline InternalMatrixT const &strip_transpose(
-                GraphBLAS::backend::TransposeView<InternalMatrixT> const &AT)
-            {
-                return AT.m_matrix;
-            }
+                GraphBLAS::backend::TransposeView<InternalMatrixT> const &AT);
         };
 
     } //backend

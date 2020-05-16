@@ -53,19 +53,13 @@ namespace GraphBLAS
         void print_vec(std::ostream &os, std::string label,
                        std::vector<std::tuple<IndexType, ScalarT> > vec)
         {
-            auto vec_it = vec.begin();
+            os << label << " ";
             bool first = true;
 
-            IndexType idx;
-            ScalarT val;
-
-            os << label << " ";
-            while (vec_it != vec.end())
+            for (auto&& [idx, val] : vec)
             {
-                std::tie(idx, val) = *vec_it;
                 os << (!first ? "," : " ") << idx << ":" << val;
                 first = false;
-                ++vec_it;
             }
             os << std::endl;
         }
@@ -77,11 +71,8 @@ namespace GraphBLAS
         void sparse_copy(DstMatrixT &dstMatrix,
                          SrcMatrixT const &srcMatrix)
         {
-            typedef typename SrcMatrixT::ScalarType SrcScalarType;
-            typedef typename DstMatrixT::ScalarType DstScalarType;
-
-            typedef std::vector<std::tuple<IndexType, SrcScalarType> > SrcRowType;
-            typedef std::vector<std::tuple<IndexType, DstScalarType> > DstRowType;
+            using DstScalarType = typename DstMatrixT::ScalarType;
+            std::vector<std::tuple<IndexType, DstScalarType> > dstRow;
 
             // Copying removes the contents of the other matrix so clear it first.
             dstMatrix.clear();
@@ -89,16 +80,13 @@ namespace GraphBLAS
             IndexType nrows(dstMatrix.nrows());
             for (IndexType row_idx = 0; row_idx < nrows; ++row_idx)
             {
-                SrcRowType srcRow = srcMatrix.getRow(row_idx);
-                DstRowType dstRow;
+                auto&& srcRow = srcMatrix.getRow(row_idx);
+                dstRow.clear();
 
                 // We need to construct a new row with the appropriate cast!
-                for (auto it = srcRow.begin(); it != srcRow.end(); ++it)
+                for (auto&& [idx, srcVal] : srcRow)
                 {
-                    IndexType idx;
-                    SrcScalarType srcVal;
-                    std::tie(idx, srcVal) = *it;
-                    dstRow.push_back(std::make_tuple(idx, static_cast<DstScalarType>(srcVal)));
+                    dstRow.emplace_back(idx, static_cast<DstScalarType>(srcVal));
                 }
 
                 if (!dstRow.empty())
@@ -109,109 +97,49 @@ namespace GraphBLAS
         // @todo: Make a sparse copy where they are the same type for efficiency
 
         //**********************************************************************
-        /// Increments the provided iterate while the value is less
-        /// than the provided index
-        template <typename I>
-        void increment_until_true(
-            // std::vector<std::tuple<GraphBLAS::IndexType,D> >::const_iterator    &iter,
-            // std::vector<std::tuple<GraphBLAS::IndexType,D> >::const_iterator    &iter_end,
-            I          &iter,
-            I const    &iter_end)
+        /// Advance the provided iterator until the value evaluates to true or
+        /// the end is reached.
+        ///
+        /// Iter is iterator to std::vector<std::tuple<GraphBLAS::IndexType,T>>
+        template <typename Iter>
+        void increment_until_true(Iter &iter, Iter const &iter_end)
         {
-            using value_type = typename std::iterator_traits<I>::value_type;
-            using data_type = typename std::tuple_element<1, value_type>::type;
-
-            GraphBLAS::IndexType tmp_idx;
-            data_type tmp_val;
-
-            if (iter == iter_end)
-                return;
-
-            std::tie(tmp_idx, tmp_val) = *iter;
-            while (!tmp_val && iter != iter_end)
-            {
-                //std::cout << "Iter not true. index: " + std::to_string(tmp_idx) +
-                //    " incrementing."  << std::endl;;
+            while ((iter != iter_end) && !(std::get<1>(*iter))) {
                 ++iter;
-                if (iter == iter_end)
-                    return;
-
-                // Reload
-                std::tie(tmp_idx, tmp_val) = *iter;
             }
         }
 
         //**********************************************************************
-
-        /// Increments the provided iterate while the value is less than the provided index
-        template <typename I>
-        void increment_while_below(
-                // std::vector<std::tuple<GraphBLAS::IndexType,D> >::const_iterator    &iter,
-                // std::vector<std::tuple<GraphBLAS::IndexType,D> >::const_iterator    &iter_end,
-                I         &iter,
-                I const   &iter_end,
-                GraphBLAS::IndexType                                                 idx)
+        /// Increment the provided iterator while the index is less than the
+        /// provided index
+        template <typename Iter>
+        void increment_while_below(Iter                 &iter,
+                                   Iter const           &iter_end,
+                                   GraphBLAS::IndexType  idx)
         {
-            using value_type = typename std::iterator_traits<I>::value_type;
-            using data_type = typename std::tuple_element<1, value_type>::type;
-
-            GraphBLAS::IndexType tmp_idx;
-            data_type tmp_val;
-
-            if (iter == iter_end)
-                return;
-
-            std::tie(tmp_idx, tmp_val) = *iter;
-            while (tmp_idx < idx && iter != iter_end)
-            {
-                //std::cerr << "Iter at: " + std::to_string(tmp_idx) +  ", below index: " +
-                //    std::to_string(idx) + " incrementing."  << std::endl;;
+            while ((iter != iter_end) && (std::get<0>(*iter) < idx)) {
                 ++iter;
-                if (iter == iter_end)
-                    return;
-
-                // Reload
-                std::tie(tmp_idx, tmp_val) = *iter;
             }
         }
 
         //**********************************************************************
-        template <typename I, typename V>
-        void increment_and_add_while_below(
-                I                              &iter,
-                I                       const  &iter_end,
-                GraphBLAS::IndexType            idx,
-                V                               &vec)
+        /// Increment the provided iterator while the index is less than the
+        /// provided index and append any elements to vec along the way
+        template <typename Iter, typename V>
+        void increment_and_add_while_below(Iter                 &iter,
+                                           Iter          const  &iter_end,
+                                           GraphBLAS::IndexType  idx,
+                                           V                    &vec)
         {
-            // @todo: Tighten up the template types above to bind the vector
-            // type to the iter type explicitly
-            using value_type = typename std::iterator_traits<I>::value_type;
-            using data_type = typename std::tuple_element<1, value_type>::type;
-
-            GraphBLAS::IndexType tmp_idx;
-            data_type tmp_val;
-
-            if (iter == iter_end)
-                return;
-
-            std::tie(tmp_idx, tmp_val) = *iter;
-            while (iter != iter_end && tmp_idx < idx )
-            {
-                vec.push_back(*iter);
-
+            while ((iter != iter_end) && (std::get<0>(*iter) < idx)) {
+                vec.push_back(*iter);  // anything more efficient?
                 ++iter;
-                if (iter == iter_end)
-                    return;
-
-                // Reload
-                std::tie(tmp_idx, tmp_val) = *iter;
             }
         }
 
         //**********************************************************************
-
-        /// Perform the dot product of a row of a matrix with a sparse vector without
-        /// pulling the indices out of the vector first.
+        /// Perform the dot product of a row of a matrix with a sparse vector
+        /// without pulling the indices out of the vector first.
         template <typename D1, typename D2, typename D3, typename SemiringT>
         bool dot2(D3                                                      &ans,
                   std::vector<std::tuple<GraphBLAS::IndexType,D1> > const &A_row,
@@ -241,30 +169,20 @@ namespace GraphBLAS
             while ((A_iter != A_row.end()) && (u_idx < u_vals.size()))
             {
                 std::tie(a_idx, a_val) = *A_iter;
-                //std::cerr << "Examine u index = " << u_idx << "," << u_vals[u_idx]
-                //          << ", A col_idx = " << a_idx << "," << a_val << std::endl;
-
                 if (u_idx == a_idx)
                 {
-                    //std::cerr << ans << " + "  << a_val << " * "  << u_vals[u_idx]
-                    //          << " = " << op.mult(a_val, u_vals[u_idx]) << std::endl;
-
                     ans = op.add(ans, op.mult(a_val, u_vals[u_idx]));
                     value_set = true;
-
-                    //std::cerr << "Equal, mutliply_accum, ans = " << ans << std::endl;
 
                     do { ++u_idx; } while ((u_idx < u_vals.size()) && !u_bitmap[u_idx]);
                     ++A_iter;
                 }
                 else if (u_idx > a_idx)
                 {
-                    //std::cerr << "Advancing A_iter" << std::endl;
                     ++A_iter;
                 }
                 else
                 {
-                    //std::cerr << "Advancing u_iter" << std::endl;
                     do { ++u_idx; } while ((u_idx < u_vals.size()) && !u_bitmap[u_idx]);
                 }
             }
@@ -287,49 +205,36 @@ namespace GraphBLAS
                 return value_set;
             }
 
+            // point to first entries of the vectors
             auto v1_it = vec1.begin();
             auto v2_it = vec2.begin();
 
-            // pull first value out of the row
-            D1 a_val;
-            D2 u_val;
-            GraphBLAS::IndexType a_idx, u_idx;
-
             // loop through both ordered sets to compute sparse dot prod
-            while ((v1_it != vec1.end()) &&
-                   (v2_it != vec2.end()))
+            while ((v1_it != vec1.end()) && (v2_it != vec2.end()))
             {
-                std::tie(a_idx, a_val) = *v1_it;
-                std::tie(u_idx, u_val) = *v2_it;
-
-                //std::cerr << "Examine u idx,val = " << u_idx << "," << u_val
-                //          << "; A col_idx,val = " << a_idx << "," << a_val << std::endl;
-
-                if (u_idx == a_idx)
+                if (std::get<0>(*v2_it) == std::get<0>(*v1_it))
                 {
-                    //std::cerr << ans << " + " << a_val << " * " << u_val << " = ";
                     if (value_set)
                     {
-                        ans = op.add(ans, op.mult(a_val, u_val));
+                        ans = op.add(ans, op.mult(std::get<1>(*v1_it),
+                                                  std::get<1>(*v2_it)));
                     }
                     else
                     {
-                        ans = op.mult(a_val, u_val);
+                        ans = op.mult(std::get<1>(*v1_it),
+                                      std::get<1>(*v2_it));
                     }
                     value_set = true;
-                    //std::cerr << ans << std::endl;
 
                     ++v2_it;
                     ++v1_it;
                 }
-                else if (u_idx > a_idx)
+                else if (std::get<0>(*v2_it) > std::get<0>(*v1_it))
                 {
-                    //std::cerr << "Advancing v1_it" << std::endl;
                     ++v1_it;
                 }
                 else
                 {
-                    //std::cerr << "Advancing v2_it" << std::endl;
                     ++v2_it;
                 }
             }
@@ -365,6 +270,7 @@ namespace GraphBLAS
                 /// ordering is not strictly required.
                 tmp = op(std::get<1>(vec[0]), std::get<1>(vec[1]));
 
+                /// @todo replace with call to std::reduce?
                 for (size_t idx = 2; idx < vec.size(); ++idx)
                 {
                     tmp = op(tmp, std::get<1>(vec[idx]));
@@ -384,6 +290,8 @@ namespace GraphBLAS
                       BinaryOpT                                                op)
         {
             ans.clear();
+
+            // point to first entries of the vectors
             auto v1_it = vec1.begin();
             auto v2_it = vec2.begin();
 
@@ -401,39 +309,38 @@ namespace GraphBLAS
 
                     if (v2_idx == v1_idx)
                     {
-                        //std::cerr << ans << " + " << v1_val << " * " << v2_val << " = ";
-                        ans.push_back(std::make_tuple(v1_idx,
-                                                      static_cast<D3>(op(v1_val, v2_val))));
-                        //std::cerr << ans << std::endl;
+                        ans.emplace_back(
+                            std::make_tuple(v1_idx,
+                                            static_cast<D3>(op(v1_val, v2_val))));
 
                         ++v2_it;
                         ++v1_it;
                     }
                     else if (v2_idx > v1_idx)
                     {
-                        //std::cerr << "Copying v1, Advancing v1_it" << std::endl;
-                        ans.push_back(std::make_tuple(v1_idx,
-                                                      static_cast<D3>(v1_val)));
+                        ans.emplace_back(
+                            std::make_tuple(v1_idx, static_cast<D3>(v1_val)));
                         ++v1_it;
                     }
                     else
                     {
-                        //std::cerr << "Copying v2, Advancing v2_it" << std::endl;
-                        ans.push_back(std::make_tuple(v2_idx,
-                                                      static_cast<D3>(v2_val)));
+                        ans.emplace_back(
+                            std::make_tuple(v2_idx, static_cast<D3>(v2_val)));
                         ++v2_it;
                     }
                 }
                 else if (v1_it != vec1.end())
                 {
                     std::tie(v1_idx, v1_val) = *v1_it;
-                    ans.push_back(std::make_tuple(v1_idx, static_cast<D3>(v1_val)));
+                    ans.emplace_back(
+                        std::make_tuple(v1_idx, static_cast<D3>(v1_val)));
                     ++v1_it;
                 }
                 else // v2_it != vec2.end())
                 {
                     std::tie(v2_idx, v2_val) = *v2_it;
-                    ans.push_back(std::make_tuple(v2_idx, static_cast<D3>(v2_val)));
+                    ans.emplace_back(
+                        std::make_tuple(v2_idx, static_cast<D3>(v2_val)));
                     ++v2_it;
                 }
             }
@@ -620,13 +527,13 @@ namespace GraphBLAS
                                         ColSequenceT const &col_indices,
                                         BinaryOpT           accum)
         {
-            // If there is an accumulate operations, do nothing with the stencil
-            typedef typename ZMatrixT::ScalarType ZScalarType;
-
-            typedef std::vector<std::tuple<IndexType,ZScalarType> > ZRowType;
+            // If there is an accumulate operation, do nothing with the stencil
+            using ZScalarType = typename ZMatrixT::ScalarType;
+            using ZRowType = std::vector<std::tuple<IndexType,ZScalarType> >;
 
             ZRowType tmp_row;
             IndexType nRows(Z.nrows());
+
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
                 ewise_or(tmp_row, C.getRow(row_idx), T.getRow(row_idx), accum);
@@ -647,11 +554,10 @@ namespace GraphBLAS
                                         ColSequenceT const &col_indices,
                                         GraphBLAS::NoAccumulate)
         {
-            // If there is no accumulate we need to annihilate stored values
+            // If there is no accumulate, we need to annihilate stored values
             // in C that fall in the stencil
-            typedef typename ZMatrixT::ScalarType ZScalarType;
-
-            typedef std::vector<std::tuple<IndexType,ZScalarType> > ZRowType;
+            using ZScalarType = typename ZMatrixT::ScalarType;
+            using ZRowType = std::vector<std::tuple<IndexType,ZScalarType> >;
 
             ZRowType tmp_row;
             IndexType nRows(Z.nrows());
@@ -684,12 +590,12 @@ namespace GraphBLAS
                                 TMatrixT const   &T,
                                 BinaryOpT         accum)
         {
-            typedef typename ZMatrixT::ScalarType ZScalarType;
-
-            typedef std::vector<std::tuple<IndexType,ZScalarType> > ZRowType;
+            using ZScalarType = typename ZMatrixT::ScalarType;
+            using ZRowType = std::vector<std::tuple<IndexType,ZScalarType> >;
 
             ZRowType tmp_row;
             IndexType nRows(Z.nrows());
+
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
                 ewise_or(tmp_row, C.getRow(row_idx), T.getRow(row_idx), accum);
@@ -740,9 +646,9 @@ namespace GraphBLAS
             //sparse_copy(z, t);
             for (auto tupl: t)
             {
-                z.push_back(std::make_tuple(
-                                std::get<0>(tupl),
-                                static_cast<ZScalarT>(std::get<1>(tupl))));
+                z.emplace_back(std::make_tuple(
+                                   std::get<0>(tupl),
+                                   static_cast<ZScalarT>(std::get<1>(tupl))));
             }
         }
 
@@ -781,37 +687,32 @@ namespace GraphBLAS
                        BinaryOpT                                                op)
         {
             ans.clear();
+
+            // todo: early exit if either input vector is empty?
+
+            // point to first entries of the vectors
             auto v1_it = vec1.begin();
             auto v2_it = vec2.begin();
-
-            D1 v1_val;
-            D2 v2_val;
-            GraphBLAS::IndexType v1_idx, v2_idx;
 
             // loop through both ordered sets to compute ewise_or
             while ((v1_it != vec1.end()) && (v2_it != vec2.end()))
             {
-                std::tie(v1_idx, v1_val) = *v1_it;
-                std::tie(v2_idx, v2_val) = *v2_it;
-
-                if (v2_idx == v1_idx)
+                if (std::get<0>(*v2_it) == std::get<0>(*v1_it))
                 {
-                    //std::cerr << ans << " + " << v1_val << " * " << v2_val << " = ";
-                    ans.push_back(std::make_tuple(v1_idx,
-                                                  static_cast<D3>(op(v1_val, v2_val))));
-                    //std::cerr << ans << std::endl;
+                    ans.emplace_back(
+                        std::make_tuple(std::get<0>(*v1_it),
+                                        static_cast<D3>(op(std::get<1>(*v1_it),
+                                                           std::get<1>(*v2_it)))));
 
                     ++v2_it;
                     ++v1_it;
                 }
-                else if (v2_idx > v1_idx)
+                else if (std::get<0>(*v2_it) > std::get<0>(*v1_it))
                 {
-                    //std::cerr << "Advancing v1_it" << std::endl;
                     ++v1_it;
                 }
                 else
                 {
-                    //std::cerr << "Advancing v2_it" << std::endl;
                     ++v2_it;
                 }
             }
@@ -857,16 +758,6 @@ namespace GraphBLAS
             auto z_it = z_vec.begin();
             auto mask_it = mask_vec.begin();
 
-            CScalarT c_val;
-            ZScalarT z_val;
-            MScalarT mask_val;
-            GraphBLAS::IndexType c_idx, z_idx, mask_idx;
-
-            //std::cerr << "Executing apply_with_mask with mask and outp = " << outp << std::endl;
-            //print_vec(std::cerr, "c_vec", c_vec);
-            //print_vec(std::cerr, "z_vec", z_vec);
-            //print_vec(std::cerr, "m_vec", mask_vec);
-
             result.clear();
 
             // Design: This approach is driven by the mask.
@@ -878,14 +769,13 @@ namespace GraphBLAS
                 // If we run out of mask, we are done!
                 if (mask_it == mask_vec.end())
                 {
-                    //std::cerr << "Mask exhausted(1)." << std::endl;
                     break;
                 }
 
-                // Get the mask values
-                std::tie(mask_idx, mask_val) = *mask_it;
+                // Get the mask location
+                auto mask_idx(std::get<0>(*mask_it));
 
-                // If outp==REPLACE then we don't consider original C values.
+                // If outp==REPLACE, then we don't consider original C values.
                 // If outp==MERGE, then we want to keep C values outside the mask
                 // Any values in C "outside" the mask should now be applied
                 // So, we catch "c" up to the mask.  This is the intersection
@@ -904,21 +794,19 @@ namespace GraphBLAS
                 // Now, at the mask point add the value from Z if we have one.
                 if (z_it != z_vec.end())
                 {
-                    std::tie(z_idx, z_val) = *z_it;
-                    if (z_idx == mask_idx)
+                    if (std::get<0>(*z_it) == mask_idx)
                     {
-                        result.push_back(
-                            std::make_tuple(mask_idx,
-                                            static_cast<CScalarT>(z_val)));
-                        //std::cerr << "Copying v1. val: " << std::to_string(z_val) << std::endl;
+                        result.emplace_back(
+                            std::make_tuple(
+                                mask_idx,
+                                static_cast<CScalarT>(std::get<1>(*z_it))));
                     }
                 }
 
                 // If there is a C here, skip it
                 if (c_it != c_vec.end())
                 {
-                    std::tie(c_idx, c_val) = *c_it;
-                    if (c_idx == mask_idx)
+                    if (std::get<0>(*c_it) == mask_idx)
                         ++c_it;
                 }
 
@@ -932,18 +820,11 @@ namespace GraphBLAS
                 // This is the part of (ind(C) \cap int(\not M)
                 while (c_it != c_vec.end())
                 {
-                    //std::tie(c_idx, c_val) = *c_it;
-                    //std::cerr << "Catch up= " << c_idx << ":" << c_val << std::endl;
-                    //result.push_back(std::make_tuple(c_idx, static_cast<CScalarT>(c_val)));
-                    result.push_back(*c_it);
+                    result.emplace_back(*c_it);
                     ++c_it;
                 }
             }
-
-            //print_vec(std::cerr, "result", result);
-
         } // apply_with_mask
-
 
         //**********************************************************************
         // Matrix Mask Churn
@@ -1226,7 +1107,7 @@ namespace GraphBLAS
             MaskT const                                        &mask,
             OutputControlEnum                                   outp)
         {
-            typedef typename WVectorT::ScalarType WScalarType;
+            using WScalarType = typename WVectorT::ScalarType;
             std::vector<std::tuple<IndexType, WScalarType> > tmp_row;
 
             apply_with_mask(tmp_row, w.getContents(), z,
@@ -1248,7 +1129,7 @@ namespace GraphBLAS
             GraphBLAS::VectorComplementView<MaskT>       const &mask,
             OutputControlEnum                                   outp)
         {
-            typedef typename WVectorT::ScalarType WScalarType;
+            using WScalarType = typename WVectorT::ScalarType;
             std::vector<std::tuple<IndexType, WScalarType> > tmp_row;
 
             apply_with_mask(tmp_row, w.getContents(), z,
@@ -1270,7 +1151,7 @@ namespace GraphBLAS
             GraphBLAS::VectorStructureView<MaskT>        const &mask,
             OutputControlEnum                                   outp)
         {
-            typedef typename WVectorT::ScalarType WScalarType;
+            using WScalarType = typename WVectorT::ScalarType;
             std::vector<std::tuple<IndexType, WScalarType> > tmp_row;
 
             apply_with_mask(tmp_row, w.getContents(), z,
@@ -1288,12 +1169,12 @@ namespace GraphBLAS
                   typename ZScalarT,
                   typename MaskT>
         void write_with_opt_mask_1D(
-            WVectorT                                           &w,
-            std::vector<std::tuple<IndexType, ZScalarT>> const &z,
+            WVectorT                                               &w,
+            std::vector<std::tuple<IndexType, ZScalarT>>     const &z,
             GraphBLAS::VectorStructuralComplementView<MaskT> const &mask,
             OutputControlEnum                                       outp)
         {
-            typedef typename WVectorT::ScalarType WScalarType;
+            using WScalarType = typename WVectorT::ScalarType;
             std::vector<std::tuple<IndexType, WScalarType> > tmp_row;
 
             apply_with_mask(tmp_row, w.getContents(), z,
@@ -1322,7 +1203,7 @@ namespace GraphBLAS
         // Index-out-of-bounds is an execution error and a responsibility of
         // the backend.
         template <typename SequenceT>
-        void check_index_array_content(SequenceT const   &array,
+        void check_index_array_content(SequenceT   const &array,
                                        IndexType          dim,
                                        std::string const &msg)
         {
@@ -1351,6 +1232,312 @@ namespace GraphBLAS
         IndexSequenceRange setupIndices(AllIndices seq, IndexType n)
         {
             return IndexSequenceRange(0, n);
+        }
+
+        //********************************************************************
+        // mxm helpers (may be of more general use).
+        //********************************************************************
+
+
+        // *******************************************************************
+        // Return true if iterator points to location with target_index;
+        // otherwise returns the at the insertion point for target_index
+        // which could be it_end.
+        template <typename TupleIteratorT>
+        bool advance_and_check_tuple_iterator(
+            TupleIteratorT       &it,
+            TupleIteratorT const &it_end,
+            IndexType             target_index)
+        {
+            GRB_LOG_FN_BEGIN("advance_and_check_tuple_iterator: tgt = "
+                             << target_index);
+
+            while ((it != it_end) && (std::get<0>(*it) < target_index))
+            {
+                ++it;
+            }
+
+            bool tmp = ((it != it_end) && (std::get<0>(*it) == target_index));
+            GRB_LOG_FN_END("advance_and_check_tuple_iterator target_found = "
+                           << tmp);
+            return tmp;
+        }
+
+        // *******************************************************************
+        // Only returns true if target index is found AND it evaluates to true
+        /// @todo Need to add support for STRUCTURE_ONLY
+        template <typename TupleIteratorT>
+        bool advance_and_check_mask_iterator(
+            TupleIteratorT       &it,
+            TupleIteratorT const &it_end,
+            bool                  structure_flag,
+            IndexType             target_index)
+        {
+            GRB_LOG_FN_BEGIN("advance_and_check_mask_iterator: sflag = "
+                             << structure_flag << ", tgt = " << target_index);
+
+            bool tmp =
+                (advance_and_check_tuple_iterator(it, it_end, target_index) &&
+                 (structure_flag || static_cast<bool>(std::get<1>(*it))));
+
+            GRB_LOG_FN_END("advance_and_check_mask_iterator: result = " << tmp);
+            return tmp;
+        }
+
+        // *******************************************************************
+        /// perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>>
+        ///
+        /// c += a_ik*b[:]
+        template<typename CScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        void axpy(
+            std::vector<std::tuple<IndexType, CScalarT>>       &c,
+            SemiringT                                           semiring,
+            AScalarT                                            a,
+            std::vector<std::tuple<IndexType, BScalarT>> const &b)
+        {
+            GRB_LOG_FN_BEGIN("axpy");
+            auto c_it = c.begin();
+
+            for (auto const &b_elt : b)
+            {
+                IndexType   j(std::get<0>(b_elt));
+                BScalarT  b_j(std::get<1>(b_elt));
+                GRB_LOG_VERBOSE("j = " << j);
+
+                auto t_j(semiring.mult(a, b_j));
+                GRB_LOG_VERBOSE("temp = " << t_j);
+
+                // scan through C_row to find insert/merge point
+                if (advance_and_check_tuple_iterator(c_it, c.end(), j))
+                {
+                    GRB_LOG_VERBOSE("Accumulating");
+                    std::get<1>(*c_it) = semiring.add(std::get<1>(*c_it), t_j);
+                    ++c_it;
+                }
+                else
+                {
+                    GRB_LOG_VERBOSE("Inserting");
+                    c_it = c.insert(c_it,
+                                    std::make_tuple(j, static_cast<CScalarT>(t_j)));
+                    ++c_it;
+                }
+            }
+            GRB_LOG_FN_END("axpy");
+        }
+
+        // *******************************************************************
+        /// perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>>
+        ///
+        /// c<[m[:]]> += a_ik*b[:]
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename SemiringT,
+                 typename AScalarT,
+                 typename BScalarT>
+        void masked_axpy(
+            std::vector<std::tuple<IndexType, CScalarT>>       &c,
+            std::vector<std::tuple<IndexType, MScalarT>> const &m,
+            bool                                                structure_flag,
+            bool                                                complement_flag,
+            SemiringT                                           semiring,
+            AScalarT                                            a,
+            std::vector<std::tuple<IndexType, BScalarT>> const &b)
+        {
+            GRB_LOG_FN_BEGIN("masked_axpy");
+
+            if (m.empty() && complement_flag)
+            {
+                axpy(c, semiring, a, b);
+                return;
+            }
+
+            auto c_it = c.begin();
+            auto m_it = m.begin();
+
+            for (auto const &b_elt : b)
+            {
+                IndexType    j(std::get<0>(b_elt));
+                GRB_LOG_VERBOSE("j = " << j);
+
+                // scan through M[i] to see if mask allows write.
+                if (advance_and_check_mask_iterator(
+                        m_it, m.end(), structure_flag, j) == complement_flag)
+                {
+                    GRB_LOG_VERBOSE("Skipping j = " << j);
+                    continue;
+                }
+
+                BScalarT  b_j(std::get<1>(b_elt));
+
+                auto t_j(semiring.mult(a, b_j));
+                GRB_LOG_VERBOSE("temp = " << t_j);
+
+                // scan through C_row to find insert/merge point
+                if (advance_and_check_tuple_iterator(c_it, c.end(), j))
+                {
+                    GRB_LOG_VERBOSE("Accumulating");
+                    std::get<1>(*c_it) = semiring.add(std::get<1>(*c_it), t_j);
+                    ++c_it;
+                }
+                else
+                {
+                    GRB_LOG_VERBOSE("Inserting");
+                    c_it = c.insert(c_it,
+                                    std::make_tuple(j, static_cast<CScalarT>(t_j)));
+                    ++c_it;
+                }
+            }
+            GRB_LOG_FN_END("masked_axpy");
+        }
+
+        // *******************************************************************
+        /// Perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>> (t assumed to be masked already)
+        ///
+        /// z = m ^ c (accum) t
+        template<typename CScalarT,
+                 typename AccumT,
+                 typename MScalarT,
+                 typename AScalarT,
+                 typename BScalarT>
+        void masked_accum(
+            std::vector<std::tuple<IndexType, CScalarT>>       &z,
+            std::vector<std::tuple<IndexType, MScalarT>> const &m,
+            bool                                                structure_flag,
+            bool                                                complement_flag,
+            AccumT                                       const &accum,
+            std::vector<std::tuple<IndexType, AScalarT>> const &c,
+            std::vector<std::tuple<IndexType, BScalarT>> const &t)
+        {
+            GRB_LOG_FN_BEGIN("masked_accum.v2");
+            auto t_it = t.begin();
+            auto m_it = m.begin();
+            auto c_it = c.begin();
+
+            // for each element of c find out if it is not in mask
+            while ((t_it != t.end()) && (c_it != c.end()))
+            {
+                IndexType t_idx(std::get<0>(*t_it));
+                IndexType c_idx(std::get<0>(*c_it));
+                if (t_idx < c_idx)
+                {
+                    // t already masked
+                    z.push_back(std::make_tuple(
+                                    t_idx,
+                                    static_cast<CScalarT>(std::get<1>(*t_it))));
+                    ++t_it;
+                }
+                else if (c_idx < t_idx)
+                {
+                    if (advance_and_check_mask_iterator(
+                            m_it, m.end(), structure_flag, c_idx) != complement_flag)
+                    {
+                        z.push_back(std::make_tuple(
+                                        c_idx,
+                                        static_cast<CScalarT>(std::get<1>(*c_it))));
+                    }
+                    ++c_it;
+                }
+                else
+                {
+                    z.push_back(
+                        std::make_tuple(
+                            t_idx,
+                            static_cast<CScalarT>(accum(std::get<1>(*c_it),
+                                                        std::get<1>(*t_it)))));
+                    ++t_it;
+                    ++c_it;
+                }
+            }
+
+            while (t_it != t.end())
+            {
+                z.push_back(std::make_tuple(
+                                std::get<0>(*t_it),
+                                static_cast<CScalarT>(std::get<1>(*t_it))));
+                ++t_it;
+            }
+
+            while (c_it != c.end())
+            {
+                IndexType c_idx(std::get<0>(*c_it));
+                if (advance_and_check_mask_iterator(
+                        m_it, m.end(), structure_flag, c_idx) != complement_flag)
+                {
+                    z.push_back(std::make_tuple(c_idx, std::get<1>(*c_it)));
+                }
+                ++c_it;
+            }
+            GRB_LOG_FN_END("masked_accum.v2");
+        }
+
+
+        // *******************************************************************
+        /// Perform the following operation on sparse vectors implemented as
+        /// vector<tuple<Index, value>>
+        ///
+        /// if complement_flag == false:
+        ///    c = (!m ^ ci) U z, where z = (m ^ t);  i.e., union assumes disjoint sets
+        /// else:
+        ///   c =   (m ^ ci) U z, where z = (!m ^ t)
+        template<typename CScalarT,
+                 typename MScalarT,
+                 typename ZScalarT>
+        void masked_merge(
+            std::vector<std::tuple<IndexType, CScalarT>>       &c,
+            std::vector<std::tuple<IndexType, MScalarT>> const &m,
+            bool                                                structure_flag,
+            bool                                                complement_flag,
+            std::vector<std::tuple<IndexType, CScalarT>> const &ci,
+            std::vector<std::tuple<IndexType, ZScalarT>> const &z)
+        {
+            GRB_LOG_FN_BEGIN("masked_merge.v2");
+            auto m_it = m.begin();
+            auto c_it = ci.begin();
+            auto z_it = z.begin();
+
+            c.clear();
+
+            IndexType next_z;
+            for (auto const &elt : z)
+            {
+                next_z = std::get<0>(elt);
+                while (c_it != ci.end() && (std::get<0>(*c_it) < next_z))
+                {
+                    IndexType next_c(std::get<0>(*c_it));
+                    if (advance_and_check_mask_iterator(
+                            m_it, m.end(), structure_flag, next_c) == complement_flag)
+                    {
+                        c.push_back(std::make_tuple(next_c, std::get<1>(*c_it)));
+                    }
+                    ++c_it;
+                }
+                c.push_back(std::make_tuple(next_z, static_cast<CScalarT>(std::get<1>(elt))));
+            }
+
+
+            while (c_it != ci.end() && (!z.empty() && (std::get<0>(*c_it) <= next_z)))
+            {
+                ++c_it;
+            }
+
+            while (c_it != ci.end())
+            {
+                IndexType next_c(std::get<0>(*c_it));
+                if (advance_and_check_mask_iterator(
+                        m_it, m.end(), structure_flag, next_c) == complement_flag)
+                {
+                    c.push_back(std::make_tuple(next_c, std::get<1>(*c_it)));
+                }
+                ++c_it;
+            }
+
+            GRB_LOG_FN_END("masked_merge.v2");
         }
 
     } // backend

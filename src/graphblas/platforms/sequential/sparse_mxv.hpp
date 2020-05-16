@@ -45,8 +45,9 @@ namespace GraphBLAS
 {
     namespace backend
     {
-        //********************************************************************
-        /// Implementation of 4.3.3 mxv: Matrix-Vector variant
+        //**********************************************************************
+        /// Implementation for 4.3.3 mxv: A * u
+        //**********************************************************************
         template<typename WVectorT,
                  typename MaskT,
                  typename AccumT,
@@ -61,12 +62,11 @@ namespace GraphBLAS
                         UVectorT    const &u,
                         OutputControlEnum  outp)
         {
+            GRB_LOG_VERBOSE("w<M,z> := A +.* u");
+
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
             typedef typename SemiringT::result_type TScalarType;
-            typedef typename AMatrixT::ScalarType AScalarType;
-            typedef std::vector<std::tuple<IndexType,AScalarType> >  ARowType;
-
             std::vector<std::tuple<IndexType, TScalarType> > t;
 
             if ((A.nvals() > 0) && (u.nvals() > 0))
@@ -74,12 +74,10 @@ namespace GraphBLAS
                 auto u_contents(u.getContents());
                 for (IndexType row_idx = 0; row_idx < w.size(); ++row_idx)
                 {
-                    ARowType const &A_row(A.getRow(row_idx));
-
-                    if (!A_row.empty())
+                    if (!A[row_idx].empty())
                     {
                         TScalarType t_val;
-                        if (dot(t_val, A_row, u_contents, op))
+                        if (dot(t_val, A[row_idx], u_contents, op))
                         {
                             t.push_back(std::make_tuple(row_idx, t_val));
                         }
@@ -104,5 +102,61 @@ namespace GraphBLAS
             write_with_opt_mask_1D(w, z, mask, outp);
         }
 
+        //**********************************************************************
+        //**********************************************************************
+        //**********************************************************************
+
+        //**********************************************************************
+        /// Implementation of 4.3.3 mxv: A' * u
+        //**********************************************************************
+        template<typename WVectorT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AMatrixT,
+                 typename UVectorT>
+        inline void mxv(WVectorT                      &w,
+                        MaskT                   const &mask,
+                        AccumT                  const &accum,
+                        SemiringT                      op,
+                        TransposeView<AMatrixT> const &AT,
+                        UVectorT                const &u,
+                        OutputControlEnum              outp)
+        {
+            GRB_LOG_VERBOSE("w<M,z> := A' +.* u");
+            auto const &A(strip_transpose(AT));
+
+            // =================================================================
+            // Use axpy approach with the semi-ring.
+            typedef typename SemiringT::result_type TScalarType;
+            std::vector<std::tuple<IndexType, TScalarType> > t;
+
+            if ((A.nvals() > 0) && (u.nvals() > 0))
+            {
+                for (IndexType row_idx = 0; row_idx < u.size(); ++row_idx)
+                {
+                    if (u.hasElement(row_idx) && !A[row_idx].empty())
+                    {
+                        axpy(t, op, u.extractElement(row_idx), A[row_idx]);
+                    }
+                }
+            }
+
+            // =================================================================
+            // Accumulate into Z
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                TScalarType,
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
+            std::vector<std::tuple<IndexType, ZScalarType> > z;
+            ewise_or_opt_accum_1D(z, w, t, accum);
+
+            // =================================================================
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
+        }
     } // backend
 } // GraphBLAS

@@ -45,13 +45,14 @@ namespace GraphBLAS
     namespace backend
     {
         //********************************************************************
-        /// Implementation of 4.3.2 vxm: Vector-Matrix multiply
+        /// Implementation of 4.3.2 vxm: u * A
+        //********************************************************************
         template<typename WVectorT,
                  typename MaskT,
                  typename AccumT,
                  typename SemiringT,
-                 typename AMatrixT,
-                 typename UVectorT>
+                 typename UVectorT,
+                 typename AMatrixT>
         inline void vxm(WVectorT          &w,
                         MaskT       const &mask,
                         AccumT      const &accum,
@@ -60,27 +61,81 @@ namespace GraphBLAS
                         AMatrixT    const &A,
                         OutputControlEnum  outp)
         {
+            GRB_LOG_VERBOSE("w<M,z> := u +.* A");
+
+            // =================================================================
+            // Use axpy approach with the semi-ring.
+            typedef typename SemiringT::result_type TScalarType;
+            std::vector<std::tuple<IndexType, TScalarType> > t;
+
+            if ((A.nvals() > 0) && (u.nvals() > 0))
+            {
+                for (IndexType row_idx = 0; row_idx < u.size(); ++row_idx)
+                {
+                    if (u.hasElement(row_idx) && !A[row_idx].empty())
+                    {
+                        axpy(t, op, u.extractElement(row_idx), A[row_idx]);
+                    }
+                }
+            }
+
+            // =================================================================
+            // Accumulate into Z
+            typedef typename std::conditional<
+                std::is_same<AccumT, NoAccumulate>::value,
+                TScalarType,
+                decltype(accum(std::declval<typename WVectorT::ScalarType>(),
+                               std::declval<TScalarType>()))>::type
+                ZScalarType;
+
+            std::vector<std::tuple<IndexType, ZScalarType> > z;
+            ewise_or_opt_accum_1D(z, w, t, accum);
+
+            // =================================================================
+            // Copy Z into the final output, w, considering mask and replace/merge
+            write_with_opt_mask_1D(w, z, mask, outp);
+        }
+
+        //**********************************************************************
+        //**********************************************************************
+        //**********************************************************************
+
+        //********************************************************************
+        /// Implementation of 4.3.2 vxm: u * A'
+        //********************************************************************
+        template<typename WVectorT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename SemiringT,
+                 typename AMatrixT,
+                 typename UVectorT>
+        inline void vxm(WVectorT                      &w,
+                        MaskT                   const &mask,
+                        AccumT                  const &accum,
+                        SemiringT                      op,
+                        UVectorT                const &u,
+                        TransposeView<AMatrixT> const &AT,
+                        OutputControlEnum              outp)
+        {
+            GRB_LOG_VERBOSE("w<M,z> := u +.* A'");
+            auto const &A(strip_transpose(AT));
+
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
             typedef typename SemiringT::result_type TScalarType;
-            typedef typename AMatrixT::ScalarType AScalarType;
-            typedef std::vector<std::tuple<IndexType,AScalarType> > AColType;
-
             std::vector<std::tuple<IndexType, TScalarType> > t;
 
             if ((A.nvals() > 0) && (u.nvals() > 0))
             {
                 auto u_contents(u.getContents());
-                for (IndexType col_idx = 0; col_idx < w.size(); ++col_idx)
+                for (IndexType row_idx = 0; row_idx < w.size(); ++row_idx)
                 {
-                    AColType const &A_col(A.getCol(col_idx));
-
-                    if (!A_col.empty())
+                    if (!A[row_idx].empty())
                     {
                         TScalarType t_val;
-                        if (dot(t_val, u_contents, A_col, op))
+                        if (dot(t_val, u_contents, A[row_idx], op))
                         {
-                            t.push_back(std::make_tuple(col_idx, t_val));
+                            t.push_back(std::make_tuple(row_idx, t_val));
                         }
                     }
                 }
