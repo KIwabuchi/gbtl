@@ -303,7 +303,7 @@ int main(int argc, char **argv)
     my_timer.stop();
     reduce(count, NoAccumulate(), PlusMonoid<int32_t>(), w);
     std::cout << "w<!s(M),replace> := w + A+.*u: " << my_timer.elapsed()
-              << " msec, w.nvals = " << w1.nvals()
+              << " msec, w.nvals = " << w.nvals()
               << " reduce = " << count << std::endl;
 
     //===================

@@ -65,7 +65,7 @@ namespace GraphBLAS
 
             // =================================================================
             // Use axpy approach with the semi-ring.
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
             std::vector<std::tuple<IndexType, TScalarType> > t;
 
             if ((A.nvals() > 0) && (u.nvals() > 0))
@@ -81,12 +81,11 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<typename WVectorT::ScalarType>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);
@@ -122,7 +121,7 @@ namespace GraphBLAS
 
             // =================================================================
             // Do the basic dot-product work with the semi-ring.
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
             std::vector<std::tuple<IndexType, TScalarType> > t;
 
             if ((A.nvals() > 0) && (u.nvals() > 0))
@@ -143,12 +142,11 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<typename WVectorT::ScalarType>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);

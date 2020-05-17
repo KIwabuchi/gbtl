@@ -834,15 +834,13 @@ namespace GraphBLAS
         // WARNING: costly
         template <typename MatrixT>
         decltype(auto)
-        get_structure_row(MatrixT mat, IndexType row_idx)
+        get_structure_row(MatrixT const &mat, IndexType row_idx)
         {
             std::vector<std::tuple<IndexType, bool> > mask_tuples;
-            auto &row_tuples = mat.getRow(row_idx);
-            auto it = row_tuples.begin();
 
-            for (auto [ix, val] : row_tuples)
+            for (auto&& [ix, val] : mat[row_idx])
             {
-                mask_tuples.push_back(std::make_tuple(ix, true));
+                mask_tuples.emplace_back(std::make_tuple(ix, true));
             }
 
             return mask_tuples;
@@ -852,23 +850,23 @@ namespace GraphBLAS
         // WARNING: costly
         template <typename MatrixT>
         decltype(auto)
-        get_complement_row(MatrixT mat, IndexType row_idx)
+        get_complement_row(MatrixT const &mat, IndexType row_idx)
         {
             std::vector<std::tuple<IndexType, bool> > mask_tuples;
-            auto &row_tuples = mat.getRow(row_idx);
+            auto &row_tuples = mat[row_idx];
             auto it = row_tuples.begin();
 
             for (IndexType ix = 0; ix < mat.ncols(); ++ix)
             {
                 if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
                 {
-                    mask_tuples.push_back(std::make_tuple(ix, true));
+                    mask_tuples.emplace_back(std::make_tuple(ix, true));
                 }
                 else
                 {
                     if (static_cast<bool>(std::get<1>(*it)) == false)
                     {
-                        mask_tuples.push_back(std::make_tuple(ix, true));
+                        mask_tuples.emplace_back(std::make_tuple(ix, true));
                     }
                     ++it;
                 }
@@ -881,17 +879,17 @@ namespace GraphBLAS
         // WARNING: costly
         template <typename MatrixT>
         decltype(auto)
-        get_structural_complement_row(MatrixT mat, IndexType row_idx)
+        get_structural_complement_row(MatrixT const &mat, IndexType row_idx)
         {
             std::vector<std::tuple<IndexType, bool> > mask_tuples;
-            auto &row_tuples = mat.getRow(row_idx);
+            auto &row_tuples = mat[row_idx];
             auto it = row_tuples.begin();
 
             for (IndexType ix = 0; ix < mat.ncols(); ++ix)
             {
                 if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
                 {
-                    mask_tuples.push_back(std::make_tuple(ix, true));
+                    mask_tuples.emplace_back(std::make_tuple(ix, true));
                 }
                 else
                 {
@@ -912,8 +910,8 @@ namespace GraphBLAS
                                  MMatrixT   const   &mask,
                                  OutputControlEnum   outp)
         {
-            typedef typename CMatrixT::ScalarType CScalarType;
-            typedef std::vector<std::tuple<IndexType, CScalarType> > CRowType;
+            using CScalarType = typename CMatrixT::ScalarType;
+            using CRowType = std::vector<std::tuple<IndexType, CScalarType> >;
 
             CRowType tmp_row;
             IndexType nRows(C.nrows());
@@ -938,8 +936,8 @@ namespace GraphBLAS
             GraphBLAS::MatrixComplementView<MMatrixT> const &Mask,
             OutputControlEnum                          outp)
         {
-            typedef typename CMatrixT::ScalarType CScalarType;
-            typedef std::vector<std::tuple<IndexType, CScalarType> > CRowType;
+            using CScalarType = typename CMatrixT::ScalarType;
+            using CRowType = std::vector<std::tuple<IndexType, CScalarType> >;
 
             CRowType tmp_row;
             IndexType nRows(C.nrows());
@@ -965,8 +963,8 @@ namespace GraphBLAS
             GraphBLAS::MatrixStructureView<MMatrixT> const &Mask,
             OutputControlEnum                         outp)
         {
-            typedef typename CMatrixT::ScalarType CScalarType;
-            typedef std::vector<std::tuple<IndexType, CScalarType> > CRowType;
+            using CScalarType = typename CMatrixT::ScalarType;
+            using CRowType = std::vector<std::tuple<IndexType, CScalarType> >;
 
             CRowType tmp_row;
             IndexType nRows(C.nrows());
@@ -992,8 +990,8 @@ namespace GraphBLAS
             GraphBLAS::MatrixStructuralComplementView<MMatrixT> const &Mask,
             OutputControlEnum                                    outp)
         {
-            typedef typename CMatrixT::ScalarType CScalarType;
-            typedef std::vector<std::tuple<IndexType, CScalarType> > CRowType;
+            using CScalarType = typename CMatrixT::ScalarType;
+            using CRowType = std::vector<std::tuple<IndexType, CScalarType> >;
 
             CRowType tmp_row;
             IndexType nRows(C.nrows());
@@ -1028,15 +1026,13 @@ namespace GraphBLAS
         // WARNING: costly
         template <typename VectorT>
         decltype(auto)
-        get_structure_contents(VectorT vec)
+        get_structure_contents(VectorT const &vec)
         {
             std::vector<std::tuple<IndexType, bool> > mask_tuples;
-            auto row_tuples = vec.getContents();
-            auto it = row_tuples.begin();
 
-            for (auto [ix, val] : row_tuples)
+            for (auto [ix, val] : vec.getContents())
             {
-                mask_tuples.push_back(std::make_tuple(ix, true));
+                mask_tuples.emplace_back(std::make_tuple(ix, true));
             }
 
             return mask_tuples;
@@ -1046,23 +1042,23 @@ namespace GraphBLAS
         // WARNING: costly
         template <typename VectorT>
         decltype(auto)
-        get_complement_contents(VectorT vec)
+        get_complement_contents(VectorT const &vec)
         {
             std::vector<std::tuple<IndexType, bool> > mask_tuples;
-            auto row_tuples = vec.getContents();
+            auto row_tuples(vec.getContents());
             auto it = row_tuples.begin();
 
             for (IndexType ix = 0; ix < vec.size(); ++ix)
             {
                 if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
                 {
-                    mask_tuples.push_back(std::make_tuple(ix, true));
+                    mask_tuples.emplace_back(std::make_tuple(ix, true));
                 }
                 else
                 {
                     if (static_cast<bool>(std::get<1>(*it)) == false)
                     {
-                        mask_tuples.push_back(std::make_tuple(ix, true));
+                        mask_tuples.emplace_back(std::make_tuple(ix, true));
                     }
                     ++it;
                 }
@@ -1075,17 +1071,17 @@ namespace GraphBLAS
         // WARNING: costly
         template <typename VectorT>
         decltype(auto)
-        get_structural_complement_contents(VectorT vec)
+        get_structural_complement_contents(VectorT const &vec)
         {
             std::vector<std::tuple<IndexType, bool> > mask_tuples;
-            auto row_tuples = vec.getContents();
+            auto row_tuples(vec.getContents());
             auto it = row_tuples.begin();
 
             for (IndexType ix = 0; ix < vec.size(); ++ix)
             {
                 if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
                 {
-                    mask_tuples.push_back(std::make_tuple(ix, true));
+                    mask_tuples.emplace_back(std::make_tuple(ix, true));
                 }
                 else
                 {
@@ -1427,7 +1423,7 @@ namespace GraphBLAS
                 if (t_idx < c_idx)
                 {
                     // t already masked
-                    z.push_back(std::make_tuple(
+                    z.emplace_back(std::make_tuple(
                                     t_idx,
                                     static_cast<CScalarT>(std::get<1>(*t_it))));
                     ++t_it;
@@ -1437,7 +1433,7 @@ namespace GraphBLAS
                     if (advance_and_check_mask_iterator(
                             m_it, m.end(), structure_flag, c_idx) != complement_flag)
                     {
-                        z.push_back(std::make_tuple(
+                        z.emplace_back(std::make_tuple(
                                         c_idx,
                                         static_cast<CScalarT>(std::get<1>(*c_it))));
                     }
@@ -1445,7 +1441,7 @@ namespace GraphBLAS
                 }
                 else
                 {
-                    z.push_back(
+                    z.emplace_back(
                         std::make_tuple(
                             t_idx,
                             static_cast<CScalarT>(accum(std::get<1>(*c_it),
@@ -1457,7 +1453,7 @@ namespace GraphBLAS
 
             while (t_it != t.end())
             {
-                z.push_back(std::make_tuple(
+                z.emplace_back(std::make_tuple(
                                 std::get<0>(*t_it),
                                 static_cast<CScalarT>(std::get<1>(*t_it))));
                 ++t_it;
@@ -1469,7 +1465,7 @@ namespace GraphBLAS
                 if (advance_and_check_mask_iterator(
                         m_it, m.end(), structure_flag, c_idx) != complement_flag)
                 {
-                    z.push_back(std::make_tuple(c_idx, std::get<1>(*c_it)));
+                    z.emplace_back(std::make_tuple(c_idx, std::get<1>(*c_it)));
                 }
                 ++c_it;
             }
@@ -1513,11 +1509,11 @@ namespace GraphBLAS
                     if (advance_and_check_mask_iterator(
                             m_it, m.end(), structure_flag, next_c) == complement_flag)
                     {
-                        c.push_back(std::make_tuple(next_c, std::get<1>(*c_it)));
+                        c.emplace_back(std::make_tuple(next_c, std::get<1>(*c_it)));
                     }
                     ++c_it;
                 }
-                c.push_back(std::make_tuple(next_z, static_cast<CScalarT>(std::get<1>(elt))));
+                c.emplace_back(std::make_tuple(next_z, static_cast<CScalarT>(std::get<1>(elt))));
             }
 
 
@@ -1532,7 +1528,7 @@ namespace GraphBLAS
                 if (advance_and_check_mask_iterator(
                         m_it, m.end(), structure_flag, next_c) == complement_flag)
                 {
-                    c.push_back(std::make_tuple(next_c, std::get<1>(*c_it)));
+                    c.emplace_back(std::make_tuple(next_c, std::get<1>(*c_it)));
                 }
                 ++c_it;
             }
