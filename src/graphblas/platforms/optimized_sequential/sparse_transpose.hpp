@@ -59,51 +59,71 @@ namespace GraphBLAS
                               AMatrixT    const &A,
                               OutputControlEnum  outp)
         {
-            typedef typename AMatrixT::ScalarType                   AScalarType;
-            typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
-
-            typedef typename CMatrixT::ScalarType                   CScalarType;
-            typedef std::vector<std::tuple<IndexType,CScalarType> > CRowType;
-
+            GRB_LOG_VERBOSE("C<M,z> := A'");
             IndexType nrows(A.nrows());
             IndexType ncols(A.ncols());
 
             // =================================================================
-            // Apply the unary operator from A into T.
-            // This is really the guts of what makes this special.
-
-            /// @todo Do something different if A is TransposeView
-            LilSparseMatrix<AScalarType> T(ncols, nrows);
-            for (IndexType ridx = A.nrows(); ridx > 0; --ridx)
+            // Transpose A into T.
+            LilSparseMatrix<typename AMatrixT::ScalarType> T(ncols, nrows);
+            if (A.nvals() > 0)
             {
-                IndexType row_idx = ridx - 1;
-                auto a_row = A.getRow(row_idx);
-                for (auto elt = a_row.begin(); elt != a_row.end(); ++elt)
+                for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
                 {
-                    T.setElement(std::get<0>(*elt), row_idx, std::get<1>(*elt));
-
-                    /// @todo Would be nice to push_back on each row directly
-                    //IndexType idx = std::get<0>(elt);
-                    //T.getRow(idx).push_back(
-                    //    std::make_tuple(row_idx, std::get<1>(elt)));
+                    for (auto && [col_idx, val] : A[row_idx])
+                    {
+                        T[col_idx].emplace_back(row_idx, val);
+                    }
                 }
+                T.recomputeNvals();
             }
-
-            GRB_LOG_VERBOSE("T: " << T);
-
             // =================================================================
             // Accumulate T via C into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
-                AScalarType,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
+                typename AMatrixT::ScalarType,
                 decltype(accum(std::declval<typename CMatrixT::ScalarType>(),
-                               std::declval<typename AMatrixT::ScalarType>()))>::type
-                ZScalarType;
+                               std::declval<typename AMatrixT::ScalarType>()))>;
 
             LilSparseMatrix<ZScalarType> Z(ncols, nrows);
             ewise_or_opt_accum(Z, C, T, accum);
 
-            GRB_LOG_VERBOSE("Z: " << Z);
+            // =================================================================
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, mask, outp);
+        }
+
+        //**********************************************************************
+        // Implementation of 4.3.10 Matrix transpose
+        //**********************************************************************
+        template<typename CMatrixT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename AMatrixT>
+        inline void transpose(CMatrixT                      &C,
+                              MaskT                   const &mask,
+                              AccumT                  const &accum,
+                              TransposeView<AMatrixT> const &AT,
+                              OutputControlEnum              outp)
+        {
+            GRB_LOG_VERBOSE("C<M,z> := (A')'");
+            auto const &A(strip_transpose(AT));
+            IndexType nrows(A.nrows());
+            IndexType ncols(A.ncols());
+
+            // =================================================================
+            /// Do nothing for T if A is TransposeView, Use A in next step.
+
+            // =================================================================
+            // Accumulate A via C into Z
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
+                typename AMatrixT::ScalarType,
+                decltype(accum(std::declval<typename CMatrixT::ScalarType>(),
+                               std::declval<typename AMatrixT::ScalarType>()))>;
+
+            LilSparseMatrix<ZScalarType> Z(nrows, ncols);
+            ewise_or_opt_accum(Z, C, A, accum);
 
             // =================================================================
             // Copy Z into the final output considering mask and replace/merge

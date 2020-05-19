@@ -309,38 +309,33 @@ namespace GraphBLAS
 
                     if (v2_idx == v1_idx)
                     {
-                        ans.emplace_back(
-                            std::make_tuple(v1_idx,
-                                            static_cast<D3>(op(v1_val, v2_val))));
+                        ans.emplace_back(v1_idx,
+                                         static_cast<D3>(op(v1_val, v2_val)));
 
                         ++v2_it;
                         ++v1_it;
                     }
                     else if (v2_idx > v1_idx)
                     {
-                        ans.emplace_back(
-                            std::make_tuple(v1_idx, static_cast<D3>(v1_val)));
+                        ans.emplace_back(v1_idx, static_cast<D3>(v1_val));
                         ++v1_it;
                     }
                     else
                     {
-                        ans.emplace_back(
-                            std::make_tuple(v2_idx, static_cast<D3>(v2_val)));
+                        ans.emplace_back(v2_idx, static_cast<D3>(v2_val));
                         ++v2_it;
                     }
                 }
                 else if (v1_it != vec1.end())
                 {
                     std::tie(v1_idx, v1_val) = *v1_it;
-                    ans.emplace_back(
-                        std::make_tuple(v1_idx, static_cast<D3>(v1_val)));
+                    ans.emplace_back(v1_idx, static_cast<D3>(v1_val));
                     ++v1_it;
                 }
                 else // v2_it != vec2.end())
                 {
                     std::tie(v2_idx, v2_val) = *v2_it;
-                    ans.emplace_back(
-                        std::make_tuple(v2_idx, static_cast<D3>(v2_val)));
+                    ans.emplace_back(v2_idx, static_cast<D3>(v2_val));
                     ++v2_it;
                 }
             }
@@ -429,9 +424,7 @@ namespace GraphBLAS
                     // is in stencil_indices so v2 should be stored
                     if (v2_idx == v1_idx)
                     {
-                        ans.push_back(std::make_tuple(
-                                          v2_idx,
-                                          static_cast<D3>(v2_val)));
+                        ans.emplace_back(v2_idx, static_cast<D3>(v2_val));
 
                         ++v2_it;
                         ++v1_it;
@@ -442,17 +435,14 @@ namespace GraphBLAS
                     {
                         if (!searchIndices(stencil_indices, v1_idx))
                         {
-                            ans.push_back(std::make_tuple(
-                                    v1_idx,
-                                    static_cast<D3>(v1_val)));
+                            ans.emplace_back(v1_idx, static_cast<D3>(v1_val));
                         }
                         ++v1_it;
                     }
                     else
                     {
                         //std::cerr << "Copying v2, Advancing v2_it" << std::endl;
-                        ans.push_back(std::make_tuple(v2_idx,
-                                                      static_cast<D3>(v2_val)));
+                        ans.emplace_back(v2_idx, static_cast<D3>(v2_val));
                         ++v2_it;
                     }
                 }
@@ -462,16 +452,14 @@ namespace GraphBLAS
 
                     if (!searchIndices(stencil_indices, v1_idx))
                     {
-                        ans.push_back(std::make_tuple(
-                                v1_idx,
-                                static_cast<D3>(v1_val)));
+                        ans.emplace_back(v1_idx, static_cast<D3>(v1_val));
                     }
                     ++v1_it;
                 }
                 else // v2_it != vec2.end()) and vec1 exhausted
                 {
                     std::tie(v2_idx, v2_val) = *v2_it;
-                    ans.push_back(std::make_tuple(v2_idx, static_cast<D3>(v2_val)));
+                    ans.emplace_back(v2_idx, static_cast<D3>(v2_val));
                     ++v2_it;
                 }
             }
@@ -646,9 +634,8 @@ namespace GraphBLAS
             //sparse_copy(z, t);
             for (auto tupl: t)
             {
-                z.emplace_back(std::make_tuple(
-                                   std::get<0>(tupl),
-                                   static_cast<ZScalarT>(std::get<1>(tupl))));
+                z.emplace_back(std::get<0>(tupl),
+                               static_cast<ZScalarT>(std::get<1>(tupl)));
             }
         }
 
@@ -699,10 +686,9 @@ namespace GraphBLAS
             {
                 if (std::get<0>(*v2_it) == std::get<0>(*v1_it))
                 {
-                    ans.emplace_back(
-                        std::make_tuple(std::get<0>(*v1_it),
-                                        static_cast<D3>(op(std::get<1>(*v1_it),
-                                                           std::get<1>(*v2_it)))));
+                    ans.emplace_back(std::get<0>(*v1_it),
+                                     static_cast<D3>(op(std::get<1>(*v1_it),
+                                                        std::get<1>(*v2_it))));
 
                     ++v2_it;
                     ++v1_it;
@@ -797,9 +783,8 @@ namespace GraphBLAS
                     if (std::get<0>(*z_it) == mask_idx)
                     {
                         result.emplace_back(
-                            std::make_tuple(
-                                mask_idx,
-                                static_cast<CScalarT>(std::get<1>(*z_it))));
+                            mask_idx,
+                            static_cast<CScalarT>(std::get<1>(*z_it)));
                     }
                 }
 
@@ -840,7 +825,7 @@ namespace GraphBLAS
 
             for (auto&& [ix, val] : mat[row_idx])
             {
-                mask_tuples.emplace_back(std::make_tuple(ix, true));
+                mask_tuples.emplace_back(ix, true);
             }
 
             return mask_tuples;
@@ -860,13 +845,13 @@ namespace GraphBLAS
             {
                 if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
                 {
-                    mask_tuples.emplace_back(std::make_tuple(ix, true));
+                    mask_tuples.emplace_back(ix, true);
                 }
                 else
                 {
                     if (static_cast<bool>(std::get<1>(*it)) == false)
                     {
-                        mask_tuples.emplace_back(std::make_tuple(ix, true));
+                        mask_tuples.emplace_back(ix, true);
                     }
                     ++it;
                 }
@@ -889,7 +874,7 @@ namespace GraphBLAS
             {
                 if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
                 {
-                    mask_tuples.emplace_back(std::make_tuple(ix, true));
+                    mask_tuples.emplace_back(ix, true);
                 }
                 else
                 {
@@ -1032,7 +1017,7 @@ namespace GraphBLAS
 
             for (auto [ix, val] : vec.getContents())
             {
-                mask_tuples.emplace_back(std::make_tuple(ix, true));
+                mask_tuples.emplace_back(ix, true);
             }
 
             return mask_tuples;
@@ -1052,13 +1037,13 @@ namespace GraphBLAS
             {
                 if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
                 {
-                    mask_tuples.emplace_back(std::make_tuple(ix, true));
+                    mask_tuples.emplace_back(ix, true);
                 }
                 else
                 {
                     if (static_cast<bool>(std::get<1>(*it)) == false)
                     {
-                        mask_tuples.emplace_back(std::make_tuple(ix, true));
+                        mask_tuples.emplace_back(ix, true);
                     }
                     ++it;
                 }
@@ -1081,7 +1066,7 @@ namespace GraphBLAS
             {
                 if ((it == row_tuples.end()) || (ix < std::get<0>(*it)))
                 {
-                    mask_tuples.emplace_back(std::make_tuple(ix, true));
+                    mask_tuples.emplace_back(ix, true);
                 }
                 else
                 {
@@ -1423,9 +1408,8 @@ namespace GraphBLAS
                 if (t_idx < c_idx)
                 {
                     // t already masked
-                    z.emplace_back(std::make_tuple(
-                                    t_idx,
-                                    static_cast<CScalarT>(std::get<1>(*t_it))));
+                    z.emplace_back(t_idx,
+                                   static_cast<CScalarT>(std::get<1>(*t_it)));
                     ++t_it;
                 }
                 else if (c_idx < t_idx)
@@ -1433,19 +1417,17 @@ namespace GraphBLAS
                     if (advance_and_check_mask_iterator(
                             m_it, m.end(), structure_flag, c_idx) != complement_flag)
                     {
-                        z.emplace_back(std::make_tuple(
-                                        c_idx,
-                                        static_cast<CScalarT>(std::get<1>(*c_it))));
+                        z.emplace_back(c_idx,
+                                       static_cast<CScalarT>(std::get<1>(*c_it)));
                     }
                     ++c_it;
                 }
                 else
                 {
                     z.emplace_back(
-                        std::make_tuple(
-                            t_idx,
-                            static_cast<CScalarT>(accum(std::get<1>(*c_it),
-                                                        std::get<1>(*t_it)))));
+                        t_idx,
+                        static_cast<CScalarT>(accum(std::get<1>(*c_it),
+                                                    std::get<1>(*t_it))));
                     ++t_it;
                     ++c_it;
                 }
@@ -1453,9 +1435,8 @@ namespace GraphBLAS
 
             while (t_it != t.end())
             {
-                z.emplace_back(std::make_tuple(
-                                std::get<0>(*t_it),
-                                static_cast<CScalarT>(std::get<1>(*t_it))));
+                z.emplace_back(std::get<0>(*t_it),
+                               static_cast<CScalarT>(std::get<1>(*t_it)));
                 ++t_it;
             }
 
@@ -1465,7 +1446,7 @@ namespace GraphBLAS
                 if (advance_and_check_mask_iterator(
                         m_it, m.end(), structure_flag, c_idx) != complement_flag)
                 {
-                    z.emplace_back(std::make_tuple(c_idx, std::get<1>(*c_it)));
+                    z.emplace_back(c_idx, std::get<1>(*c_it));
                 }
                 ++c_it;
             }
@@ -1509,11 +1490,11 @@ namespace GraphBLAS
                     if (advance_and_check_mask_iterator(
                             m_it, m.end(), structure_flag, next_c) == complement_flag)
                     {
-                        c.emplace_back(std::make_tuple(next_c, std::get<1>(*c_it)));
+                        c.emplace_back(next_c, std::get<1>(*c_it));
                     }
                     ++c_it;
                 }
-                c.emplace_back(std::make_tuple(next_z, static_cast<CScalarT>(std::get<1>(elt))));
+                c.emplace_back(next_z, static_cast<CScalarT>(std::get<1>(elt)));
             }
 
 
@@ -1528,7 +1509,7 @@ namespace GraphBLAS
                 if (advance_and_check_mask_iterator(
                         m_it, m.end(), structure_flag, next_c) == complement_flag)
                 {
-                    c.emplace_back(std::make_tuple(next_c, std::get<1>(*c_it)));
+                    c.emplace_back(next_c, std::get<1>(*c_it));
                 }
                 ++c_it;
             }

@@ -48,7 +48,7 @@ namespace GraphBLAS
     namespace backend
     {
         //**********************************************************************
-        // Implementation of 4.3.8.1 Vector variant of Apply
+        // Implementation of 4.3.8.1 Vector variant of Apply: w<m,z> := op(u)
         template<typename WScalarT,
                  typename MaskT,
                  typename AccumT,
@@ -63,9 +63,10 @@ namespace GraphBLAS
             UVectorT                                  const &u,
             OutputControlEnum                                outp)
         {
+            GRB_LOG_VERBOSE("w<m,z> := op(u)");
             // =================================================================
-            // Apply the unary operator from A into T.
-            typedef typename UVectorT::ScalarType        UScalarType;
+            // Apply the unary operator from u into t.
+            using UScalarType = typename UVectorT::ScalarType;
             using TScalarType = decltype(op(std::declval<UScalarType>()));
             std::vector<std::tuple<IndexType,TScalarType> > t_contents;
 
@@ -80,12 +81,11 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<WScalarT>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             std::vector<std::tuple<IndexType,ZScalarType> > z_contents;
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
@@ -98,7 +98,7 @@ namespace GraphBLAS
         }
 
         //**********************************************************************
-        // Implementation of 4.3.8.2 Matrix variant of Apply
+        // Implementation of 4.3.8.2 Matrix variant of Apply: C<M,z> := op(A)
         template<typename CScalarT,
                  typename MaskT,
                  typename AccumT,
@@ -107,53 +107,40 @@ namespace GraphBLAS
                  typename ...CTagsT>
         inline void apply(
             GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
-            MaskT                                     const &mask,
+            MaskT                                     const &Mask,
             AccumT                                    const &accum,
             UnaryOpT                                         op,
             AMatrixT                                  const &A,
             OutputControlEnum                                outp)
         {
-            typedef typename AMatrixT::ScalarType                   AScalarType;
-            typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
-
-            using TScalarType = decltype(op(std::declval<AScalarType>()));
-            typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
-
+            GRB_LOG_VERBOSE("C<M,z> := op(A)");
             IndexType nrows(A.nrows());
             IndexType ncols(A.ncols());
 
             // =================================================================
             // Apply the unary operator from A into T.
-            // This is really the guts of what makes this special.
+            using AScalarType = typename AMatrixT::ScalarType;
+            using TScalarType = decltype(op(std::declval<AScalarType>()));
             LilSparseMatrix<TScalarType> T(nrows, ncols);
-            TRowType t_row;
 
             for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
             {
-                auto a_row = A.getRow(row_idx);
-                if (!a_row.empty())
+                for (auto&& [a_idx, a_val] : A[row_idx])
                 {
-                    t_row.clear();
-
-                    for (auto&& [a_idx, a_val] : a_row) {
-                        t_row.emplace_back(a_idx, op(a_val));
-                    }
-
-                    if (!t_row.empty())
-                        T.setRow(row_idx, t_row);
+                    T[row_idx].emplace_back(a_idx, op(a_val));
                 }
             }
+            T.recomputeNvals();
 
             GRB_LOG_VERBOSE("T: " << T);
 
             // =================================================================
             // Accumulate T via C into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<CScalarT>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             LilSparseMatrix<ZScalarType> Z(nrows, ncols);
             ewise_or_opt_accum(Z, C, T, accum);
@@ -162,11 +149,69 @@ namespace GraphBLAS
 
             // =================================================================
             // Copy Z into the final output considering mask and replace/merge
-            write_with_opt_mask(C, Z, mask, outp);
+            write_with_opt_mask(C, Z, Mask, outp);
         }
 
         //**********************************************************************
-        // Implementation of 4.3.8.3 Vector variant of Apply w/ binaryop+bind1st
+        // Implementation of 4.3.8.2 Matrix variant of Apply: C<M,z> := op(A')
+        template<typename CScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename UnaryOpT,
+                 typename AMatrixT,
+                 typename ...CTagsT>
+        inline void apply(
+            GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
+            MaskT                                     const &Mask,
+            AccumT                                    const &accum,
+            UnaryOpT                                         op,
+            TransposeView<AMatrixT>                   const &AT,
+            OutputControlEnum                                outp)
+        {
+            GRB_LOG_VERBOSE("C<M,z> := op(A')");
+            auto const &A(strip_transpose(AT));
+            IndexType nrows(A.nrows());
+            IndexType ncols(A.ncols());
+
+            // =================================================================
+            // Apply the unary operator from A into T.
+            using AScalarType = typename AMatrixT::ScalarType;
+            using TScalarType = decltype(op(std::declval<AScalarType>()));
+            LilSparseMatrix<TScalarType> T(ncols, nrows);
+
+            for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
+            {
+                for (auto&& [a_idx, a_val] : A[row_idx])
+                {
+                    T[a_idx].emplace_back(row_idx, op(a_val)); // idx's swapped
+                }
+            }
+            T.recomputeNvals();
+
+            GRB_LOG_VERBOSE("T: " << T);
+
+            // =================================================================
+            // Accumulate T via C into Z
+            using ZScalarType = std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
+                TScalarType,
+                decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>()))>;
+
+            LilSparseMatrix<ZScalarType> Z(ncols, nrows);
+            ewise_or_opt_accum(Z, C, T, accum);
+
+            GRB_LOG_VERBOSE("Z: " << Z);
+
+            // =================================================================
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, Mask, outp);
+        }
+
+        //**********************************************************************
+        // Implementation of 4.3.8.3 Vector variant of Apply w/ binaryop+bind1st:
+        // w<m,z> := op(val, u)
+        /// @note this is not necessary in the C++ API, here for demonstration.
         template<typename WScalarT,
                  typename MaskT,
                  typename AccumT,
@@ -183,10 +228,10 @@ namespace GraphBLAS
             UVectorT                                  const &u,
             OutputControlEnum                                outp)
         {
+            GRB_LOG_VERBOSE("w<m,z> := op(val, u)");
             // =================================================================
             // Apply the binary operator to u and val and store into T.
-            // This is really the guts of what makes this special.
-            typedef typename UVectorT::ScalarType         UScalarType;
+            using UScalarType = typename UVectorT::ScalarType;
             using TScalarType = decltype(op(std::declval<ValueT>(),
                                             std::declval<UScalarType>()));
             std::vector<std::tuple<IndexType,TScalarType> > t_contents;
@@ -202,12 +247,11 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<WScalarT>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             std::vector<std::tuple<IndexType,ZScalarType> > z_contents;
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
@@ -220,7 +264,9 @@ namespace GraphBLAS
         }
 
         //**********************************************************************
-        // Implementation of 4.3.8.3 Vector variant of Apply w/ binaryop+bind2nd
+        // Implementation of 4.3.8.3 Vector variant of Apply w/ binaryop+bind2nd:
+        // w<m,z> := op(u, val)
+        /// @note this is not necessary in the C++ API, here for demonstration.
         template<typename WScalarT,
                  typename MaskT,
                  typename AccumT,
@@ -237,10 +283,11 @@ namespace GraphBLAS
             ValueT                                    const &val,
             OutputControlEnum                                outp)
         {
+            GRB_LOG_VERBOSE("w<m,z> := op(u, val)");
             // =================================================================
             // Apply the binary operator to u and val and store into T.
             // This is really the guts of what makes this special.
-            typedef typename UVectorT::ScalarType         UScalarType;
+            using UScalarType = typename UVectorT::ScalarType;
             using TScalarType = decltype(op(std::declval<UScalarType>(),
                                             std::declval<ValueT>()));
             std::vector<std::tuple<IndexType,TScalarType> > t_contents;
@@ -256,12 +303,12 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<WScalarT>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
+
 
             std::vector<std::tuple<IndexType,ZScalarType> > z_contents;
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
@@ -275,7 +322,9 @@ namespace GraphBLAS
 
 
         //**********************************************************************
-        // Implementation of 4.3.8.4 Matrix variant of Apply w/ binaryop+bind2nd
+        // Implementation of 4.3.8.4 Matrix variant of Apply w/ binaryop+bind1st
+        // C<M,z> := op(val, A)
+        /// @note this is not necessary in the C++ API, here for demonstration.
         template<typename CScalarT,
                  typename MaskT,
                  typename AccumT,
@@ -285,56 +334,42 @@ namespace GraphBLAS
                  typename ...CTagsT>
         inline void apply_binop_1st(
             GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
-            MaskT                                     const &mask,
+            MaskT                                     const &Mask,
             AccumT                                    const &accum,
             BinaryOpT                                        op,
             ValueT                                    const &val,
             AMatrixT                                  const &A,
             OutputControlEnum                                outp)
         {
-            typedef typename AMatrixT::ScalarType                   AScalarType;
-            typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
-
-            using TScalarType = decltype(op(std::declval<ValueT>(),
-                                            std::declval<AScalarType>()));
-            typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
-
-
+            GRB_LOG_VERBOSE("C<M,z> := op(val, A)");
             IndexType nrows(A.nrows());
             IndexType ncols(A.ncols());
 
             // =================================================================
             // Apply the unary operator from A into T.
-            // This is really the guts of what makes this special.
+            using AScalarType = typename AMatrixT::ScalarType;
+            using TScalarType = decltype(op(std::declval<ValueT>(),
+                                            std::declval<AScalarType>()));
             LilSparseMatrix<TScalarType> T(nrows, ncols);
-            TRowType t_row;
 
             for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
             {
-                auto a_row = A.getRow(row_idx);
-                if (!a_row.empty())
+                for (auto&& [a_idx, a_val] : A[row_idx])
                 {
-                    t_row.clear();
-
-                    for (auto&& [a_idx, a_val] : a_row) {
-                        t_row.emplace_back(a_idx, op(val, a_val));
-                    }
-
-                    if (!t_row.empty())
-                        T.setRow(row_idx, t_row);
+                    T[row_idx].emplace_back(a_idx, op(val, a_val));
                 }
             }
+            T.recomputeNvals();
 
             GRB_LOG_VERBOSE("T: " << T);
 
             // =================================================================
             // Accumulate T via C into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<CScalarT>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             LilSparseMatrix<ZScalarType> Z(nrows, ncols);
             ewise_or_opt_accum(Z, C, T, accum);
@@ -343,12 +378,75 @@ namespace GraphBLAS
 
             // =================================================================
             // Copy Z into the final output considering mask and replace/merge
-            write_with_opt_mask(C, Z, mask, outp);
+            write_with_opt_mask(C, Z, Mask, outp);
+        }
+
+        //**********************************************************************
+        // Implementation of 4.3.8.4 Matrix variant of Apply w/ binaryop+bind1st
+        // C<M,z> := op(val, A')
+        /// @note this is not necessary in the C++ API, here for demonstration.
+        template<typename CScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryOpT,
+                 typename ValueT,
+                 typename AMatrixT,
+                 typename ...CTagsT>
+        inline void apply_binop_1st(
+            GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
+            MaskT                                     const &Mask,
+            AccumT                                    const &accum,
+            BinaryOpT                                        op,
+            ValueT                                    const &val,
+            TransposeView<AMatrixT>                   const &AT,
+            OutputControlEnum                                outp)
+        {
+            GRB_LOG_VERBOSE("C<M,z> := op(val, A')");
+            auto const &A(strip_transpose(AT));
+            IndexType nrows(A.nrows());
+            IndexType ncols(A.ncols());
+
+            // =================================================================
+            // Apply the unary operator from A into T.
+            using AScalarType = typename AMatrixT::ScalarType;
+            using TScalarType = decltype(op(std::declval<ValueT>(),
+                                            std::declval<AScalarType>()));
+            LilSparseMatrix<TScalarType> T(ncols, nrows);
+
+            for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
+            {
+                for (auto&& [a_idx, a_val] : A[row_idx])
+                {
+                    T[a_idx].emplace_back(row_idx, op(val, a_val)); // idx's swapped
+                }
+            }
+            T.recomputeNvals();
+
+            GRB_LOG_VERBOSE("T: " << T);
+
+            // =================================================================
+            // Accumulate T via C into Z
+            using ZScalarType = std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
+                TScalarType,
+                decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>()))>;
+
+            LilSparseMatrix<ZScalarType> Z(ncols, nrows);
+            ewise_or_opt_accum(Z, C, T, accum);
+
+            GRB_LOG_VERBOSE("Z: " << Z);
+
+            // =================================================================
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, Mask, outp);
         }
 
 
         //**********************************************************************
         // Implementation of 4.3.8.4 Matrix variant of Apply w/ binaryop+bind2nd
+        // C<M,z> := op(A, val)
+        /// @note this is not necessary in the C++ API, here for demonstration.
         template<typename CScalarT,
                  typename MaskT,
                  typename AccumT,
@@ -358,55 +456,43 @@ namespace GraphBLAS
                  typename ...CTagsT>
         inline void apply_binop_2nd(
             GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
-            MaskT                                     const &mask,
+            MaskT                                     const &Mask,
             AccumT                                    const &accum,
             BinaryOpT                                        op,
             AMatrixT                                  const &A,
             ValueT                                    const &val,
             OutputControlEnum                                outp)
         {
-            typedef typename AMatrixT::ScalarType                   AScalarType;
-            typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
-
-            using TScalarType = decltype(op(std::declval<AScalarType>(),
-                                            std::declval<ValueT>()));
-            typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
-
-
+            GRB_LOG_VERBOSE("C<M,z> := op(A, val)");
             IndexType nrows(A.nrows());
             IndexType ncols(A.ncols());
 
             // =================================================================
             // Apply the unary operator from A into T.
             // This is really the guts of what makes this special.
+            using AScalarType = typename AMatrixT::ScalarType;
+            using TScalarType = decltype(op(std::declval<AScalarType>(),
+                                            std::declval<ValueT>()));
             LilSparseMatrix<TScalarType> T(nrows, ncols);
-            TRowType t_row;
 
             for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
             {
-                auto a_row = A.getRow(row_idx);
-                if (!a_row.empty())
+                for (auto&& [a_idx, a_val] : A[row_idx])
                 {
-                    t_row.clear();
-                    for (auto&& [a_idx, a_val] : a_row) {
-                        t_row.emplace_back(a_idx, op(a_val, val));
-                    }
-
-                    if (!t_row.empty())
-                        T.setRow(row_idx, t_row);
+                    T[row_idx].emplace_back(a_idx, op(a_val, val));
                 }
             }
+            T.recomputeNvals();
 
             GRB_LOG_VERBOSE("T: " << T);
 
             // =================================================================
             // Accumulate T via C into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<CScalarT>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             LilSparseMatrix<ZScalarType> Z(nrows, ncols);
             ewise_or_opt_accum(Z, C, T, accum);
@@ -415,7 +501,70 @@ namespace GraphBLAS
 
             // =================================================================
             // Copy Z into the final output considering mask and replace/merge
-            write_with_opt_mask(C, Z, mask, outp);
+            write_with_opt_mask(C, Z, Mask, outp);
+        }
+
+
+        //**********************************************************************
+        // Implementation of 4.3.8.4 Matrix variant of Apply w/ binaryop+bind2nd
+        // C<M,z> := op(A', val)
+        /// @note this is not necessary in the C++ API, here for demonstration.
+        template<typename CScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryOpT,
+                 typename AMatrixT,
+                 typename ValueT,
+                 typename ...CTagsT>
+        inline void apply_binop_2nd(
+            GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
+            MaskT                                     const &Mask,
+            AccumT                                    const &accum,
+            BinaryOpT                                        op,
+            TransposeView<AMatrixT>                   const &AT,
+            ValueT                                    const &val,
+            OutputControlEnum                                outp)
+        {
+            GRB_LOG_VERBOSE("C<M,z> := op(A', val)");
+            auto const &A(strip_transpose(AT));
+            IndexType nrows(A.nrows());
+            IndexType ncols(A.ncols());
+
+            // =================================================================
+            // Apply the unary operator from A into T.
+            // This is really the guts of what makes this special.
+            using AScalarType = typename AMatrixT::ScalarType;
+            using TScalarType = decltype(op(std::declval<AScalarType>(),
+                                            std::declval<ValueT>()));
+            LilSparseMatrix<TScalarType> T(ncols, nrows);
+
+            for (IndexType row_idx = 0; row_idx < A.nrows(); ++row_idx)
+            {
+                for (auto&& [a_idx, a_val] : A[row_idx])
+                {
+                    T[a_idx].emplace_back(row_idx, op(a_val, val)); // idx's swapped
+                }
+            }
+            T.recomputeNvals();
+
+            GRB_LOG_VERBOSE("T: " << T);
+
+            // =================================================================
+            // Accumulate T via C into Z
+            using ZScalarType = std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
+                TScalarType,
+                decltype(accum(std::declval<CScalarT>(),
+                               std::declval<TScalarType>()))>;
+
+            LilSparseMatrix<ZScalarType> Z(ncols, nrows);
+            ewise_or_opt_accum(Z, C, T, accum);
+
+            GRB_LOG_VERBOSE("Z: " << Z);
+
+            // =================================================================
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, Mask, outp);
         }
     }
 }

@@ -67,8 +67,9 @@ namespace GraphBLAS
             VVectorT                                  const &v,
             OutputControlEnum                                outp)
         {
+            GRB_LOG_VERBOSE("w<m,z> := u .+ v");
             // =================================================================
-            // Do the basic ewise-and work: T = A .* B
+            // Do the basic ewise-and work: t = u .+ v
             using D3ScalarType =
                 decltype(op(std::declval<typename UVectorT::ScalarType>(),
                             std::declval<typename VVectorT::ScalarType>()));
@@ -76,19 +77,16 @@ namespace GraphBLAS
 
             if ((u.nvals() > 0) || (v.nvals() > 0))
             {
-                auto u_contents(u.getContents());
-                auto v_contents(v.getContents());
-
-                ewise_or(t_contents, u_contents, v_contents, op);
+                ewise_or(t_contents, u.getContents(), v.getContents(), op);
             }
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 D3ScalarType,
                 decltype(accum(std::declval<WScalarT>(),
-                               std::declval<D3ScalarType>()))>::type ZScalarType;
+                               std::declval<D3ScalarType>()))>;
             std::vector<std::tuple<IndexType,ZScalarType> > z_contents;
             ewise_or_opt_accum_1D(z_contents, w, t_contents, accum);
 
@@ -268,16 +266,14 @@ namespace GraphBLAS
                     {
                         for (auto && [col_idx, val] : A[row_idx])
                         {
-                            T[col_idx].emplace_back(
-                                std::make_tuple(row_idx, val));
+                            T[col_idx].emplace_back(row_idx, val);
                         }
                     }
                     else if (A[row_idx].empty())
                     {
                         for (auto && [col_idx, val] : B[row_idx])
                         {
-                            T[col_idx].emplace_back(
-                                std::make_tuple(row_idx, val));
+                            T[col_idx].emplace_back(row_idx, val);
                         }
                     }
                     else
@@ -286,8 +282,7 @@ namespace GraphBLAS
 
                         for (auto && [col_idx, val] : T_col)
                         {
-                            T[col_idx].emplace_back(
-                                std::make_tuple(row_idx, val));
+                            T[col_idx].emplace_back(row_idx, val);
                         }
                     }
                 }
