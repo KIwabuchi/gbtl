@@ -83,6 +83,7 @@ namespace GraphBLAS
             return !(*this == rhs);
         }
 
+        // Dimension checks are the only things the API needs
         IndexType nrows() const { return m_mat.nrows(); }
         IndexType ncols() const { return m_mat.ncols(); }
         IndexType nvals() const { return m_mat.nvals(); }

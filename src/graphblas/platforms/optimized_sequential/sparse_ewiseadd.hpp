@@ -38,6 +38,7 @@
 #include <graphblas/algebra.hpp>
 
 #include "sparse_helpers.hpp"
+#include "sparse_transpose.hpp"
 #include "LilSparseMatrix.hpp"
 
 
@@ -49,6 +50,7 @@ namespace GraphBLAS
     {
         //**********************************************************************
         /// Implementation of 4.3.5.1 eWiseAdd: Vector variant
+        //**********************************************************************
         template<typename WScalarT,
                  typename MaskT,
                  typename AccumT,
@@ -96,7 +98,8 @@ namespace GraphBLAS
         }
 
         //**********************************************************************
-        /// Implementation of 4.3.5.2 eWiseAdd: Matrix variant
+        /// Implementation of 4.3.5.2 eWiseAdd: Matrix variant A .+ B
+        //**********************************************************************
         template<typename CScalarT,
                  typename MaskT,
                  typename AccumT,
@@ -113,44 +116,35 @@ namespace GraphBLAS
             BMatrixT                                  const &B,
             OutputControlEnum                                outp)
         {
+            GRB_LOG_VERBOSE("C<M,z> := A .+ B");
             IndexType num_rows(A.nrows());
             IndexType num_cols(A.ncols());
 
-            typedef typename AMatrixT::ScalarType AScalarType;
-            typedef typename BMatrixT::ScalarType BScalarType;
-
-            typedef std::vector<std::tuple<IndexType,AScalarType> > ARowType;
-            typedef std::vector<std::tuple<IndexType,BScalarType> > BRowType;
-            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
-
             // =================================================================
-            // Do the basic ewise-and work: T = A .* B
+            // Do the basic ewise-or work: T = A .+ B
             using D3ScalarType =
                 decltype(op(std::declval<typename AMatrixT::ScalarType>(),
                             std::declval<typename BMatrixT::ScalarType>()));
-            typedef std::vector<std::tuple<IndexType,D3ScalarType> > TRowType;
+            using TRowType = std::vector<std::tuple<IndexType,D3ScalarType> >;
             LilSparseMatrix<D3ScalarType> T(num_rows, num_cols);
 
             if ((A.nvals() > 0) || (B.nvals() > 0))
             {
-                // create a row of result at a time
+                // create one row of result at a time
                 TRowType T_row;
                 for (IndexType row_idx = 0; row_idx < num_rows; ++row_idx)
                 {
-                    ARowType A_row(A.getRow(row_idx));
-                    BRowType B_row(B.getRow(row_idx));
-
-                    if (B_row.empty())
+                    if (B[row_idx].empty())
                     {
-                        T.setRow(row_idx, A_row);
+                        T.setRow(row_idx, A[row_idx]);
                     }
-                    else if (A_row.empty())
+                    else if (A[row_idx].empty())
                     {
-                        T.setRow(row_idx, B_row);
+                        T.setRow(row_idx, B[row_idx]);
                     }
                     else
                     {
-                        ewise_or(T_row, A_row, B_row, op);
+                        ewise_or(T_row, A[row_idx], B[row_idx], op);
 
                         if (!T_row.empty())
                         {
@@ -163,13 +157,151 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 D3ScalarType,
                 decltype(accum(std::declval<CScalarT>(),
-                               std::declval<D3ScalarType>()))>::type ZScalarType;
-
+                               std::declval<D3ScalarType>()))>;
             LilSparseMatrix<ZScalarType> Z(num_rows, num_cols);
+            ewise_or_opt_accum(Z, C, T, accum);
+
+            // =================================================================
+            // Copy Z into the final output considering mask and replace/merge
+            write_with_opt_mask(C, Z, Mask, outp);
+        } // ewisemult
+
+        //**********************************************************************
+        /// Implementation of 4.3.5.2 eWiseAdd: Matrix variant A' .+ B
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryOpT,  //can be BinaryOp, Monoid (not Semiring)
+                 typename AMatrixT,
+                 typename BMatrixT,
+                 typename ...CTagsT>
+        inline void eWiseAdd(
+            GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
+            MaskT                                     const &Mask,
+            AccumT                                    const &accum,
+            BinaryOpT                                        op,
+            TransposeView<AMatrixT>                   const &AT,
+            BMatrixT                                  const &B,
+            OutputControlEnum                                outp)
+        {
+            GRB_LOG_VERBOSE("C<M,z> := A' .+ B XXX");
+            auto const &A(strip_transpose(AT));
+
+            AMatrixT Atran(A.ncols(), A.nrows());
+            GraphBLAS::backend::transpose(Atran, NoMask(), NoAccumulate(), A, REPLACE);
+            GraphBLAS::backend::eWiseAdd(C, Mask, accum, op, Atran, B, outp);
+        } // ewisemult
+
+        //**********************************************************************
+        /// Implementation of 4.3.5.2 eWiseAdd: Matrix variant A .+ B'
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryOpT,  //can be BinaryOp, Monoid (not Semiring)
+                 typename AMatrixT,
+                 typename BMatrixT,
+                 typename ...CTagsT>
+        inline void eWiseAdd(
+            GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
+            MaskT                                     const &Mask,
+            AccumT                                    const &accum,
+            BinaryOpT                                        op,
+            AMatrixT                                  const &A,
+            TransposeView<BMatrixT>                   const &BT,
+            OutputControlEnum                                outp)
+        {
+            GRB_LOG_VERBOSE("C<M,z> := A .+ B'");
+            auto const &B(strip_transpose(BT));
+
+            AMatrixT Btran(B.ncols(), B.nrows());
+            GraphBLAS::backend::transpose(Btran, NoMask(), NoAccumulate(), B, REPLACE);
+            GraphBLAS::backend::eWiseAdd(C, Mask, accum, op, A, Btran, outp);
+        } // ewisemult
+
+        //**********************************************************************
+        /// Implementation of 4.3.5.2 eWiseAdd: Matrix variant A' .+ B'
+        //**********************************************************************
+        template<typename CScalarT,
+                 typename MaskT,
+                 typename AccumT,
+                 typename BinaryOpT,  //can be BinaryOp, Monoid (not Semiring)
+                 typename AMatrixT,
+                 typename BMatrixT,
+                 typename ...CTagsT>
+        inline void eWiseAdd(
+            GraphBLAS::backend::Matrix<CScalarT, CTagsT...> &C,
+            MaskT                                     const &Mask,
+            AccumT                                    const &accum,
+            BinaryOpT                                        op,
+            TransposeView<AMatrixT>                   const &AT,
+            TransposeView<BMatrixT>                   const &BT,
+            OutputControlEnum                                outp)
+        {
+            GRB_LOG_VERBOSE("C<M,z> := A' .+ B'");
+            auto const &A(strip_transpose(AT));
+            auto const &B(strip_transpose(BT));
+            IndexType num_rows(A.nrows());
+            IndexType num_cols(A.ncols());
+
+            // =================================================================
+            // Do the basic ewise-or work: T = A' .+ B'
+            using D3ScalarType =
+                decltype(op(std::declval<typename AMatrixT::ScalarType>(),
+                            std::declval<typename BMatrixT::ScalarType>()));
+            using TRowType = std::vector<std::tuple<IndexType,D3ScalarType> >;
+            LilSparseMatrix<D3ScalarType> T(num_cols, num_rows);
+
+            if ((A.nvals() > 0) || (B.nvals() > 0))
+            {
+                // create one column of result at a time
+                TRowType T_col;
+                for (IndexType row_idx = 0; row_idx < num_rows; ++row_idx)
+                {
+                    T_col.clear();
+                    if (B[row_idx].empty())
+                    {
+                        for (auto && [col_idx, val] : A[row_idx])
+                        {
+                            T[col_idx].emplace_back(
+                                std::make_tuple(row_idx, val));
+                        }
+                    }
+                    else if (A[row_idx].empty())
+                    {
+                        for (auto && [col_idx, val] : B[row_idx])
+                        {
+                            T[col_idx].emplace_back(
+                                std::make_tuple(row_idx, val));
+                        }
+                    }
+                    else
+                    {
+                        ewise_or(T_col, A[row_idx], B[row_idx], op);
+
+                        for (auto && [col_idx, val] : T_col)
+                        {
+                            T[col_idx].emplace_back(
+                                std::make_tuple(row_idx, val));
+                        }
+                    }
+                }
+                T.recomputeNvals();
+            }
+
+            // =================================================================
+            // Accumulate into Z
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
+                D3ScalarType,
+                decltype(accum(std::declval<CScalarT>(),
+                               std::declval<D3ScalarType>()))>;
+            LilSparseMatrix<ZScalarType> Z(num_cols, num_rows);
             ewise_or_opt_accum(Z, C, T, accum);
 
             // =================================================================
