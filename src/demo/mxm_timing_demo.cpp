@@ -31,13 +31,15 @@
 #include <algorithms/triangle_count.hpp>
 #include "Timer.hpp"
 
+using namespace GraphBLAS;
+
 //****************************************************************************
-GraphBLAS::IndexType read_edge_list(std::string const &pathname,
-                                    GraphBLAS::IndexArrayType &row_indices,
-                                    GraphBLAS::IndexArrayType &col_indices)
+IndexType read_edge_list(std::string const &pathname,
+                         IndexArrayType &row_indices,
+                         IndexArrayType &col_indices)
 {
     std::ifstream infile(pathname);
-    GraphBLAS::IndexType max_id = 0;
+    IndexType max_id = 0;
     uint64_t num_rows = 0;
     uint64_t src, dst;
 
@@ -75,13 +77,13 @@ int main(int argc, char **argv)
 
     // Read the edgelist and create the tuple arrays
     std::string pathname(argv[1]);
-    GraphBLAS::IndexArrayType iA, jA;
+    IndexArrayType iA, jA;
 
-    GraphBLAS::IndexType const NUM_NODES(read_edge_list(pathname, iA, jA));
+    IndexType const NUM_NODES(read_edge_list(pathname, iA, jA));
 
     typedef int32_t T;
-    typedef GraphBLAS::Matrix<T> MatType;
-    typedef GraphBLAS::Matrix<bool> BoolMatType;
+    typedef Matrix<T> MatType;
+    typedef Matrix<bool> BoolMatType;
     std::vector<T> v(iA.size(), 1);
     std::vector<bool> bv(iA.size(), true);
     MatType A(NUM_NODES, NUM_NODES);
@@ -95,13 +97,13 @@ int main(int argc, char **argv)
     std::cout << "Running algorithm(s)... nvals = " << M.nvals() << std::endl;
     T count(0);
 
-    Timer<std::chrono::system_clock> my_timer;
+    Timer<std::chrono::system_clock, std::chrono::microseconds> my_timer;
     MatType C(NUM_NODES, NUM_NODES);
-    GraphBLAS::mxm(C,
-                   GraphBLAS::NoMask(),
-                   GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B);
+    mxm(C,
+        NoMask(),
+        NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B);
 
     //=====================================================
     // Perform matrix multiplies with 4 different kernels
@@ -111,11 +113,11 @@ int main(int argc, char **argv)
     std::cout << "OPTIMIZED IMPLEMENTATION:" << std::endl;
     // C.clear();
     // my_timer.start();
-    // GraphBLAS::mxm_original(C, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-    //                         GraphBLAS::ArithmeticSemiring<double>(),
+    // mxm_original(C, NoMask(), NoAccumulate(),
+    //                         ArithmeticSemiring<double>(),
     //                         A, B);
     // my_timer.stop();
-    // std::cout << "C := A+.*B                : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    // std::cout << "C := A+.*B                : " << my_timer.elapsed() << " usec, C.nvals = " << C.nvals() << std::endl;
 
     //===================
     // A*B
@@ -123,88 +125,150 @@ int main(int argc, char **argv)
     std::cout << "OPTIMIZED IMPLEMENTATION: A*B" << std::endl;
     C.clear();
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B);
+    mxm(C, NoMask(), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B);
     my_timer.stop();
-    std::cout << "C := A+.*B                : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := A+.*B                : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::NoMask(), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B);
+    mxm(C, NoMask(), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, B);
     my_timer.stop();
-    std::cout << "C := C + A+.*B            : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := C + A+.*B            : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B);
+    mxm(C, M, NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B);
     my_timer.stop();
-    std::cout << "C<M,merge> := A+.*B       : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := A+.*B       : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B, GraphBLAS::REPLACE);
+    mxm(C, M, NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B, REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::structure(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B);
+    mxm(C, M, Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, B);
     my_timer.stop();
-    std::cout << "C<s(M),merge> := A+.*B    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := C + A+.*B   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::structure(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B, GraphBLAS::REPLACE);
+    mxm(C, M, Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, B, REPLACE);
     my_timer.stop();
-    std::cout << "C<s(M),replace> := A+.*B  : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := C + A+.*B : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B);
+    mxm(C, complement(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B);
     my_timer.stop();
-    std::cout << "C<M,merge> := C + A+.*B   : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := A+.*B      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B, GraphBLAS::REPLACE);
+    mxm(C, complement(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B, REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := C + A+.*B : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := A+.*B    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B);
+    mxm(C, complement(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, B);
     my_timer.stop();
-    std::cout << "C<!M,merge> := A+.*B      : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := C + A+.*B  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B, GraphBLAS::REPLACE);
+    mxm(C, complement(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, B, REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := A+.*B    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := C + A+.*B: " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    //-------------------- structure only
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B);
+    mxm(C, structure(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B);
     my_timer.stop();
-    std::cout << "C<!M,merge> := C + A+.*B  : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<s(M),merge> := A+.*B    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, B, GraphBLAS::REPLACE);
+    mxm(C, structure(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B, REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := C + A+.*B: " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<s(M),replace> := A+.*B  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, B);
+    my_timer.stop();
+    std::cout << "C<s(M),merge> := C + A+.*B   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, B, REPLACE);
+    my_timer.stop();
+    std::cout << "C<s(M),replace> := C + A+.*B : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B);
+    my_timer.stop();
+    std::cout << "C<!s(M),merge> := A+.*B      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, B, REPLACE);
+    my_timer.stop();
+    std::cout << "C<!s(M),replace> := A+.*B    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, B);
+    my_timer.stop();
+    std::cout << "C<!s(M),merge> := C + A+.*B  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, B, REPLACE);
+    my_timer.stop();
+    std::cout << "C<!s(M),replace> := C + A+.*B: " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     //===================
     // A'*B
@@ -212,74 +276,150 @@ int main(int argc, char **argv)
     std::cout << "OPTIMIZED IMPLEMENTATION: A'*B" << std::endl;
     C.clear();
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B);
+    mxm(C, NoMask(), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
     my_timer.stop();
-    std::cout << "C := A'+.*B                : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := A'+.*B                : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::NoMask(), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B);
+    mxm(C, NoMask(), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
     my_timer.stop();
-    std::cout << "C := C + A'+.*B            : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := C + A'+.*B            : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B);
+    mxm(C, M, NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
     my_timer.stop();
-    std::cout << "C<M,merge> := A'+.*B       : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := A'+.*B       : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B, GraphBLAS::REPLACE);
+    mxm(C, M, NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B, REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := A+.*B      : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := A+.*B      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B);
+    mxm(C, M, Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
     my_timer.stop();
-    std::cout << "C<M,merge> := C + A'+.*B   : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := C + A'+.*B   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B, GraphBLAS::REPLACE);
+    mxm(C, M, Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B, REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := C + A'+.*B : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := C + A'+.*B : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B);
+    mxm(C, complement(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
     my_timer.stop();
-    std::cout << "C<!M,merge> := A'+.*B      : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := A'+.*B      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B, GraphBLAS::REPLACE);
+    mxm(C, complement(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B, REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := A'+.*B    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := A'+.*B    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B);
+    mxm(C, complement(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
     my_timer.stop();
-    std::cout << "C<!M,merge> := C + A'+.*B  : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := C + A'+.*B  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), B, GraphBLAS::REPLACE);
+    mxm(C, complement(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B, REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := C + A'+.*B: " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := C + A'+.*B: " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    //-------------------- structure only
+
+    my_timer.start();
+    mxm(C, structure(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
+    my_timer.stop();
+    std::cout << "C<s(M),merge> := A'+.*B       : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B, REPLACE);
+    my_timer.stop();
+    std::cout << "C<s(M),replace> := A+.*B      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
+    my_timer.stop();
+    std::cout << "C<s(M),merge> := C + A'+.*B   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B, REPLACE);
+    my_timer.stop();
+    std::cout << "C<s(M),replace> := C + A'+.*B : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
+    my_timer.stop();
+    std::cout << "C<!s(M),merge> := A'+.*B      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B, REPLACE);
+    my_timer.stop();
+    std::cout << "C<!s(M),replace> := A'+.*B    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B);
+    my_timer.stop();
+    std::cout << "C<!s(M),merge> := C + A'+.*B  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), B, REPLACE);
+    my_timer.stop();
+    std::cout << "C<!s(M),replace> := C + A'+.*B: " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     //===================
     // A*B'
@@ -287,74 +427,150 @@ int main(int argc, char **argv)
     std::cout << "OPTIMIZED IMPLEMENTATION: A*B'" << std::endl;
     C.clear();
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B));
+    mxm(C, NoMask(), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
     my_timer.stop();
-    std::cout << "C := A+.*B'                : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := A+.*B'                : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::NoMask(), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B));
+    mxm(C, NoMask(), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
     my_timer.stop();
-    std::cout << "C := C + A+.*B'            : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := C + A+.*B'            : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B));
+    mxm(C, M, NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
     my_timer.stop();
-    std::cout << "C<M,merge> := A+.*B'       : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := A+.*B'       : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B), GraphBLAS::REPLACE);
+    mxm(C, M, NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B), REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := A+.*B'     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := A+.*B'     : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B));
+    mxm(C, M, Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
     my_timer.stop();
-    std::cout << "C<M,merge> := C + A+.*B'   : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := C + A+.*B'   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B), GraphBLAS::REPLACE);
+    mxm(C, M, Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B), REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := C + A+.*B' : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := C + A+.*B' : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B));
+    mxm(C, complement(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
     my_timer.stop();
-    std::cout << "C<!M,merge> := A+.*B'      : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := A+.*B'      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B), GraphBLAS::REPLACE);
+    mxm(C, complement(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B), REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := A+.*B'    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := A+.*B'    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B));
+    mxm(C, complement(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
     my_timer.stop();
-    std::cout << "C<!M,merge> := C + A+.*B'  : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := C + A+.*B'  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   A, GraphBLAS::transpose(B), GraphBLAS::REPLACE);
+    mxm(C, complement(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B), REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := C + A+.*B': " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := C + A+.*B': " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    //-------------------- structure only
+
+    my_timer.start();
+    mxm(C, structure(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
+    my_timer.stop();
+    std::cout << "C<s(M),merge> := A+.*B'       : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B), REPLACE);
+    my_timer.stop();
+    std::cout << "C<s(M),replace> := A+.*B'     : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
+    my_timer.stop();
+    std::cout << "C<s(M),merge> := C + A+.*B'   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B), REPLACE);
+    my_timer.stop();
+    std::cout << "C<s(M),replace> := C + A+.*B' : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
+    my_timer.stop();
+    std::cout << "C<!s(M),merge> := A+.*B'      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B), REPLACE);
+    my_timer.stop();
+    std::cout << "C<!s(M),replace> := A+.*B'    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B));
+    my_timer.stop();
+    std::cout << "C<!s(M),merge> := C + A+.*B'  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A, transpose(B), REPLACE);
+    my_timer.stop();
+    std::cout << "C<!s(M),replace> := C + A+.*B': " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     //===================
     // A'*B'
@@ -362,74 +578,150 @@ int main(int argc, char **argv)
     std::cout << "OPTIMIZED IMPLEMENTATION: A'*B'" << std::endl;
     C.clear();
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B));
+    mxm(C, NoMask(), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
     my_timer.stop();
-    std::cout << "C := A+.*B'                : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := A+.*B'                : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::NoMask(), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B));
+    mxm(C, NoMask(), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
     my_timer.stop();
-    std::cout << "C := C + A+.*B'            : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := C + A+.*B'            : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B));
+    mxm(C, M, NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
     my_timer.stop();
-    std::cout << "C<M,merge> := A+.*B'       : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := A+.*B'       : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), GraphBLAS::REPLACE);
+    mxm(C, M, NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B), REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := A+.*B'     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := A+.*B'     : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B));
+    mxm(C, M, Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
     my_timer.stop();
-    std::cout << "C<M,merge> := C + A+.*B'   : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := C + A+.*B'   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, M, GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), GraphBLAS::REPLACE);
+    mxm(C, M, Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B), REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := C + A+.*B' : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := C + A+.*B' : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B));
+    mxm(C, complement(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
     my_timer.stop();
-    std::cout << "C<!M,merge> := A+.*B'      : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := A+.*B'      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::NoAccumulate(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), GraphBLAS::REPLACE);
+    mxm(C, complement(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B), REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := A+.*B'    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := A+.*B'    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B));
+    mxm(C, complement(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
     my_timer.stop();
-    std::cout << "C<!M,merge> := C + A+.*B'  : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := C + A+.*B'  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::mxm(C, GraphBLAS::complement(M), GraphBLAS::Plus<double>(),
-                   GraphBLAS::ArithmeticSemiring<double>(),
-                   GraphBLAS::transpose(A), GraphBLAS::transpose(B), GraphBLAS::REPLACE);
+    mxm(C, complement(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B), REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := C + A+.*B': " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := C + A+.*B': " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    //-------------------- structure only
+
+    my_timer.start();
+    mxm(C, structure(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
+    my_timer.stop();
+    std::cout << "C<s(M),merge> := A+.*B'       : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B), REPLACE);
+    my_timer.stop();
+    std::cout << "C<s(M),replace> := A+.*B'     : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
+    my_timer.stop();
+    std::cout << "C<s(M),merge> := C + A+.*B'   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, structure(M), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B), REPLACE);
+    my_timer.stop();
+    std::cout << "C<s(M),replace> := C + A+.*B' : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
+    my_timer.stop();
+    std::cout << "C<!s(M),merge> := A+.*B'      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B), REPLACE);
+    my_timer.stop();
+    std::cout << "C<!s(M),replace> := A+.*B'    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B));
+    my_timer.stop();
+    std::cout << "C<!s(M),merge> := C + A+.*B'  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
+
+    my_timer.start();
+    mxm(C, complement(structure(M)), Plus<double>(),
+        ArithmeticSemiring<double>(),
+        transpose(A), transpose(B), REPLACE);
+    my_timer.stop();
+    std::cout << "C<!s(M),replace> := C + A+.*B': " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
 
 #if 0
@@ -444,217 +736,237 @@ int main(int argc, char **argv)
     //===================
     std::cout << "REFERENCE IMPLEMENTATION: A*B" << std::endl;
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::NoMask(), GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::NoMask(), NoAccumulate(),
+        ArithmeticSemiring<double>(),
         A.m_mat, B.m_mat, false);
     my_timer.stop();
-    std::cout << "C := A+.*B                : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := A+.*B                : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::NoMask(), GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::NoMask(), Plus<double>(),
+        ArithmeticSemiring<double>(),
         A.m_mat, B.m_mat, false);
     my_timer.stop();
-    std::cout << "C := C + A+.*B            : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := C + A+.*B            : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        M.m_mat, GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        M.m_mat, NoAccumulate(),
+        ArithmeticSemiring<double>(),
         A.m_mat, B.m_mat, false);
     my_timer.stop();
-    std::cout << "C<M,merge> := A+.*B       : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := A+.*B       : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        M.m_mat, GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
-        A.m_mat, B.m_mat, GraphBLAS::REPLACE);
+        M.m_mat, NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A.m_mat, B.m_mat, REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        M.m_mat, GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        M.m_mat, Plus<double>(),
+        ArithmeticSemiring<double>(),
         A.m_mat, B.m_mat, false);
     my_timer.stop();
-    std::cout << "C<M,merge> := C + A+.*B   : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := C + A+.*B   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        M.m_mat, GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
-        A.m_mat, B.m_mat, GraphBLAS::REPLACE);
+        M.m_mat, Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A.m_mat, B.m_mat, REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := A+.*B     : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
-        GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
+        NoAccumulate(),
+        ArithmeticSemiring<double>(),
         A.m_mat, B.m_mat, false);
     my_timer.stop();
-    std::cout << "C<!M,merge> := A+.*B      : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := A+.*B      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
-        GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
-        A.m_mat, B.m_mat, GraphBLAS::REPLACE);
+        backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
+        NoAccumulate(),
+        ArithmeticSemiring<double>(),
+        A.m_mat, B.m_mat, REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := A+.*B    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := A+.*B    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
-        GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
+        Plus<double>(),
+        ArithmeticSemiring<double>(),
         A.m_mat, B.m_mat, false);
     my_timer.stop();
-    std::cout << "C<!M,merge> := C + A+.*B  : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := C + A+.*B  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
-        GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
-        A.m_mat, B.m_mat, GraphBLAS::REPLACE);
+        backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
+        Plus<double>(),
+        ArithmeticSemiring<double>(),
+        A.m_mat, B.m_mat, REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := C + A+.*B: " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := C + A+.*B: " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     //===================
     // A*B'
     //===================
     std::cout << "REFERENCE IMPLEMENTATION: A*B'" << std::endl;
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::NoMask(), GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::NoMask(), NoAccumulate(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
         false);
     my_timer.stop();
-    std::cout << "C := A+.*B'               : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := A+.*B'               : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::NoMask(), GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::NoMask(), Plus<double>(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
         false);
     my_timer.stop();
-    std::cout << "C := C + A+.*B'           : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C := C + A+.*B'           : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        M.m_mat, GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        M.m_mat, NoAccumulate(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
         false);
     my_timer.stop();
-    std::cout << "C<M,merge> := A+.*B'      : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := A+.*B'      : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        M.m_mat, GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        M.m_mat, NoAccumulate(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
-        GraphBLAS::REPLACE);
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
+        REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := A+.*B'    : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := A+.*B'    : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        M.m_mat, GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        M.m_mat, Plus<double>(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
         false);
     my_timer.stop();
-    std::cout << "C<M,merge> := C + A+.*B'  : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,merge> := C + A+.*B'  : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        M.m_mat, GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        M.m_mat, Plus<double>(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
-        GraphBLAS::REPLACE);
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
+        REPLACE);
     my_timer.stop();
-    std::cout << "C<M,replace> := C + A+.*B': " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<M,replace> := C + A+.*B': " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
-        GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
+        NoAccumulate(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
         false);
     my_timer.stop();
-    std::cout << "C<!M,merge> := A+.*B'     : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := A+.*B'     : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
-        GraphBLAS::NoAccumulate(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
+        NoAccumulate(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
-        GraphBLAS::REPLACE);
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
+        REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := A+.*B'   : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := A+.*B'   : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
-        GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
+        Plus<double>(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
         false);
     my_timer.stop();
-    std::cout << "C<!M,merge> := C + A+.*B' : " << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,merge> := C + A+.*B' : " << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 
     my_timer.start();
-    GraphBLAS::backend::original_mxm(
+    backend::original_mxm(
         C.m_mat,
-        GraphBLAS::backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
-        GraphBLAS::Plus<double>(),
-        GraphBLAS::ArithmeticSemiring<double>(),
+        backend::MatrixComplementView<BoolMatType::BackendType>(M.m_mat),
+        Plus<double>(),
+        ArithmeticSemiring<double>(),
         A.m_mat,
-        GraphBLAS::backend::TransposeView<MatType::BackendType>(B.m_mat),
-        GraphBLAS::REPLACE);
+        backend::TransposeView<MatType::BackendType>(B.m_mat),
+        REPLACE);
     my_timer.stop();
-    std::cout << "C<!M,replace> := C + A+.*B':" << my_timer.elapsed() << " msec, C.nvals = " << C.nvals() << std::endl;
+    std::cout << "C<!M,replace> := C + A+.*B':" << my_timer.elapsed()
+              << " usec, C.nvals = " << C.nvals() << std::endl;
 #endif
 
     return 0;

@@ -77,9 +77,12 @@ namespace GraphBLAS
                     if (!A[row_idx].empty())
                     {
                         TScalarType t_val;
+                        /// @note In mxv_timing_test, if I reverse u_contents and
+                        /// A[row_idx], the performance improves by a factor of 2.
+                        /// But I cannot reorder in case op in not commutative.
                         if (dot(t_val, A[row_idx], u_contents, op))
                         {
-                            t.push_back(std::make_tuple(row_idx, t_val));
+                            t.emplace_back(row_idx, t_val);
                         }
                     }
                 }

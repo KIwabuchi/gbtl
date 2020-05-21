@@ -134,7 +134,7 @@ namespace GraphBLAS
                         TScalarType t_val;
                         if (dot(t_val, u_contents, A[row_idx], op))
                         {
-                            t.push_back(std::make_tuple(row_idx, t_val));
+                            t.emplace_back(row_idx, t_val);
                         }
                     }
                 }

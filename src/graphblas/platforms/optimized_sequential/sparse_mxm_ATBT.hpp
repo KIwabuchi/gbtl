@@ -86,9 +86,8 @@ namespace GraphBLAS
                 for (auto const &t : T_row)
                 {
                     IndexType j(std::get<0>(t));
-                    CScalarT  c_ji(static_cast<CScalarT>(std::get<1>(t)));
 
-                    C[j].push_back(std::make_pair(i, c_ji));
+                    C[j].emplace_back(i, static_cast<CScalarT>(std::get<1>(t)));
                 }
             }
             C.recomputeNvals();

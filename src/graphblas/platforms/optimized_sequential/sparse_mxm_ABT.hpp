@@ -131,7 +131,7 @@ namespace GraphBLAS
                     // T[i][j] = (CScalarT) (A[i] . B[j])
                     if (dot(t_ij, A[i], B[j], semiring))
                     {
-                        T_row.push_back(std::make_tuple(j, t_ij));
+                        T_row.emplace_back(j, t_ij);
                     }
                 }
 
@@ -183,7 +183,7 @@ namespace GraphBLAS
                         TScalarType t_ij;
                         if (dot(t_ij, A[i], B[j], semiring))
                         {
-                            T_row.push_back(std::make_tuple(j, t_ij));
+                            T_row.emplace_back(j, t_ij);
                         }
                     }
                 }
@@ -255,7 +255,7 @@ namespace GraphBLAS
                         TScalarType t_ij;
                         if (dot(t_ij, A[i], B[j], semiring))
                         {
-                            T_row.push_back(std::make_tuple(j, t_ij));
+                            T_row.emplace_back(j, t_ij);
                         }
                     }
                 }
@@ -323,7 +323,7 @@ namespace GraphBLAS
                         TScalarType t_ij;
                         if (dot(t_ij, A[i], B[j], semiring))
                         {
-                            T_row.push_back(std::make_tuple(j, t_ij));
+                            T_row.emplace_back(j, t_ij);
                         }
                     }
                 }
@@ -396,7 +396,7 @@ namespace GraphBLAS
                         TScalarType t_ij;
                         if (dot(t_ij, A[i], B[j], semiring))
                         {
-                            T_row.push_back(std::make_tuple(j, t_ij));
+                            T_row.emplace_back(j, t_ij);
                         }
                     }
                 }

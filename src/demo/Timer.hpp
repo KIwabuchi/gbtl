@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2019 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -27,7 +27,8 @@
 #include <chrono>
 
 //****************************************************************************
-template <class ClockT = std::chrono::system_clock>
+template <class ClockT = std::chrono::system_clock,
+          class UnitsT = std::chrono::milliseconds>
 class Timer
 {
 public:
@@ -40,7 +41,7 @@ public:
 
     double elapsed() const
     {
-        return std::chrono::duration_cast<std::chrono::milliseconds>(
+        return std::chrono::duration_cast<UnitsT>(
             stop_time - start_time).count();
     }
 

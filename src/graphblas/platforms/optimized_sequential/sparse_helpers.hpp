@@ -112,14 +112,19 @@ namespace GraphBLAS
         //**********************************************************************
         /// Increment the provided iterator while the index is less than the
         /// provided index
+        ///
+        /// @retval true   If targeted index is found (false could mean end is
+        ///                reached first or targeted index was not present
         template <typename Iter>
-        void increment_while_below(Iter                 &iter,
+        bool increment_while_below(Iter                 &iter,
                                    Iter const           &iter_end,
-                                   GraphBLAS::IndexType  idx)
+                                   GraphBLAS::IndexType  target_idx)
         {
-            while ((iter != iter_end) && (std::get<0>(*iter) < idx)) {
+            while ((iter != iter_end) && (std::get<0>(*iter) < target_idx))
+            {
                 ++iter;
             }
+            return ((iter != iter_end) && (std::get<0>(*iter) == target_idx));
         }
 
         //**********************************************************************
@@ -171,8 +176,15 @@ namespace GraphBLAS
                 std::tie(a_idx, a_val) = *A_iter;
                 if (u_idx == a_idx)
                 {
-                    ans = op.add(ans, op.mult(a_val, u_vals[u_idx]));
-                    value_set = true;
+                    if (value_set)
+                    {
+                        ans = op.add(ans, op.mult(a_val, u_vals[u_idx]));
+                    }
+                    else
+                    {
+                        ans = op.mult(a_val, u_vals[u_idx]);
+                        value_set = true;
+                    }
 
                     do { ++u_idx; } while ((u_idx < u_vals.size()) && !u_bitmap[u_idx]);
                     ++A_iter;
@@ -223,8 +235,8 @@ namespace GraphBLAS
                     {
                         ans = op.mult(std::get<1>(*v1_it),
                                       std::get<1>(*v2_it));
+                        value_set = true;
                     }
-                    value_set = true;
 
                     ++v2_it;
                     ++v1_it;
@@ -282,30 +294,37 @@ namespace GraphBLAS
         }
 
         //**********************************************************************
-        /// Apply element-wise operation to union on sparse vectors.
+        /// Apply element-wise operation to union of 2 sparse vectors, store in 3rd.
+        /// ans = op(vec1, vec2)
+        ///
+        /// @note ans must be a unique vector from either vec1 or vec2
         template <typename D1, typename D2, typename D3, typename BinaryOpT>
         void ewise_or(std::vector<std::tuple<GraphBLAS::IndexType,D3> >       &ans,
                       std::vector<std::tuple<GraphBLAS::IndexType,D1> > const &vec1,
                       std::vector<std::tuple<GraphBLAS::IndexType,D2> > const &vec2,
                       BinaryOpT                                                op)
         {
+            if (((void*)&ans == (void*)&vec1) || ((void*)&ans == (void*)&vec2))
+            {
+                throw PanicException(
+                    "backend::ewise_or called with same vector for input and output.");
+            }
+
             ans.clear();
 
             // point to first entries of the vectors
             auto v1_it = vec1.begin();
             auto v2_it = vec2.begin();
 
-            D1 v1_val;
-            D2 v2_val;
-            GraphBLAS::IndexType v1_idx, v2_idx;
-
             // loop through both ordered sets to compute ewise_or
             while ((v1_it != vec1.end()) || (v2_it != vec2.end()))
             {
                 if ((v1_it != vec1.end()) && (v2_it != vec2.end()))
                 {
-                    std::tie(v1_idx, v1_val) = *v1_it;
-                    std::tie(v2_idx, v2_val) = *v2_it;
+                    auto&& [v1_idx, v1_val] = *v1_it;
+                    auto&& [v2_idx, v2_val] = *v2_it;
+                    //std::tie(v1_idx, v1_val) = *v1_it;
+                    //std::tie(v2_idx, v2_val) = *v2_it;
 
                     if (v2_idx == v1_idx)
                     {
@@ -328,14 +347,14 @@ namespace GraphBLAS
                 }
                 else if (v1_it != vec1.end())
                 {
-                    std::tie(v1_idx, v1_val) = *v1_it;
-                    ans.emplace_back(v1_idx, static_cast<D3>(v1_val));
+                    ans.emplace_back(std::get<0>(*v1_it),
+                                     static_cast<D3>(std::get<1>(*v1_it)));
                     ++v1_it;
                 }
                 else // v2_it != vec2.end())
                 {
-                    std::tie(v2_idx, v2_val) = *v2_it;
-                    ans.emplace_back(v2_idx, static_cast<D3>(v2_val));
+                    ans.emplace_back(std::get<0>(*v2_it),
+                                     static_cast<D3>(std::get<1>(*v2_it)));
                     ++v2_it;
                 }
             }
@@ -775,17 +794,11 @@ namespace GraphBLAS
                 }
 
                 // "Catch up" the input to the mask.
-                increment_while_below(z_it, z_vec.end(), mask_idx);
-
-                // Now, at the mask point add the value from Z if we have one.
-                if (z_it != z_vec.end())
+                if (increment_while_below(z_it, z_vec.end(), mask_idx))
                 {
-                    if (std::get<0>(*z_it) == mask_idx)
-                    {
-                        result.emplace_back(
-                            mask_idx,
-                            static_cast<CScalarT>(std::get<1>(*z_it)));
-                    }
+                    // Now, at the mask point add the value from Z if we have one.
+                    result.emplace_back(
+                        mask_idx, static_cast<CScalarT>(std::get<1>(*z_it)));
                 }
 
                 // If there is a C here, skip it
@@ -1215,10 +1228,10 @@ namespace GraphBLAS
             return IndexSequenceRange(0, n);
         }
 
+
         //********************************************************************
         // mxm helpers (may be of more general use).
         //********************************************************************
-
 
         // *******************************************************************
         // Return true if iterator points to location with target_index;
@@ -1265,6 +1278,40 @@ namespace GraphBLAS
             return tmp;
         }
 
+        //**********************************************************************
+        /// accumulate one sparse vector with another (applying op in intersection).
+        ///  "xpey = x plus equals y"
+        /// vec1 += vec2
+        ///
+        /// @note similarities with axpy()
+        template <typename D1, typename D2, typename BinaryOpT>
+        void xpey(
+            std::vector<std::tuple<GraphBLAS::IndexType,D1> >       &vec1,
+            std::vector<std::tuple<GraphBLAS::IndexType,D2> > const &vec2,
+            BinaryOpT                                                op)
+        {
+            // point to first entries of the destination vector
+            auto v1_it = vec1.begin();
+
+            for (auto&& [v2_idx, v2_val] : vec2)
+            {
+                // scan forward through vec1 to find insert or merge point
+                if (advance_and_check_tuple_iterator(v1_it, vec1.end(), v2_idx))
+                {
+                    // merge
+                    std::get<1>(*v1_it) = op(std::get<1>(*v1_it), v2_val);
+                    ++v1_it;
+                }
+                else
+                {
+                    // insert
+                    v1_it = vec1.insert(
+                        v1_it, std::make_tuple(v2_idx, static_cast<D1>(v2_val)));
+                    ++v1_it;
+                }
+            }
+        }
+
         // *******************************************************************
         /// perform the following operation on sparse vectors implemented as
         /// vector<tuple<Index, value>>
@@ -1283,10 +1330,8 @@ namespace GraphBLAS
             GRB_LOG_FN_BEGIN("axpy");
             auto c_it = c.begin();
 
-            for (auto const &b_elt : b)
+            for (auto&& [j, b_j] : b)
             {
-                IndexType   j(std::get<0>(b_elt));
-                BScalarT  b_j(std::get<1>(b_elt));
                 GRB_LOG_VERBOSE("j = " << j);
 
                 auto t_j(semiring.mult(a, b_j));
