@@ -39,7 +39,8 @@ namespace GraphBLAS
     namespace backend
     {
         template <typename ScalarT>
-        void pretty_print(std::ostream &ostr, std::vector<std::tuple<IndexType, ScalarT> > const &vec)
+        void pretty_print(std::ostream &ostr,
+                          std::vector<std::tuple<IndexType, ScalarT> > const &vec)
         {
             IndexType index;
             ScalarT   value;
@@ -82,8 +83,8 @@ namespace GraphBLAS
         template <typename MatrixT >
         void pretty_print_matrix(std::ostream &ostr, MatrixT const &mat)
         {
-            typedef typename MatrixT::ScalarType ScalarT;
-            typedef std::vector<std::tuple<GraphBLAS::IndexType, ScalarT> > RowType;
+            using ScalarT = typename MatrixT::ScalarType;
+            using RowType = std::vector<std::tuple<GraphBLAS::IndexType, ScalarT>>;
 
             IndexType num_rows = mat.nrows();
             IndexType num_cols = mat.ncols();

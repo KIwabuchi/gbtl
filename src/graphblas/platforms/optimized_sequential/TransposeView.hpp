@@ -46,7 +46,7 @@ namespace GraphBLAS
         class TransposeView
         {
         public:
-            typedef typename MatrixT::ScalarType ScalarType;
+            using ScalarType = typename MatrixT::ScalarType;
 
             // CONSTRUCTORS
 
@@ -190,7 +190,7 @@ namespace GraphBLAS
             //     m_matrix.setElement(icol, irow, val, merge);
             // }
 
-            typedef typename MatrixT::ColType RowType;
+            using RowType = typename MatrixT::ColType;
             RowType getRow(IndexType row_index) const
             {
                 return m_matrix.getCol(row_index);
@@ -200,7 +200,7 @@ namespace GraphBLAS
             //void setRow(IndexType row_index,
             //           std::vector<std::tuple<IndexType, ScalarType> > &row_data)
 
-            typedef typename MatrixT::RowType ColType;
+            using ColType = typename MatrixT::RowType;
             ColType getCol(IndexType col_index) const
             {
                 return m_matrix.getRow(col_index);

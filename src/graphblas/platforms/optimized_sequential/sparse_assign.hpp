@@ -89,8 +89,6 @@ namespace GraphBLAS
             // We do it this way, so we get the output in the right
             // order to begin with
 
-            //std::cerr << "Expanding row " << std::endl;
-
             // Walk the output/input pairs building the output in correct order.
             auto index_it = Indices.begin();
 
@@ -106,7 +104,6 @@ namespace GraphBLAS
 
                 // Walk the source data looking for that value.  If we
                 // find it, then we insert into output
-                //std::cerr << "Walking source vector " << std::endl;
                 while (src_it != vec_src.end())
                 {
                     std::tie(src_idx, src_val) = *src_it;
@@ -114,7 +111,6 @@ namespace GraphBLAS
                     {
                         vec_dest.push_back(std::make_tuple(
                            index_it->first, static_cast<TScalarT>(src_val) ));
-                        //std::cerr << "Added dest idx=" << index_it->first << ", val=" << src_val << std::endl;
                         break;
                     }
                     else if (src_idx > index_it->second)
@@ -139,7 +135,6 @@ namespace GraphBLAS
                 if (index_it != Indices.end() &&
                         (src_it == vec_src.end() || index_it->second < src_idx))
                 {
-                    //std::cerr << "Resetting src_it " << std::endl;
                     src_it = vec_src.begin();
                 }
             }
@@ -158,18 +153,10 @@ namespace GraphBLAS
             // NOTE!! - Backend code. We expect that all dimension
             // checks done elsewhere.
 
-            typedef std::vector<std::tuple<IndexType,AScalarT> > ARowType;
-            typedef std::vector<std::tuple<IndexType,TScalarT> > TRowType;
+            using ARowType = std::vector<std::tuple<IndexType,AScalarT> >;
+            using TRowType = std::vector<std::tuple<IndexType,TScalarT> >;
 
             T.clear();
-
-            // std::cerr << "row_indices:";
-            // for (auto it : row_Indices) std::cerr << " " << it;
-            // std::cerr << std::endl;
-
-            // std::cerr << "col_indices:";
-            // for (auto it : col_Indices) std::cerr << " " << it;
-            // std::cerr << std::endl;
 
             // Build the mapping pairs once up front
             std::vector<std::pair<IndexType, IndexType>> oi_pairs;
@@ -187,7 +174,6 @@ namespace GraphBLAS
                 TRowType out_row;
 
                 // Extract the values from the row
-                //std::cerr << "Expanding row " << in_row_index << " to " << out_row_index << std::endl;
                 vectorExpand(out_row, row, oi_pairs);
 
                 if (!out_row.empty())
@@ -207,9 +193,9 @@ namespace GraphBLAS
         {
             // NOTE!! - Backend code. We expect that all dimension
             // checks done elsewhere.
-            typedef typename AMatrixT::ScalarType AScalarT;
-            //typedef std::vector<std::tuple<IndexType,AScalarT> > ARowType;
-            typedef std::vector<std::tuple<IndexType,TScalarT> > TRowType;
+            using AScalarT = typename AMatrixT::ScalarType;
+            //using ARowType = std::vector<std::tuple<IndexType,AScalarT> >;
+            using TRowType = std::vector<std::tuple<IndexType,TScalarT> >;
 
             T.clear();
 
@@ -246,11 +232,11 @@ namespace GraphBLAS
                             ColIteratorT                        col_begin,
                             ColIteratorT                        col_end)
         {
-            typedef std::vector<std::tuple<IndexType,ValueT> > TRowType;
+            std::vector<std::tuple<IndexType,ValueT> > out_row;
 
             for (auto row_it = row_begin; row_it != row_end; ++row_it)
             {
-                TRowType out_row;
+                out_row.clear();
                 for (auto col_it = col_begin; col_it != col_end; ++col_it)
                 {
                     // @todo: add bounds check
@@ -318,7 +304,7 @@ namespace GraphBLAS
 
             // =================================================================
             // Expand to t
-            typedef typename UVectorT::ScalarType UScalarType;
+            using UScalarType = typename UVectorT::ScalarType;
             std::vector<std::tuple<IndexType, UScalarType> > t;
             auto u_contents(u.getContents());
             vectorExpand(t, u_contents, oi_pairs);
@@ -327,12 +313,11 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 typename WVectorT::ScalarType, /// @todo UScalarType?
                 decltype(accum(std::declval<typename WVectorT::ScalarType>(),
-                               std::declval<UScalarType>()))>::type
-                ZScalarType;
+                               std::declval<UScalarType>()))>;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_stencil_opt_accum_1D(z, w, t,
@@ -364,8 +349,8 @@ namespace GraphBLAS
                            ColSequenceT     const &col_indices,
                            OutputControlEnum       outp)
         {
-            typedef typename CMatrixT::ScalarType  CScalarType;
-            typedef typename AMatrixT::ScalarType  AScalarType;
+            using CScalarType = typename CMatrixT::ScalarType;
+            using AScalarType = typename AMatrixT::ScalarType;
 
             // execution error checks
             check_index_array_content(row_indices, C.nrows(),
@@ -384,12 +369,11 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 typename CMatrixT::ScalarType, /// @todo AScalarType?
                 decltype(accum(std::declval<typename CMatrixT::ScalarType>(),
-                               std::declval<AScalarType>()))>::type
-                ZScalarType;
+                               std::declval<AScalarType>()))>;
 
             LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
             ewise_or_stencil_opt_accum(Z, C, T,
@@ -430,7 +414,7 @@ namespace GraphBLAS
                                       "assign(col): indices content check");
 
             // EXTRACT the column of C matrix
-            typedef typename CMatrixT::ScalarType CScalarType;
+            using CScalarType = typename CMatrixT::ScalarType;
             auto C_col(C.getCol(col_index));
             Vector<CScalarType> c_vec(C.nrows());
             for (auto it : C_col)
@@ -483,7 +467,7 @@ namespace GraphBLAS
                                       "assign(row): indices content check");
 
             // EXTRACT the row of C matrix
-            typedef typename CMatrixT::ScalarType CScalarType;
+            using CScalarType = typename CMatrixT::ScalarType;
             auto C_row(C.getRow(row_index));
             Vector<CScalarType> c_vec(C.ncols());
             for (auto it : C_row)
@@ -541,12 +525,11 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 typename WVectorT::ScalarType,  /// @todo ValueT?
                 decltype(accum(std::declval<typename WVectorT::ScalarType>(),
-                               std::declval<ValueT>()))>::type
-                ZScalarType;
+                               std::declval<ValueT>()))>;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_stencil_opt_accum_1D(z, w, t,
@@ -578,7 +561,7 @@ namespace GraphBLAS
                                     ColIndicesT    const &col_indices,
                                     OutputControlEnum     outp)
         {
-            typedef typename CMatrixT::ScalarType CScalarType;
+            using CScalarType = typename CMatrixT::ScalarType;
 
             // execution error checks
             check_index_array_content(row_indices, C.nrows(),
@@ -597,12 +580,11 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 typename CMatrixT::ScalarType,  /// @todo ValueT?
                 decltype(accum(std::declval<CScalarType>(),
-                               std::declval<ValueT>()))>::type
-                ZScalarType;
+                               std::declval<ValueT>()))>;
 
             LilSparseMatrix<CScalarType> Z(C.nrows(), C.ncols());
             ewise_or_stencil_opt_accum(Z, C, T,

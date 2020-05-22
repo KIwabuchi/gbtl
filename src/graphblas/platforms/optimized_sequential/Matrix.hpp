@@ -42,32 +42,35 @@ namespace GraphBLAS
         template<typename ScalarT, typename... TagsT>
         class Matrix : public LilSparseMatrix<ScalarT>
         {
+        private:
+            using ParentMatrixType = LilSparseMatrix<ScalarT>;
+
         public:
-            typedef ScalarT ScalarType;
+            using ScalarType = ScalarT;
 
             // construct an empty matrix of fixed dimensions
             Matrix(IndexType   num_rows,
                    IndexType   num_cols)
-                : LilSparseMatrix<ScalarT>(num_rows, num_cols)
+                : ParentMatrixType(num_rows, num_cols)
             {
             }
 
             // copy construct
             Matrix(Matrix const &rhs)
-                : LilSparseMatrix<ScalarT>(rhs)
+                : ParentMatrixType(rhs)
             {
             }
 
             // construct a dense matrix from dense data.
             Matrix(std::vector<std::vector<ScalarT> > const &values)
-                : LilSparseMatrix<ScalarT>(values)
+                : ParentMatrixType(values)
             {
             }
 
             // construct a sparse matrix from dense data and a zero val.
             Matrix(std::vector<std::vector<ScalarT> > const &values,
                    ScalarT                                   zero)
-                : LilSparseMatrix<ScalarT>(values, zero)
+                : ParentMatrixType(values, zero)
             {
             }
 
@@ -76,19 +79,19 @@ namespace GraphBLAS
             // necessary?
             bool operator==(Matrix const &rhs) const
             {
-                return LilSparseMatrix<ScalarT>::operator==(rhs);
+                return ParentMatrixType::operator==(rhs);
             }
 
             // necessary?
             bool operator!=(Matrix const &rhs) const
             {
-                return LilSparseMatrix<ScalarT>::operator!=(rhs);
+                return ParentMatrixType::operator!=(rhs);
             }
 
             void printInfo(std::ostream &os) const
             {
                 os << "Optimized_Sequential Backend: ";
-                LilSparseMatrix<ScalarT>::printInfo(os);
+                ParentMatrixType::printInfo(os);
             }
         };
     }

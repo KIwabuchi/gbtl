@@ -167,13 +167,11 @@ namespace GraphBLAS
 
             // pull first value out of the row
             auto A_iter = A_row.begin();
-            D1 a_val;
-            GraphBLAS::IndexType a_idx;
 
             // loop through both ordered sets to compute sparse dot prod
             while ((A_iter != A_row.end()) && (u_idx < u_vals.size()))
             {
-                std::tie(a_idx, a_val) = *A_iter;
+                auto&& [a_idx, a_val] = *A_iter;
                 if (u_idx == a_idx)
                 {
                     if (value_set)
@@ -323,8 +321,6 @@ namespace GraphBLAS
                 {
                     auto&& [v1_idx, v1_val] = *v1_it;
                     auto&& [v2_idx, v2_val] = *v2_it;
-                    //std::tie(v1_idx, v1_val) = *v1_it;
-                    //std::tie(v2_idx, v2_val) = *v2_it;
 
                     if (v2_idx == v1_idx)
                     {
@@ -425,10 +421,6 @@ namespace GraphBLAS
             //    ++stencil_it;
             //}
 
-            D1 v1_val;
-            D2 v2_val;
-            GraphBLAS::IndexType v1_idx, v2_idx;
-
             // loop through both ordered sets to compute ewise_or
             auto v1_it = vec1.begin();
             auto v2_it = vec2.begin();
@@ -436,8 +428,8 @@ namespace GraphBLAS
             {
                 if ((v1_it != vec1.end()) && (v2_it != vec2.end()))
                 {
-                    std::tie(v1_idx, v1_val) = *v1_it;
-                    std::tie(v2_idx, v2_val) = *v2_it;
+                    auto&& [v1_idx, v1_val] = *v1_it;
+                    auto&& [v2_idx, v2_val] = *v2_it;
 
                     // If v1 and v2 both have stored values, it is assumed index
                     // is in stencil_indices so v2 should be stored
@@ -467,7 +459,7 @@ namespace GraphBLAS
                 }
                 else if (v1_it != vec1.end())  // vec2 exhausted
                 {
-                    std::tie(v1_idx, v1_val) = *v1_it;
+                    auto&& [v1_idx, v1_val] = *v1_it;
 
                     if (!searchIndices(stencil_indices, v1_idx))
                     {
@@ -477,7 +469,7 @@ namespace GraphBLAS
                 }
                 else // v2_it != vec2.end()) and vec1 exhausted
                 {
-                    std::tie(v2_idx, v2_val) = *v2_it;
+                    auto&& [v2_idx, v2_val] = *v2_it;
                     ans.emplace_back(v2_idx, static_cast<D3>(v2_val));
                     ++v2_it;
                 }

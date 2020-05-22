@@ -66,7 +66,7 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
             typename LilSparseMatrix<CScalarT>::RowType C_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i)
@@ -107,11 +107,8 @@ namespace GraphBLAS
             LilSparseMatrix<AScalarT> const &A,
             LilSparseMatrix<BScalarT> const &B)
         {
-
-            typedef typename SemiringT::result_type TScalarType;
-            typedef std::vector<std::tuple<IndexType,TScalarType> > TRowType;
-
-            TRowType T_row;
+            using TScalarType = typename SemiringT::result_type;
+            std::vector<std::tuple<IndexType,TScalarType> > T_row;
 
             for (IndexType i = 0; i < A.nrows(); ++i)
             {
@@ -159,7 +156,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             OutputControlEnum                outp)
         {
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
             typename LilSparseMatrix<TScalarType>::RowType T_row;
             typename LilSparseMatrix<CScalarT>::RowType C_row;
 
@@ -223,10 +220,9 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             OutputControlEnum                outp)
         {
-
-            typedef typename SemiringT::result_type TScalarType;
-            typedef decltype(accum(std::declval<CScalarT>(),
-                                   std::declval<TScalarType>())) ZScalarType;
+            using TScalarType = typename SemiringT::result_type;
+            using ZScalarType = decltype(accum(std::declval<CScalarT>(),
+                                               std::declval<TScalarType>()));
             typename LilSparseMatrix<TScalarType>::RowType  T_row;
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
             typename LilSparseMatrix<CScalarT>::RowType     C_row;
@@ -298,7 +294,7 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             OutputControlEnum                outp)
         {
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
             typename LilSparseMatrix<TScalarType>::RowType T_row;
             typename LilSparseMatrix<CScalarT>::RowType    C_row;
 
@@ -363,10 +359,9 @@ namespace GraphBLAS
             LilSparseMatrix<BScalarT> const &B,
             OutputControlEnum                outp)
         {
-
-            typedef typename SemiringT::result_type TScalarType;
-            typedef decltype(accum(std::declval<CScalarT>(),
-                                   std::declval<TScalarType>())) ZScalarType;
+            using TScalarType = typename SemiringT::result_type;
+            using ZScalarType = decltype(accum(std::declval<CScalarT>(),
+                                               std::declval<TScalarType>()));
             typename LilSparseMatrix<TScalarType>::RowType T_row;
             typename LilSparseMatrix<ZScalarType>::RowType Z_row;
             typename LilSparseMatrix<CScalarT>::RowType    C_row;
@@ -618,9 +613,9 @@ namespace GraphBLAS
             {
                 bool const complement_flag = false;
 
-                typedef typename SemiringT::result_type TScalarType;
-                typedef decltype(accum(std::declval<CScalarT>(),
-                                       std::declval<TScalarType>())) ZScalarType;
+                using TScalarType = typename SemiringT::result_type;
+                using ZScalarType = decltype(accum(std::declval<CScalarT>(),
+                                                   std::declval<TScalarType>()));
 
                 // create temporary to prevent overwrite of inputs
                 LilSparseMatrix<TScalarType> Ctmp(C.nrows(), C.ncols());
@@ -762,9 +757,9 @@ namespace GraphBLAS
             {
                 bool const complement_flag = true;
 
-                typedef typename SemiringT::result_type TScalarType;
-                typedef decltype(accum(std::declval<CScalarT>(),
-                                       std::declval<TScalarType>())) ZScalarType;
+                using TScalarType = typename SemiringT::result_type;
+                using ZScalarType = decltype(accum(std::declval<CScalarT>(),
+                                                   std::declval<TScalarType>()));
 
                 // create temporary to prevent overwrite of inputs
                 LilSparseMatrix<TScalarType> Ctmp(C.nrows(), C.ncols());

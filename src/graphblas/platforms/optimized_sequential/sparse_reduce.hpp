@@ -165,29 +165,25 @@ namespace GraphBLAS
         {
             // =================================================================
             // Do the basic reduction work with the monoid
-            typedef typename UVectorT::ScalarType UScalarType;
+            using UScalarType = typename UVectorT::ScalarType;
             using TScalarType = decltype(op(std::declval<UScalarType>(),
                                             std::declval<UScalarType>()));
-            typedef std::vector<std::tuple<IndexType,UScalarType> >  UColType;
 
             TScalarType t = op.identity();
 
             if (u.nvals() > 0)
             {
-                UColType const u_col(u.getContents());
-
-                reduction(t, u_col, op);
+                reduction(t, u.getContents(), op);
             }
 
             // =================================================================
             // Accumulate into Z
             // Type generator for z: D3(accum), or D(w) if no accum.
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<ValueT>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             ZScalarType z;
             opt_accum_scalar(z, val, t, accum);
@@ -236,12 +232,11 @@ namespace GraphBLAS
             // =================================================================
             // Accumulate into Z
             // Type generator for z: D3(accum), or D(w) if no accum.
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<ValueT>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             ZScalarType z;
             opt_accum_scalar(z, val, t, accum);
@@ -293,12 +288,11 @@ namespace GraphBLAS
             // =================================================================
             // Accumulate into Z
             // Type generator for z: D3(accum), or D(w) if no accum.
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
                 decltype(accum(std::declval<ValueT>(),
-                               std::declval<TScalarType>()))>::type
-                ZScalarType;
+                               std::declval<TScalarType>()))>;
 
             ZScalarType z;
             opt_accum_scalar(z, val, t, accum);

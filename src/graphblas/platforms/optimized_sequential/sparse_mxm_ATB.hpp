@@ -171,7 +171,7 @@ namespace GraphBLAS
             }
 
             // =================================================================
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
             LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
 
             ATB_NoMask_kernel(T, semiring, A, B);
@@ -207,7 +207,7 @@ namespace GraphBLAS
 
             // =================================================================
 
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
             LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
 
             ATB_NoMask_kernel(T, semiring, A, B);
@@ -254,7 +254,7 @@ namespace GraphBLAS
 
             // =================================================================
 
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
             LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
             typename LilSparseMatrix<CScalarT>::RowType C_row;
 
@@ -315,13 +315,10 @@ namespace GraphBLAS
             }
 
             // =================================================================
-
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
+            using ZScalarType = decltype(accum(std::declval<CScalarT>(),
+                                               std::declval<TScalarType>()));
             LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
-
-            typedef decltype(accum(std::declval<CScalarT>(),
-                                   std::declval<TScalarType>())) ZScalarType;
-
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
             typename LilSparseMatrix<CScalarT>::RowType     C_row;
 
@@ -381,7 +378,7 @@ namespace GraphBLAS
 
             // =================================================================
 
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
             LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
             typename LilSparseMatrix<CScalarT>::RowType C_row;
 
@@ -434,12 +431,10 @@ namespace GraphBLAS
             }
 
             // =================================================================
-
-            typedef typename SemiringT::result_type TScalarType;
+            using TScalarType = typename SemiringT::result_type;
+            using ZScalarType = decltype(accum(std::declval<CScalarT>(),
+                                               std::declval<TScalarType>()));
             LilSparseMatrix<TScalarType> T(C.nrows(), C.ncols());
-
-            typedef decltype(accum(std::declval<CScalarT>(),
-                                   std::declval<TScalarType>())) ZScalarType;
             typename LilSparseMatrix<ZScalarType>::RowType  Z_row;
             typename LilSparseMatrix<CScalarT>::RowType     C_row;
 

@@ -1,7 +1,7 @@
 /*
- * GraphBLAS Template Library, Version 2.0
+ * GraphBLAS Template Library, Version 2.1
  *
- * Copyright 2018 Carnegie Mellon University, Battelle Memorial Institute, and
+ * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
  * Authors. All Rights Reserved.
  *
  * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
@@ -39,11 +39,9 @@ namespace GraphBLAS
     namespace backend
     {
         template <typename ScalarT>
-        void pretty_print(std::ostream &ostr, std::vector<std::tuple<IndexType, ScalarT> > const &vec)
+        void pretty_print(std::ostream &ostr,
+                          std::vector<std::tuple<IndexType, ScalarT> > const &vec)
         {
-            IndexType index;
-            ScalarT   value;
-
             IndexType curr_idx = 0;
 
             ostr << "[";
@@ -51,7 +49,7 @@ namespace GraphBLAS
             auto vec_it = vec.begin();
             while (vec_it != vec.end())
             {
-                std::tie(index, value) = *vec_it;
+                auto&& [index, value] = *vec_it;
                 while (curr_idx < index)
                 {
                     ostr << ((curr_idx == 0) ? " " : ",  " );
@@ -82,8 +80,8 @@ namespace GraphBLAS
         template <typename MatrixT >
         void pretty_print_matrix(std::ostream &ostr, MatrixT const &mat)
         {
-            typedef typename MatrixT::ScalarType ScalarT;
-            typedef std::vector<std::tuple<GraphBLAS::IndexType, ScalarT> > RowType;
+            using ScalarT = typename MatrixT::ScalarType;
+            using RowType = std::vector<std::tuple<GraphBLAS::IndexType, ScalarT>>;
 
             IndexType num_rows = mat.nrows();
             IndexType num_cols = mat.ncols();
@@ -106,13 +104,8 @@ namespace GraphBLAS
                 else
                 {
                     // Now walk the columns.  A sparse iter would be handy here...
-                    IndexType col_idx;
-                    ScalarT cell_val;
-
-                    auto row_it = row.begin();
-                    while (row_it != row.end())
+                    for (auto&& [col_idx, cell_val] : row)
                     {
-                        std::tie(col_idx, cell_val) = *row_it;
                         while (curr_idx < col_idx)
                         {
                             ostr << ((curr_idx == 0) ? " " : ",  " );
@@ -123,7 +116,6 @@ namespace GraphBLAS
                             ostr << ", ";
                         ostr << cell_val;
 
-                        ++row_it;
                         ++curr_idx;
                     }
 
