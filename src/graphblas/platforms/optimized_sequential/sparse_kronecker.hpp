@@ -179,7 +179,6 @@ namespace GraphBLAS
 
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
-                ZZZ
                 // create a row of the result at a time
                 for (IndexType row_idxA = 0; row_idxA < nrow_A; ++row_idxA)
                 {
@@ -189,15 +188,15 @@ namespace GraphBLAS
                     {
                         if (B[row_idxB].empty()) continue;
 
-                        IndexType T_row_idx(row_idxA*nrow_B + row_idxB);
-
                         for (auto&& [col_idxA, val_A] : A[row_idxA])
                         {
+                            IndexType T_row_idx(col_idxA*nrow_B + row_idxB);
+
                             for (auto&& [col_idxB, val_B] : B[row_idxB])
                             {
                                 TScalarType T_val(op(val_A, val_B));
                                 T[T_row_idx].emplace_back(
-                                    (col_idxA*ncol_B + col_idxB), T_val);
+                                    (row_idxA*ncol_B + col_idxB), T_val);
                             }
                         }
                     }
@@ -247,8 +246,8 @@ namespace GraphBLAS
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
             IndexType ncol_A(A.ncols());
-            //IndexType nrow_B(B.nrows());
-            //IndexType ncol_B(B.ncols());
+            IndexType nrow_B(B.nrows());
+            IndexType ncol_B(B.ncols());
             //Frontend checks the dimensions, but use C explicitly
             IndexType nrow_C(C.nrows());
             IndexType ncol_C(C.ncols());
@@ -267,6 +266,32 @@ namespace GraphBLAS
 
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
+                // create a row of the result at a time
+                for (IndexType row_idxA = 0; row_idxA < nrow_A; ++row_idxA)
+                {
+                    if (A[row_idxA].empty()) continue;
+
+                    for (auto&& [col_idxA, val_A] : A[row_idxA])
+                    {
+                        for (IndexType row_idxB = 0; row_idxB < nrow_B; ++row_idxB)
+                        {
+                            if (B[row_idxB].empty()) continue;
+
+                            IndexType T_col_idx(col_idxA*nrow_B + row_idxB);
+
+                            for (auto&& [col_idxB, val_B] : B[row_idxB])
+                            {
+                                TScalarType T_val(op(val_A, val_B));
+                                IndexType T_row_idx(row_idxA*ncol_B + col_idxB);
+                                T[T_row_idx].emplace_back(T_col_idx, T_val);
+                                //std::cerr << "row,col,va = " << T_row_idx
+                                //          << "," << T_col_idx << ","
+                                //          << T_val << std::endl;
+                            }
+                        }
+                    }
+                    T.recomputeNvals();
+                }
             }
 
             // =================================================================
@@ -310,10 +335,10 @@ namespace GraphBLAS
             auto const &B(strip_transpose(BT));
 
             // Dimension checks happen in front end
-            //IndexType nrow_A(A.nrows());
-            //IndexType ncol_A(A.ncols());
-            //IndexType nrow_B(B.nrows());
-            //IndexType ncol_B(B.ncols());
+            IndexType nrow_A(A.nrows());
+            IndexType ncol_A(A.ncols());
+            IndexType nrow_B(B.nrows());
+            IndexType ncol_B(B.ncols());
             //Frontend checks the dimensions, but use C explicitly
             IndexType nrow_C(C.nrows());
             IndexType ncol_C(C.ncols());
@@ -332,6 +357,28 @@ namespace GraphBLAS
 
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
+                // create a row of the result at a time
+                for (IndexType row_idxA = 0; row_idxA < nrow_A; ++row_idxA)
+                {
+                    if (A[row_idxA].empty()) continue;
+
+                    for (IndexType row_idxB = 0; row_idxB < nrow_B; ++row_idxB)
+                    {
+                        if (B[row_idxB].empty()) continue;
+                        IndexType T_col_idx(row_idxA*nrow_B + row_idxB);
+
+                        for (auto&& [col_idxA, val_A] : A[row_idxA])
+                        {
+                            for (auto&& [col_idxB, val_B] : B[row_idxB])
+                            {
+                                TScalarType T_val(op(val_A, val_B));
+                                IndexType T_row_idx(col_idxA*ncol_B + col_idxB);
+                                T[T_row_idx].emplace_back(T_col_idx, T_val);
+                            }
+                        }
+                    }
+                    T.recomputeNvals();
+                }
             }
 
             // =================================================================
