@@ -40,111 +40,45 @@
 
 
 namespace GraphBLAS
-{
-    //************************************************************************
+{    //************************************************************************
     template<typename MatrixT>
     class TransposeView
     {
     public:
-        typedef typename backend::TransposeView<
-            typename MatrixT::BackendType> BackendType;
         typedef typename MatrixT::ScalarType ScalarType;
 
-        //note:
-        //the backend should be able to decide when to ignore any of the
-        //tags and/or arguments
-        TransposeView(BackendType backend_view)
-            : m_mat(backend_view)
+        TransposeView(MatrixT const &mat)
+            : m_mat(mat)
         {
         }
 
-        /**
-         * @brief Copy constructor.
-         *
-         * @param[in] rhs   The matrix to copy.
-         */
-        TransposeView(TransposeView<MatrixT> const &rhs)
-            : m_mat(rhs.m_mat)
-        {
-        }
+        IndexType nrows() const { return m_mat.ncols(); }
+        IndexType ncols() const { return m_mat.nrows(); }
 
-        ~TransposeView() { }
-
-        /// @todo need to change to mix and match internal types
-        template <typename OtherMatrixT>
-        bool operator==(OtherMatrixT const &rhs) const
-        {
-            return (m_mat == rhs);
-        }
-
-        template <typename OtherMatrixT>
-        bool operator!=(OtherMatrixT const &rhs) const
-        {
-            return !(*this == rhs);
-        }
-
-        // Dimension checks are the only things the API needs
-        IndexType nrows() const { return m_mat.nrows(); }
-        IndexType ncols() const { return m_mat.ncols(); }
-        IndexType nvals() const { return m_mat.nvals(); }
-
-        bool hasElement(IndexType row, IndexType col) const
-        {
-            return m_mat.hasElement(row, col);
-        }
-
-        ScalarType extractElement(IndexType row, IndexType col) const
-        {
-            return m_mat.extractElement(row, col);
-        }
-
-        template<typename RAIteratorIT,
-                 typename RAIteratorJT,
-                 typename RAIteratorVT,
-                 typename AMatrixT>
-        inline void extractTuples(RAIteratorIT        row_it,
-                                  RAIteratorJT        col_it,
-                                  RAIteratorVT        values)
-        {
-            m_mat.extractTuples(row_it, col_it, values);
-        }
-
-        // @TODO: Should these be const referneces to the sequence
-        template<typename ValueT,
-                 typename AMatrixT,
-                 typename RowSequenceT,
-                 typename ColSequenceT>
-        inline void extractTuples(RowSequenceT            &row_indices,
-                                  ColSequenceT            &col_indices,
-                                  std::vector<ValueT>     &values)
-        {
-            m_mat.extractTuples(row_indices, col_indices, values);
-        }
-
-        //other methods that may or may not belong here:
-        //
         void printInfo(std::ostream &os) const
         {
-            os << "Frontend TransposeView of:" << std::endl;
+            os << "TransposeView of: ";
             m_mat.printInfo(os);
         }
 
-        /// @todo This does not need to be a friend
-        friend std::ostream &operator<<(std::ostream &os, TransposeView const &mat)
+        friend std::ostream &operator<<(std::ostream        &os,
+                                        TransposeView const &mat)
         {
-            mat.printInfo(os);
+            os << "TransposeView of: ";
+            os << mat.m_mat;
             return os;
         }
 
-    private:
-        BackendType m_mat;
+        MatrixT const &m_mat;
 
-
-        //************************************************************************
-        friend inline BackendType const &get_internal_matrix(TransposeView const &view)
-        {
-            return view.m_mat;
-        }
     };
 
+    //************************************************************************
+    template <class ViewT,
+              typename std::enable_if_t<is_transpose_v<ViewT>, int> = 0>
+    decltype(auto)
+    get_internal_matrix(ViewT const &view)
+    {
+        return TransposeView(get_internal_matrix(view.m_mat));
+    }
 } // end namespace GraphBLAS

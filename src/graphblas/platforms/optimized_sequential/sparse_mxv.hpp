@@ -126,7 +126,7 @@ namespace GraphBLAS
                         OutputControlEnum              outp)
         {
             GRB_LOG_VERBOSE("w<M,z> := A' +.* u");
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
 
             // =================================================================
             // Use axpy approach with the semi-ring.

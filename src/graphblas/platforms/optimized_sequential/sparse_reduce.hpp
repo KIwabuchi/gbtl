@@ -115,7 +115,7 @@ namespace GraphBLAS
                            OutputControlEnum              outp)
         {
             GRB_LOG_VERBOSE("w<m,z> := op_j(A[:,j]) = op_j(A[j,:]) (col reduce)");
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
 
             // =================================================================
             // Do the basic reduction work with the binary op
@@ -257,7 +257,7 @@ namespace GraphBLAS
             MonoidT                        op,
             TransposeView<AMatrixT> const &AT)
         {
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
 
             // =================================================================
             // Do the basic reduction work with the monoid

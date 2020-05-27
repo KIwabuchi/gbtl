@@ -122,9 +122,7 @@ namespace GraphBLAS
                            ColIteratorT                        col_begin,
                            ColIteratorT                        col_end)
         {
-            typedef std::vector<std::tuple<IndexType,CScalarT> > CRowType;
-            CRowType out_row;
-
+            std::vector<std::tuple<IndexType,CScalarT> > out_row;
             C.clear();
 
             // Walk the rows
@@ -156,7 +154,7 @@ namespace GraphBLAS
                            ColIteratorT                   col_begin, // of AT
                            ColIteratorT                   col_end)
         {
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
             C.clear();
 
             // Walk the rows of A (cols of AT) and put into columns of C.
@@ -272,7 +270,7 @@ namespace GraphBLAS
             IteratorT                                              row_end,
             IndexType                                              col_index)
         {
-            auto const &row(strip_transpose(AT)[col_index]);
+            auto const &row(AT.m_mat[col_index]);
             vec_dest.clear();
 
             // Walk the row, extracting the cell if it exists and is in row_indices
@@ -452,9 +450,8 @@ namespace GraphBLAS
 
             // =================================================================
             // Extract to T
-            typedef typename AMatrixT::ScalarType AScalarType;
-            typedef std::vector<std::tuple<IndexType, AScalarType>> TVectorType;
-            TVectorType t;
+            using AScalarType = typename AMatrixT::ScalarType;
+            std::vector<std::tuple<IndexType, AScalarType>> t;
 
             auto seq = setupIndices(row_indices,
                                     std::min(A.nrows(), w.size()));
@@ -464,12 +461,11 @@ namespace GraphBLAS
 
             // =================================================================
             // Accumulate into Z
-            typedef typename std::conditional<
-                std::is_same<AccumT, NoAccumulate>::value,
+            using ZScalarType = typename std::conditional_t<
+                std::is_same_v<AccumT, NoAccumulate>,
                 AScalarType,
                 decltype(accum(std::declval<typename WVectorT::ScalarType>(),
-                               std::declval<AScalarType>()))>::type
-                ZScalarType;
+                               std::declval<AScalarType>()))>;
 
             std::vector<std::tuple<IndexType, ZScalarType> > z;
             ewise_or_opt_accum_1D(z, w, t, accum);

@@ -169,7 +169,7 @@ namespace GraphBLAS
             OutputControlEnum                                outp)
         {
             GRB_LOG_VERBOSE("C<M,z> := op(A')");
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
             IndexType nrows(A.nrows());
             IndexType ncols(A.ncols());
 
@@ -402,7 +402,7 @@ namespace GraphBLAS
             OutputControlEnum                                outp)
         {
             GRB_LOG_VERBOSE("C<M,z> := op(val, A')");
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
             IndexType nrows(A.nrows());
             IndexType ncols(A.ncols());
 
@@ -526,7 +526,7 @@ namespace GraphBLAS
             OutputControlEnum                                outp)
         {
             GRB_LOG_VERBOSE("C<M,z> := op(A', val)");
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
             IndexType nrows(A.nrows());
             IndexType ncols(A.ncols());
 

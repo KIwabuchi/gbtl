@@ -41,9 +41,6 @@
 
 #include <graphblas/algebra.hpp>
 
-/// @deprecated
-#include <graphblas/platforms/sequential/TransposeView.hpp>
-
 // Add individual operation files here
 #include <graphblas/platforms/sequential/sparse_mxm.hpp>
 #include <graphblas/platforms/sequential/sparse_mxv.hpp>
@@ -56,29 +53,3 @@
 #include <graphblas/platforms/sequential/sparse_reduce.hpp>
 #include <graphblas/platforms/sequential/sparse_transpose.hpp>
 #include <graphblas/platforms/sequential/sparse_kronecker.hpp>
-
-namespace GraphBLAS
-{
-    namespace backend
-    {
-        /**
-         *
-         */
-        template<typename MatrixT>
-        inline TransposeView<MatrixT> transpose(MatrixT const &A)
-        {
-            return GraphBLAS::backend::TransposeView<MatrixT>(A);
-        }
-
-        /**
-         *
-         */
-        template<typename MatrixT>
-        inline MatrixT const &strip_transpose(
-            GraphBLAS::backend::TransposeView<MatrixT> const &AT)
-        {
-            return AT.m_matrix;
-        }
-
-    } // backend
-} // GraphBLAS

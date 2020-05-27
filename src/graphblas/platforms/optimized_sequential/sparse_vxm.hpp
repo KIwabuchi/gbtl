@@ -117,7 +117,7 @@ namespace GraphBLAS
                         OutputControlEnum              outp)
         {
             GRB_LOG_VERBOSE("w<M,z> := u +.* A'");
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
 
             // =================================================================
             // Do the basic dot-product work with the semi-ring.

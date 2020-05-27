@@ -181,7 +181,7 @@ namespace GraphBLAS
             OutputControlEnum                                outp)
         {
             GRB_LOG_VERBOSE("C<M,z> := A' .* B");
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
 
             AMatrixT Atran(A.ncols(), A.nrows());
             GraphBLAS::backend::transpose(Atran, NoMask(), NoAccumulate(), A, REPLACE);
@@ -208,7 +208,7 @@ namespace GraphBLAS
             OutputControlEnum                                outp)
         {
             GRB_LOG_VERBOSE("C<M,z> := A .* B'");
-            auto const &B(strip_transpose(BT));
+            auto const &B(BT.m_mat);
 
             AMatrixT Btran(B.ncols(), B.nrows());
             GraphBLAS::backend::transpose(Btran, NoMask(), NoAccumulate(), B, REPLACE);
@@ -235,8 +235,8 @@ namespace GraphBLAS
             OutputControlEnum                                outp)
         {
             GRB_LOG_VERBOSE("C<M,z> := A' .* B'");
-            auto const &A(strip_transpose(AT));
-            auto const &B(strip_transpose(BT));
+            auto const &A(AT.m_mat);
+            auto const &B(BT.m_mat);
             IndexType num_rows(A.nrows());
             IndexType num_cols(A.ncols());
 

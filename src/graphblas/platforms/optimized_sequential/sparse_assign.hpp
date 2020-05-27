@@ -193,7 +193,7 @@ namespace GraphBLAS
                           RowSequenceT               const &row_Indices, // of AT
                           ColSequenceT               const &col_Indices) // of AT
         {
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
             T.clear();
 
             // Build the mapping pairs once up front (rows of AT -> cols of T)

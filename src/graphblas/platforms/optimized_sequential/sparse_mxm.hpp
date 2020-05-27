@@ -213,11 +213,11 @@ namespace GraphBLAS
                         NoAccumulate        const &,
                         SR                         op,
                         AMat                const &A,
-                        TransposeView<BMat> const &B,
+                        TransposeView<BMat> const &BT,
                         OutputControlEnum          outp)
         {
             GRB_LOG_VERBOSE("C := (A*B')");
-            sparse_mxm_NoMask_NoAccum_ABT(C, op, A, strip_transpose(B));
+            sparse_mxm_NoMask_NoAccum_ABT(C, op, A, BT.m_mat);
         }
 
         template<class CMat, class Accum, class SR, class AMat, class BMat>
@@ -226,11 +226,11 @@ namespace GraphBLAS
                         Accum               const &accum,
                         SR                         op,
                         AMat                const &A,
-                        TransposeView<BMat> const &B,
+                        TransposeView<BMat> const &BT,
                         OutputControlEnum          outp)
         {
             GRB_LOG_VERBOSE("C := C + (A*B')");
-            sparse_mxm_NoMask_Accum_ABT(C, accum, op, A, strip_transpose(B));
+            sparse_mxm_NoMask_Accum_ABT(C, accum, op, A, BT.m_mat);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -239,13 +239,13 @@ namespace GraphBLAS
                         NoAccumulate        const &,
                         SR                         op,
                         AMat                const &A,
-                        TransposeView<BMat> const &B,
+                        TransposeView<BMat> const &BT,
                         OutputControlEnum          outp)
         {
             GRB_LOG_VERBOSE("C<M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A*B')");
             sparse_mxm_Mask_NoAccum_ABT(C, M, false, op,
-                                        A, strip_transpose(B), outp);
+                                        A, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -254,13 +254,13 @@ namespace GraphBLAS
                         Accum               const &accum,
                         SR                         op,
                         AMat                const &A,
-                        TransposeView<BMat> const &B,
+                        TransposeView<BMat> const &BT,
                         OutputControlEnum          outp)
         {
             GRB_LOG_VERBOSE("C<M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A*B')");
             sparse_mxm_Mask_Accum_ABT(C, M, false, accum, op,
-                                      A, strip_transpose(B), outp);
+                                      A, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -269,13 +269,13 @@ namespace GraphBLAS
                         NoAccumulate               const &,
                         SR                                op,
                         AMat                       const &A,
-                        TransposeView<BMat>        const &B,
+                        TransposeView<BMat>        const &BT,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A*B')");
             sparse_mxm_Mask_NoAccum_ABT(C, M_view.m_mat, true, op,
-                                        A, strip_transpose(B), outp);
+                                        A, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -284,13 +284,13 @@ namespace GraphBLAS
                         Accum                        const  &accum,
                         SR                                   op,
                         AMat                         const  &A,
-                        TransposeView<BMat>          const  &B,
+                        TransposeView<BMat>          const  &BT,
                         OutputControlEnum                    outp)
         {
             GRB_LOG_VERBOSE("C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A*B')");
             sparse_mxm_Mask_Accum_ABT(C, M_view.m_mat, true, accum, op,
-                                      A, strip_transpose(B), outp);
+                                      A, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -299,13 +299,13 @@ namespace GraphBLAS
                         NoAccumulate               const &,
                         SR                                op,
                         AMat                       const &A,
-                        TransposeView<BMat>        const &B,
+                        TransposeView<BMat>        const &BT,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A*B')");
             sparse_mxm_CompMask_NoAccum_ABT(C, M_view.m_mat, false, op,
-                                            A, strip_transpose(B), outp);
+                                            A, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -314,13 +314,13 @@ namespace GraphBLAS
                         Accum                        const  &accum,
                         SR                                   op,
                         AMat                         const  &A,
-                        TransposeView<BMat>          const  &B,
+                        TransposeView<BMat>          const  &BT,
                         OutputControlEnum                    outp)
         {
             GRB_LOG_VERBOSE("C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A*B')");
             sparse_mxm_CompMask_Accum_ABT(C, M_view.m_mat, false, accum, op,
-                                          A, strip_transpose(B), outp);
+                                          A, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -329,13 +329,13 @@ namespace GraphBLAS
                         NoAccumulate               const &,
                         SR                                op,
                         AMat                       const &A,
-                        TransposeView<BMat>        const &B,
+                        TransposeView<BMat>        const &BT,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A*B')");
             sparse_mxm_CompMask_NoAccum_ABT(C, M_view.m_mat, true, op,
-                                            A, strip_transpose(B), outp);
+                                            A, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -344,13 +344,13 @@ namespace GraphBLAS
                         Accum                        const  &accum,
                         SR                                   op,
                         AMat                         const  &A,
-                        TransposeView<BMat>          const  &B,
+                        TransposeView<BMat>          const  &BT,
                         OutputControlEnum                    outp)
         {
             GRB_LOG_VERBOSE("C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A*B')");
             sparse_mxm_CompMask_Accum_ABT(C, M_view.m_mat, true, accum, op,
-                                          A, strip_transpose(B), outp);
+                                          A, BT.m_mat, outp);
         }
 
         //**********************************************************************
@@ -361,12 +361,12 @@ namespace GraphBLAS
                         NoMask              const   &,
                         NoAccumulate        const   &,
                         SR                           op,
-                        TransposeView<AMat> const   &A,
+                        TransposeView<AMat> const   &AT,
                         BMat                const   &B,
                         OutputControlEnum            outp)
         {
             GRB_LOG_VERBOSE("C := (A'*B)");
-            sparse_mxm_NoMask_NoAccum_ATB(C, op, strip_transpose(A), B);
+            sparse_mxm_NoMask_NoAccum_ATB(C, op, AT.m_mat, B);
         }
 
         template<class CMat, class Accum, class SR, class AMat, class BMat>
@@ -374,12 +374,12 @@ namespace GraphBLAS
                         NoMask              const   &,
                         Accum               const   &accum,
                         SR                           op,
-                        TransposeView<AMat> const   &A,
+                        TransposeView<AMat> const   &AT,
                         BMat                const   &B,
                         OutputControlEnum            outp)
         {
             GRB_LOG_VERBOSE("C := C + (A'*B)");
-            sparse_mxm_NoMask_Accum_ATB(C, accum, op, strip_transpose(A), B);
+            sparse_mxm_NoMask_Accum_ATB(C, accum, op, AT.m_mat, B);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -387,14 +387,14 @@ namespace GraphBLAS
                         MMat                const   &M,
                         NoAccumulate        const   &,
                         SR                           op,
-                        TransposeView<AMat> const   &A,
+                        TransposeView<AMat> const   &AT,
                         BMat                const   &B,
                         OutputControlEnum            outp)
         {
             GRB_LOG_VERBOSE("C<M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A'*B)");
             sparse_mxm_Mask_NoAccum_ATB(C, M, false, op,
-                                        strip_transpose(A), B, outp);
+                                        AT.m_mat, B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -402,14 +402,14 @@ namespace GraphBLAS
                         MMat                const &M,
                         Accum               const &accum,
                         SR                         op,
-                        TransposeView<AMat> const &A,
+                        TransposeView<AMat> const &AT,
                         BMat                const &B,
                         OutputControlEnum          outp)
         {
             GRB_LOG_VERBOSE("C<M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A'*B)");
             sparse_mxm_Mask_Accum_ATB(C, M, false, accum, op,
-                                      strip_transpose(A), B, outp);
+                                      AT.m_mat, B, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -417,14 +417,14 @@ namespace GraphBLAS
                         MatrixStructureView<MMat>  const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
-                        TransposeView<AMat>        const &A,
+                        TransposeView<AMat>        const &AT,
                         BMat                       const &B,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A'*B)");
             sparse_mxm_Mask_NoAccum_ATB(C, M_view.m_mat, true, op,
-                                        strip_transpose(A), B, outp);
+                                        AT.m_mat, B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -432,14 +432,14 @@ namespace GraphBLAS
                         MatrixStructureView<MMat>  const &M_view,
                         Accum                      const &accum,
                         SR                                op,
-                        TransposeView<AMat>        const &A,
+                        TransposeView<AMat>        const &AT,
                         BMat                       const &B,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A'*B)");
             sparse_mxm_Mask_Accum_ATB(C, M_view.m_mat, true, accum, op,
-                                      strip_transpose(A), B, outp);
+                                      AT.m_mat, B, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -447,14 +447,14 @@ namespace GraphBLAS
                         MatrixComplementView<MMat> const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
-                        TransposeView<AMat>        const &A,
+                        TransposeView<AMat>        const &AT,
                         BMat                       const &B,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A'*B)");
             sparse_mxm_CompMask_NoAccum_ATB(C, M_view.m_mat, false, op,
-                                            strip_transpose(A), B, outp);
+                                            AT.m_mat, B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -462,14 +462,14 @@ namespace GraphBLAS
                         MatrixComplementView<MMat> const &M_view,
                         Accum                      const &accum,
                         SR                                op,
-                        TransposeView<AMat>        const &A,
+                        TransposeView<AMat>        const &AT,
                         BMat                       const &B,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A'*B)");
             sparse_mxm_CompMask_Accum_ATB(C, M_view.m_mat, false, accum, op,
-                                          strip_transpose(A), B, outp);
+                                          AT.m_mat, B, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -477,14 +477,14 @@ namespace GraphBLAS
                         MatrixStructuralComplementView<MMat> const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
-                        TransposeView<AMat>        const &A,
+                        TransposeView<AMat>        const &AT,
                         BMat                       const &B,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A'*B)");
             sparse_mxm_CompMask_NoAccum_ATB(C, M_view.m_mat, true, op,
-                                            strip_transpose(A), B, outp);
+                                            AT.m_mat, B, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -492,14 +492,14 @@ namespace GraphBLAS
                         MatrixStructuralComplementView<MMat> const &M_view,
                         Accum                      const &accum,
                         SR                                op,
-                        TransposeView<AMat>        const &A,
+                        TransposeView<AMat>        const &AT,
                         BMat                       const &B,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A'*B)");
             sparse_mxm_CompMask_Accum_ATB(C, M_view.m_mat, true, accum, op,
-                                          strip_transpose(A), B, outp);
+                                          AT.m_mat, B, outp);
         }
 
         //**********************************************************************
@@ -510,13 +510,13 @@ namespace GraphBLAS
                         NoMask       const        &,
                         NoAccumulate const        &,
                         SR                         op,
-                        TransposeView<AMat> const &A,
-                        TransposeView<BMat> const &B,
+                        TransposeView<AMat> const &AT,
+                        TransposeView<BMat> const &BT,
                         OutputControlEnum          outp)
         {
             GRB_LOG_VERBOSE("C := (A'*B')");
-            sparse_mxm_NoMask_NoAccum_ATBT(C, op, strip_transpose(A),
-                                           strip_transpose(B));
+            sparse_mxm_NoMask_NoAccum_ATBT(C, op, AT.m_mat,
+                                           BT.m_mat);
         }
 
         template<class CMat, class Accum, class SR, class AMat, class BMat>
@@ -524,14 +524,14 @@ namespace GraphBLAS
                         NoMask              const &,
                         Accum               const &accum,
                         SR                         op,
-                        TransposeView<AMat> const &A,
-                        TransposeView<BMat> const &B,
+                        TransposeView<AMat> const &AT,
+                        TransposeView<BMat> const &BT,
                         OutputControlEnum          outp)
         {
             GRB_LOG_VERBOSE("C := C + (A'*B')");
             sparse_mxm_NoMask_Accum_ATBT(
                 C, accum, op,
-                strip_transpose(A), strip_transpose(B));
+                AT.m_mat, BT.m_mat);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -539,14 +539,14 @@ namespace GraphBLAS
                         MMat                const &M,
                         NoAccumulate        const &,
                         SR                         op,
-                        TransposeView<AMat> const &A,
-                        TransposeView<BMat> const &B,
+                        TransposeView<AMat> const &AT,
+                        TransposeView<BMat> const &BT,
                         OutputControlEnum          outp)
         {
             GRB_LOG_VERBOSE("C<M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A'*B')");
             sparse_mxm_Mask_NoAccum_ATBT(C, M, false, op,
-                                         strip_transpose(A), strip_transpose(B), outp);
+                                         AT.m_mat, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -554,14 +554,14 @@ namespace GraphBLAS
                         MMat                const &M,
                         Accum               const &accum,
                         SR                         op,
-                        TransposeView<AMat> const &A,
-                        TransposeView<BMat> const &B,
+                        TransposeView<AMat> const &AT,
+                        TransposeView<BMat> const &BT,
                         OutputControlEnum          outp)
         {
             GRB_LOG_VERBOSE("C<M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A'*B')");
             sparse_mxm_Mask_Accum_ATBT(C, M, false, accum, op,
-                                       strip_transpose(A), strip_transpose(B), outp);
+                                       AT.m_mat, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -569,14 +569,14 @@ namespace GraphBLAS
                         MatrixStructureView<MMat>  const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
-                        TransposeView<AMat>        const &A,
-                        TransposeView<BMat>        const &B,
+                        TransposeView<AMat>        const &AT,
+                        TransposeView<BMat>        const &BT,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A'*B')");
             sparse_mxm_Mask_NoAccum_ATBT(C, M_view.m_mat, true, op,
-                                         strip_transpose(A), strip_transpose(B), outp);
+                                         AT.m_mat, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -584,14 +584,14 @@ namespace GraphBLAS
                         MatrixStructureView<MMat>  const &M_view,
                         Accum                      const &accum,
                         SR                                 op,
-                        TransposeView<AMat>        const &A,
-                        TransposeView<BMat>        const &B,
+                        TransposeView<AMat>        const &AT,
+                        TransposeView<BMat>        const &BT,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                       << " := (C + A'*B')");
             sparse_mxm_Mask_Accum_ATBT(C, M_view.m_mat, true, accum, op,
-                                       strip_transpose(A), strip_transpose(B), outp);
+                                       AT.m_mat, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -599,14 +599,14 @@ namespace GraphBLAS
                         MatrixComplementView<MMat> const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
-                        TransposeView<AMat>        const &A,
-                        TransposeView<BMat>        const &B,
+                        TransposeView<AMat>        const &AT,
+                        TransposeView<BMat>        const &BT,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A'*B')");
             sparse_mxm_CompMask_NoAccum_ATBT(C, M_view.m_mat, false, op,
-                                             strip_transpose(A), strip_transpose(B), outp);
+                                             AT.m_mat, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -614,14 +614,14 @@ namespace GraphBLAS
                         MatrixComplementView<MMat> const &M_view,
                         Accum                      const &accum,
                         SR                                 op,
-                        TransposeView<AMat>        const &A,
-                        TransposeView<BMat>        const &B,
+                        TransposeView<AMat>        const &AT,
+                        TransposeView<BMat>        const &BT,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!M" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A'*B')");
             sparse_mxm_CompMask_Accum_ATBT(C, M_view.m_mat, false, accum, op,
-                                           strip_transpose(A), strip_transpose(B), outp);
+                                           AT.m_mat, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class SR, class AMat, class BMat>
@@ -629,14 +629,14 @@ namespace GraphBLAS
                         MatrixStructuralComplementView<MMat> const &M_view,
                         NoAccumulate               const &,
                         SR                                op,
-                        TransposeView<AMat>        const &A,
-                        TransposeView<BMat>        const &B,
+                        TransposeView<AMat>        const &AT,
+                        TransposeView<BMat>        const &BT,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (A'*B')");
             sparse_mxm_CompMask_NoAccum_ATBT(C, M_view.m_mat, true, op,
-                                             strip_transpose(A), strip_transpose(B), outp);
+                                             AT.m_mat, BT.m_mat, outp);
         }
 
         template<class CMat, class MMat, class Accum, class SR, class AMat, class BMat>
@@ -644,14 +644,14 @@ namespace GraphBLAS
                         MatrixStructuralComplementView<MMat> const &M_view,
                         Accum                      const &accum,
                         SR                                 op,
-                        TransposeView<AMat>        const &A,
-                        TransposeView<BMat>        const &B,
+                        TransposeView<AMat>        const &AT,
+                        TransposeView<BMat>        const &BT,
                         OutputControlEnum                 outp)
         {
             GRB_LOG_VERBOSE("C<!struct(M)" << ((outp == REPLACE) ? ",z>" : ">")
                             << " := (C + A'*B')");
             sparse_mxm_CompMask_Accum_ATBT(C, M_view.m_mat, true, accum, op,
-                                           strip_transpose(A), strip_transpose(B), outp);
+                                           AT.m_mat, BT.m_mat, outp);
         }
 
     } // backend

@@ -128,7 +128,7 @@ namespace GraphBLAS
                         OutputControlEnum                outp)
         {
             GRB_LOG_VERBOSE("C<M,z> := (A'*B)");
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
 
             using CScalarType = typename CMatrixT::ScalarType;
 
@@ -187,7 +187,7 @@ namespace GraphBLAS
                         OutputControlEnum                outp)
         {
             GRB_LOG_VERBOSE("C<M,z> := (A*B')");
-            auto const &B(strip_transpose(BT));
+            auto const &B(BT.m_mat);
 
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
@@ -263,8 +263,8 @@ namespace GraphBLAS
                         OutputControlEnum                outp)
         {
             GRB_LOG_VERBOSE("C<M,z> := (A'*B')");
-            auto const &A(strip_transpose(AT));
-            auto const &B(strip_transpose(BT));
+            auto const &A(AT.m_mat);
+            auto const &B(BT.m_mat);
 
             using CScalarType = typename CMatrixT::ScalarType;
 

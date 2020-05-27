@@ -50,12 +50,6 @@
 #undef GB_INCLUDE_BACKEND_UTILITY
 #endif
 
-/// @deprecated
-#if(GB_INCLUDE_BACKEND_TRANSPOSE_VIEW)
-#include <graphblas/platforms/optimized_sequential/TransposeView.hpp>
-#undef GB_INCLUDE_BACKEND_TRANSPOSE_VIEW
-#endif
-
 #if(GB_INCLUDE_BACKEND_OPERATIONS)
 #include <graphblas/platforms/optimized_sequential/operations.hpp>
 #undef GB_INCLUDE_BACKEND_OPERATIONS

@@ -154,7 +154,7 @@ namespace GraphBLAS
                            ColIteratorT                   col_begin, // of AT
                            ColIteratorT                   col_end)
         {
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
             C.clear();
 
             // Walk the rows of A (cols of AT) and put into columns of C.
@@ -270,7 +270,7 @@ namespace GraphBLAS
             IteratorT                                              row_end,
             IndexType                                              col_index)
         {
-            auto const &row(strip_transpose(AT)[col_index]);
+            auto const &row(AT.m_mat[col_index]);
             vec_dest.clear();
 
             // Walk the row, extracting the cell if it exists and is in row_indices

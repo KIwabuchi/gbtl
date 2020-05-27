@@ -1147,7 +1147,7 @@ namespace GraphBLAS
              typename std::enable_if_t<is_matrix_v<MatrixT>, int> = 0>
     inline TransposeView<MatrixT> transpose(MatrixT const &A)
     {
-        return TransposeView<MatrixT>(backend::transpose(get_internal_matrix(A)));
+        return TransposeView<MatrixT>(A);
     }
 
     //************************************************************************
@@ -1190,6 +1190,7 @@ namespace GraphBLAS
     }
 
 
+    //************************************************************************
     /**
      * @brief  Return a view that complements the structure of a vector.
      * @param[in]  Mask  The vector to complement

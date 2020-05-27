@@ -154,7 +154,7 @@ namespace GraphBLAS
                               BMatrixT                const   &B,
                               OutputControlEnum                outp)
         {
-            auto const &A(strip_transpose(AT));
+            auto const &A(AT.m_mat);
 
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
@@ -241,7 +241,7 @@ namespace GraphBLAS
                               TransposeView<BMatrixT> const   &BT,
                               OutputControlEnum                outp)
         {
-            auto const &B(strip_transpose(BT));
+            auto const &B(BT.m_mat);
 
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
@@ -331,8 +331,8 @@ namespace GraphBLAS
                               TransposeView<BMatrixT> const   &BT,
                               OutputControlEnum                outp)
         {
-            auto const &A(strip_transpose(AT));
-            auto const &B(strip_transpose(BT));
+            auto const &A(AT.m_mat);
+            auto const &B(BT.m_mat);
 
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
