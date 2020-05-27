@@ -13,7 +13,7 @@
  * ASSUMES ANY LEGAL LIABILITY OR RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
  * OR USEFULNESS OR ANY INFORMATION, APPARATUS, PRODUCT, SOFTWARE, OR PROCESS
  * DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED
- * RIGHTS..
+ * RIGHTS.
  *
  * Released under a BSD (SEI)-style license, please see license.txt or contact
  * permission@sei.cmu.edu for full terms.
@@ -51,25 +51,28 @@ namespace GraphBLAS
         //********************************************************************
         struct IndexCompare
         {
-            inline bool operator()(std::pair<IndexType, IndexType> const &i1,
-                                   std::pair<IndexType, IndexType> const &i2)
+            inline bool operator()(std::tuple<IndexType, IndexType> const &i1,
+                                   std::tuple<IndexType, IndexType> const &i2)
             {
-                return i1.first < i2.first;
+                return std::get<0>(i1) < std::get<0>(i2);
             }
         };
 
         //********************************************************************
         // Builds a simple mapping
         template <typename SequenceT>
-        void compute_outin_mapping(SequenceT const & Indices,
-                      std::vector<std::pair<IndexType, IndexType>> &inputOrder)
+        void compute_outin_mapping(
+            SequenceT                                 const &Indices,
+            std::vector<std::tuple<IndexType, IndexType>>   &inputOrder)
         {
+            inputOrder.clear();
+
             // Walk the Indices generating pairs of the mapping
             auto index_it = Indices.begin();
             IndexType idx = 0;
             while (index_it != Indices.end())
             {
-                inputOrder.push_back(std::make_pair(*index_it, idx));
+                inputOrder.emplace_back(*index_it, idx);
                 ++index_it;
                 ++idx;
             }
@@ -81,10 +84,12 @@ namespace GraphBLAS
         //********************************************************************
         template <typename TScalarT,
                   typename AScalarT>
-        void vectorExpand(std::vector<std::tuple<IndexType, TScalarT>>  &vec_dest,
-                          std::vector<std::tuple<IndexType, AScalarT>> const &vec_src,
-                          std::vector<std::pair<IndexType, IndexType>> const &Indices)
+        void vectorExpand(
+            std::vector<std::tuple<IndexType, TScalarT>>        &vec_dest,
+            std::vector<std::tuple<IndexType, AScalarT>>  const &vec_src,
+            std::vector<std::tuple<IndexType, IndexType>> const &Indices)
         {
+            vec_dest.clear();
             // The Indices are pairs of ( output_index, input_index)
             // We do it this way, so we get the output in the right
             // order to begin with
@@ -107,13 +112,14 @@ namespace GraphBLAS
                 while (src_it != vec_src.end())
                 {
                     std::tie(src_idx, src_val) = *src_it;
-                    if (src_idx == index_it->second)
+
+                    if (src_idx == std::get<1>(*index_it))
                     {
-                        vec_dest.push_back(std::make_tuple(
-                           index_it->first, static_cast<TScalarT>(src_val) ));
+                        vec_dest.emplace_back(
+                            std::get<0>(*index_it), static_cast<TScalarT>(src_val));
                         break;
                     }
-                    else if (src_idx > index_it->second)
+                    else if (src_idx > std::get<1>(*index_it))
                     {
                         // We passed it.  We might use this later
                         break;
@@ -133,7 +139,7 @@ namespace GraphBLAS
                 // let's start from the beginning again.
                 // IMPROVEMENT:  Back up?
                 if (index_it != Indices.end() &&
-                        (src_it == vec_src.end() || index_it->second < src_idx))
+                    (src_it == vec_src.end() || std::get<1>(*index_it) < src_idx))
                 {
                     src_it = vec_src.begin();
                 }
@@ -141,6 +147,7 @@ namespace GraphBLAS
         }
 
         //********************************************************************
+        // non-transposed case.
         template<typename TScalarT,
                  typename AScalarT,
                  typename RowSequenceT,
@@ -150,77 +157,65 @@ namespace GraphBLAS
                           RowSequenceT               const   &row_Indices,
                           ColSequenceT               const   &col_Indices)
         {
-            // NOTE!! - Backend code. We expect that all dimension
-            // checks done elsewhere.
-
-            using ARowType = std::vector<std::tuple<IndexType,AScalarT> >;
-            using TRowType = std::vector<std::tuple<IndexType,TScalarT> >;
-
             T.clear();
 
             // Build the mapping pairs once up front
-            std::vector<std::pair<IndexType, IndexType>> oi_pairs;
+            std::vector<std::tuple<IndexType, IndexType>> oi_pairs;
             compute_outin_mapping(col_Indices, oi_pairs);
 
-            // Walk the rows
+            // Walk the input rows (in order specified by input)
             for (IndexType in_row_index = 0;
                  in_row_index < row_Indices.size();
                  ++in_row_index)
             {
-                IndexType out_row_index = row_Indices[in_row_index];
-                ARowType row(A.getRow(in_row_index));
-                auto row_it = row.begin();
+                if (!A[in_row_index].empty())
+                {
+                    IndexType out_row_index = row_Indices[in_row_index];
+                    std::vector<std::tuple<IndexType,TScalarT> > out_row;
 
-                TRowType out_row;
+                    // Extract the values from the row
+                    vectorExpand(out_row, A[in_row_index], oi_pairs);
 
-                // Extract the values from the row
-                vectorExpand(out_row, row, oi_pairs);
-
-                if (!out_row.empty())
-                    T.setRow(out_row_index, out_row);
+                    if (!out_row.empty())
+                        T.setRow(out_row_index, out_row);
+                }
             }
         }
 
         //********************************************************************
+        // transposed case
         template<typename TScalarT,
                  typename AMatrixT,
                  typename RowSequenceT,
                  typename ColSequenceT>
-        void matrixExpand(LilSparseMatrix<TScalarT>              &T,
-                          backend::TransposeView<AMatrixT> const &A,
-                          RowSequenceT               const       &row_Indices,
-                          ColSequenceT               const       &col_Indices)
+        void matrixExpand(LilSparseMatrix<TScalarT>        &T,
+                          TransposeView<AMatrixT>    const &AT,
+                          RowSequenceT               const &row_Indices, // of AT
+                          ColSequenceT               const &col_Indices) // of AT
         {
-            // NOTE!! - Backend code. We expect that all dimension
-            // checks done elsewhere.
-            using AScalarT = typename AMatrixT::ScalarType;
-            //using ARowType = std::vector<std::tuple<IndexType,AScalarT> >;
-            using TRowType = std::vector<std::tuple<IndexType,TScalarT> >;
-
+            auto const &A(strip_transpose(AT));
             T.clear();
 
-            // Build the mapping pairs once up front
-            std::vector<std::pair<IndexType, IndexType>> oi_pairs;
-            compute_outin_mapping(col_Indices, oi_pairs);
+            // Build the mapping pairs once up front (rows of AT -> cols of T)
+            std::vector<std::tuple<IndexType, IndexType>> oi_col_pairs;
+            std::vector<std::tuple<IndexType, IndexType>> oi_row_pairs;
+            compute_outin_mapping(col_Indices, oi_col_pairs);
+            compute_outin_mapping(row_Indices, oi_row_pairs);
 
-            // Walk the rows
-            for (IndexType in_row_index = 0;
-                 in_row_index < row_Indices.size();
-                 ++in_row_index)
+            std::vector<std::tuple<IndexType,TScalarT> > out_col;
+
+            // Walk the input columns (rows of A) in ascending output order
+            for (auto&& [out_col_index, in_col_index] : oi_col_pairs)
             {
-                IndexType out_row_index = row_Indices[in_row_index];
-                auto row(A.getRow(in_row_index));
-                auto row_it = row.begin();
+                // Extract the values from the row and set col (push_back on rows)
+                vectorExpand(out_col, A[in_col_index], oi_row_pairs);
 
-                TRowType out_row;
-
-                // Extract the values from the row
-                //std::cerr << "Expanding row " << in_row_index << " to " << out_row_index << std::endl;
-                vectorExpand(out_row, row, oi_pairs);
-
-                if (!out_row.empty())
-                    T.setRow(out_row_index, out_row);
+                for (auto&& [out_row_index, val] : out_col)
+                {
+                    T[out_row_index].emplace_back(out_col_index, val);
+                }
             }
+            T.recomputeNvals();
         }
 
         //********************************************************************
@@ -240,7 +235,7 @@ namespace GraphBLAS
                 for (auto col_it = col_begin; col_it != col_end; ++col_it)
                 {
                     // @todo: add bounds check
-                    out_row.push_back(std::make_tuple(*col_it, value));
+                    out_row.emplace_back(*col_it, value);
                 }
 
                 // @todo: add bounds check
@@ -253,25 +248,24 @@ namespace GraphBLAS
         template <typename ValueT,
                 typename RowIndicesT,
                 typename ColIndicesT>
-        void assignConstant(LilSparseMatrix<ValueT>            &T,
-                            ValueT                     const    val,
+        void assignConstant(LilSparseMatrix<ValueT>           &T,
+                            ValueT                    const    val,
                             RowIndicesT               const   &row_indices,
                             ColIndicesT               const   &col_indices)
         {
-            // Sort row Indices and col_Indices
-
             // @TODO: Deal with sorting
-
-//            IndexSequence sorted_rows(row_indices);
-//            IndexSequence sorted_cols(col_indices);
-//            std::sort(sorted_rows.begin(), sorted_rows.end());
-//            std::sort(sorted_cols.begin(), sorted_cols.end());
-//            assignConstant(T, val,
-//                           sorted_rows.begin(), sorted_rows.end(),
-//                           sorted_cols.begin(), sorted_cols.end());
-//            assignConstant(T, val,
-//                           row_indices.begin(), row_indices.end(),
-//                           col_indices.begin(), col_indices.end());
+            //
+            // Sort row Indices and col_Indices
+            // IndexSequence sorted_rows(row_indices);
+            // IndexSequence sorted_cols(col_indices);
+            // std::sort(sorted_rows.begin(), sorted_rows.end());
+            // std::sort(sorted_cols.begin(), sorted_cols.end());
+            // assignConstant(T, val,
+            //                sorted_rows.begin(), sorted_rows.end(),
+            //                sorted_cols.begin(), sorted_cols.end());
+            // assignConstant(T, val,
+            //                row_indices.begin(), row_indices.end(),
+            //                col_indices.begin(), col_indices.end());
 
             assignConstant(T, val,
                            row_indices.begin(), row_indices.end(),
@@ -299,7 +293,7 @@ namespace GraphBLAS
             check_index_array_content(indices, w.size(),
                                       "assign(std vec): indices content check");
 
-            std::vector<std::pair<IndexType, IndexType>> oi_pairs;
+            std::vector<std::tuple<IndexType, IndexType>> oi_pairs;
             compute_outin_mapping(setupIndices(indices, u.size()), oi_pairs);
 
             // =================================================================
@@ -460,19 +454,21 @@ namespace GraphBLAS
         {
             // IMPLEMENTATION NOTE: This function does not directly follow our
             // standard implementation method.  We leverage a different assign
-            // variant and wrap it's contents with this.
+            // variant and wrap it's contents with this.  Because of this the
+            // performance is usually much less than ideal.
 
             // execution error checks
             check_index_array_content(col_indices, C.ncols(),
                                       "assign(row): indices content check");
 
             // EXTRACT the row of C matrix
+            /// @todo creating a Vector and then extracting later can be COSTLY
             using CScalarType = typename CMatrixT::ScalarType;
             auto C_row(C.getRow(row_index));
             Vector<CScalarType> c_vec(C.ncols());
-            for (auto it : C_row)
+            for (auto&& [col_idx, val] : C[row_index])
             {
-                c_vec.setElement(std::get<0>(it), std::get<1>(it));
+                c_vec.setElement(col_idx, val);
             }
 
             // ----------- standard vector variant 4.3.7.1 -----------
@@ -488,7 +484,7 @@ namespace GraphBLAS
 
             for (IndexType idx = 0; idx < ic.size(); ++idx)
             {
-                row_data.push_back(std::make_tuple(ic[idx],vc[idx]));
+                row_data.emplace_back(ic[idx],vc[idx]);
             }
 
             C.setRow(row_index, row_data);
@@ -519,7 +515,7 @@ namespace GraphBLAS
             // Set all in T
             auto seq = setupIndices(indices, w.size());
             for (auto it = seq.begin(); it != seq.end(); ++it)
-                t.push_back(std::make_tuple(*it, val));
+                t.emplace_back(*it, val);
 
             GRB_LOG_VERBOSE("t: " << t);
 
