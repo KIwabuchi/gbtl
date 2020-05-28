@@ -80,7 +80,7 @@ namespace GraphBLAS
             IndexType nrows(dstMatrix.nrows());
             for (IndexType row_idx = 0; row_idx < nrows; ++row_idx)
             {
-                auto&& srcRow = srcMatrix.getRow(row_idx);
+                auto&& srcRow = srcMatrix[row_idx];
                 dstRow.clear();
 
                 // We need to construct a new row with the appropriate cast!
@@ -543,7 +543,7 @@ namespace GraphBLAS
 
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                ewise_or(tmp_row, C.getRow(row_idx), T.getRow(row_idx), accum);
+                ewise_or(tmp_row, C[row_idx], T[row_idx], accum);
                 Z.setRow(row_idx, tmp_row);
             }
         }
@@ -574,7 +574,7 @@ namespace GraphBLAS
                 if (searchIndices(row_indices, row_idx))
                 {
                     // Row Stenciled. merge C, T, using col stencil\n";
-                    ewise_or_stencil(tmp_row, C.getRow(row_idx), T.getRow(row_idx),
+                    ewise_or_stencil(tmp_row, C[row_idx], T[row_idx],
                                      col_indices);
                     Z.setRow(row_idx, tmp_row);
                 }
@@ -582,7 +582,7 @@ namespace GraphBLAS
                 {
                     // Row not stenciled.  Take row from C only
                     // There should be nothing in T for this row
-                    Z.setRow(row_idx, C.getRow(row_idx));
+                    Z.setRow(row_idx, C[row_idx]);
                 }
             }
         }
@@ -605,7 +605,7 @@ namespace GraphBLAS
 
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                ewise_or(tmp_row, C.getRow(row_idx), T.getRow(row_idx), accum);
+                ewise_or(tmp_row, C[row_idx], T[row_idx], accum);
                 Z.setRow(row_idx, tmp_row);
             }
         }
@@ -905,7 +905,7 @@ namespace GraphBLAS
                    typename MMatrixT>
         void write_with_opt_mask(CMatrixT           &C,
                                  ZMatrixT   const   &Z,
-                                 MMatrixT   const   &mask,
+                                 MMatrixT   const   &Mask,
                                  OutputControlEnum   outp)
         {
             using CScalarType = typename CMatrixT::ScalarType;
@@ -915,8 +915,8 @@ namespace GraphBLAS
             IndexType nRows(C.nrows());
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
-                                mask.getRow(row_idx), outp);
+                apply_with_mask(tmp_row, C[row_idx], Z[row_idx],
+                                Mask[row_idx], outp);
 
                 // Now, set the new one.  Yes, we can optimize this later
                 C.setRow(row_idx, tmp_row);
@@ -941,7 +941,7 @@ namespace GraphBLAS
             IndexType nRows(C.nrows());
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
+                apply_with_mask(tmp_row, C[row_idx], Z[row_idx],
                                 get_complement_row(Mask.m_mat, row_idx),
                                 outp);
 
@@ -968,7 +968,7 @@ namespace GraphBLAS
             IndexType nRows(C.nrows());
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
+                apply_with_mask(tmp_row, C[row_idx], Z[row_idx],
                                 get_structure_row(Mask.m_mat, row_idx),
                                 outp);
 
@@ -995,7 +995,7 @@ namespace GraphBLAS
             IndexType nRows(C.nrows());
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
+                apply_with_mask(tmp_row, C[row_idx], Z[row_idx],
                                 get_structural_complement_row(Mask.m_mat, row_idx),
                                 outp);
 

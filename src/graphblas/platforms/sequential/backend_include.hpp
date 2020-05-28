@@ -45,11 +45,6 @@
 #undef GB_INCLUDE_BACKEND_VECTOR
 #endif
 
-#if(GB_INCLUDE_BACKEND_UTILITY)
-#include <graphblas/platforms/sequential/utility.hpp>
-#undef GB_INCLUDE_BACKEND_UTILITY
-#endif
-
 #if(GB_INCLUDE_BACKEND_OPERATIONS)
 #include <graphblas/platforms/sequential/operations.hpp>
 #undef GB_INCLUDE_BACKEND_OPERATIONS

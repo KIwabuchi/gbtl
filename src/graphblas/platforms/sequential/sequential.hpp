@@ -35,8 +35,6 @@
 #include <graphblas/platforms/sequential/Matrix.hpp>
 #include <graphblas/platforms/sequential/Vector.hpp>
 
-#include <graphblas/platforms/sequential/utility.hpp>
-
 #include <graphblas/platforms/sequential/operations.hpp>
 
 #include <graphblas/platforms/sequential/BitmapSparseVector.hpp>

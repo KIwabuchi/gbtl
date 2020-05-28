@@ -48,9 +48,9 @@ namespace GraphBLAS
         class LilSparseMatrix
         {
         public:
-            typedef ScalarT ScalarType;
-            typedef std::tuple<IndexType, ScalarT> ElementType;
-            typedef std::vector<ElementType>       RowType;
+            using ScalarType = ScalarT;
+            using ElementType = std::tuple<IndexType, ScalarT>;
+            using RowType = std::vector<ElementType>;
 
             // Constructor
             LilSparseMatrix(IndexType num_rows,
@@ -87,8 +87,8 @@ namespace GraphBLAS
 
                     for (IndexType jj = 0; jj < m_num_cols; jj++)
                     {
-                        m_data[ii].push_back(std::make_tuple(jj, val[ii][jj]));
-                        m_nvals = m_nvals + 1;
+                        m_data[ii].emplace_back(jj, val[ii][jj]);
+                        ++m_nvals;
                     }
                 }
             }
@@ -112,8 +112,8 @@ namespace GraphBLAS
                     {
                         if (val[ii][jj] != zero)
                         {
-                            m_data[ii].push_back(std::make_tuple(jj, val[ii][jj]));
-                            m_nvals = m_nvals + 1;
+                            m_data[ii].emplace_back(jj, val[ii][jj]);
+                            ++m_nvals;
                         }
                     }
                 }
@@ -270,15 +270,12 @@ namespace GraphBLAS
                 {
                     return false;
                 }
-                if (m_data.at(irow).empty())
+                if (m_data[irow].empty())
                 {
                     return false;
                 }
 
-                IndexType ind;
-                ScalarT val;
-                //for (auto tupl : m_data[irow])// Range-based loop, access by value
-                for (auto tupl : m_data.at(irow))// Range-based loop, access by value
+                for (auto tupl : m_data[irow])// Range-based loop, access by value
                 {
                     if (std::get<0>(tupl) == icol)
                     {
@@ -294,37 +291,31 @@ namespace GraphBLAS
                 if (irow >= m_num_rows || icol >= m_num_cols)
                 {
                     throw IndexOutOfBoundsException(
-                        "get_value_at: index out of bounds");
+                        "extractElement: index out of bounds");
                 }
                 if (m_data.empty())
                 {
-                    throw NoValueException("get_value_at: no entry at index");
+                    throw NoValueException("extractElement: no data");
                 }
-                if (m_data.at(irow).empty())
+                if (m_data[irow].empty())
                 {
-                    throw NoValueException("get_value_at: no entry at index");
+                    throw NoValueException("extractElement: no data in row");
                 }
 
-                IndexType ind;
-                ScalarT val;
-                //for (auto tupl : m_data[irow])// Range-based loop, access by value
-                for (auto tupl : m_data.at(irow))// Range-based loop, access by value
+                for (auto&& [idx, val] : m_data[irow])
                 {
-                    //std::tie(ind, val) = tupl;
-                    //if (ind == icol)
-                    if (std::get<0>(tupl) == icol)
+                    if (idx == icol)
                     {
-                        //return val;
-                        return std::get<1>(tupl);
+                        return val;
                     }
                 }
-                throw NoValueException("get_value_at: no entry at index");
+                throw NoValueException("extractElement: no entry at index");
             }
 
             // Set value at index
             void setElement(IndexType irow, IndexType icol, ScalarT const &val)
             {
-                m_data[irow].reserve(m_data[irow].capacity() + 10);
+                //m_data[irow].reserve(m_data[irow].capacity() + 10);
                 if (irow >= m_num_rows || icol >= m_num_cols)
                 {
                     throw IndexOutOfBoundsException("setElement: index out of bounds");
@@ -332,35 +323,30 @@ namespace GraphBLAS
 
                 if (m_data[irow].empty())
                 {
-                    m_data[irow].push_back(std::make_tuple(icol, val));
-                    ++m_nvals;
-                }
-                if (std::get<0>(*m_data[irow].begin()) > icol)
-                {
-                    m_data[irow].insert(m_data[irow].begin(),
-                                        std::make_tuple(icol, val));
+                    m_data[irow].emplace_back(icol, val);
                     ++m_nvals;
                 }
                 else
                 {
-                    typename std::vector<std::tuple<IndexType, ScalarT>>::iterator it;
-                    for (it = m_data[irow].begin(); it != m_data[irow].end(); ++it)
+                    for (auto it = m_data[irow].begin();
+                         it != m_data[irow].end();
+                         ++it)
                     {
                         if (std::get<0>(*it) == icol)
                         {
-                            it = m_data[irow].erase(it);
-                            m_data[irow].insert(it, std::make_tuple(icol, val));
+                            // overwrite existing stored value
+                            std::get<1>(*it) = val;
                             return;
                         }
                         else if (std::get<0>(*it) > icol)
                         {
-                            m_data[irow].insert(it, std::make_tuple(icol, val));
+                            m_data[irow].emplace(it, icol, val);
                             ++m_nvals;
                             return;
                         }
                     }
-                    m_data[irow].push_back(std::make_tuple(icol, val));
-                    m_nvals = m_nvals + 1;
+                    m_data[irow].emplace_back(icol, val);
+                    ++m_nvals;
                 }
             }
 
@@ -378,31 +364,30 @@ namespace GraphBLAS
 
                 if (m_data[irow].empty())
                 {
-                    m_data[irow].push_back(std::make_tuple(icol, val));
-                    m_nvals = m_nvals + 1;
+                    m_data[irow].emplace_back(icol, val);
+                    ++m_nvals;
                 }
                 else
                 {
-                    typename std::vector<std::tuple<IndexType, ScalarT>>::iterator it;
-                    for (it = m_data[irow].begin(); it != m_data[irow].end(); it++)
+                    for (auto it = m_data[irow].begin();
+                         it != m_data[irow].end();
+                         ++it)
                     {
                         if (std::get<0>(*it) == icol)
                         {
                             // merge with existing stored value
                             std::get<1>(*it) = merge(std::get<1>(*it), val);
-                            //it = m_data[irow].erase(it);
-                            //m_data[irow].insert(it, std::make_tuple(icol, tmp));
                             return;
                         }
                         else if (std::get<0>(*it) > icol)
                         {
-                            m_data[irow].insert(it, std::make_tuple(icol, val));
-                            m_nvals = m_nvals + 1;
+                            m_data[irow].emplace(it, icol, val);
+                            ++m_nvals;
                             return;
                         }
                     }
-                    m_data[irow].push_back(std::make_tuple(icol, val));
-                    m_nvals = m_nvals + 1;
+                    m_data[irow].emplace_back(icol, val);
+                    ++m_nvals;
                 }
             }
 
@@ -410,7 +395,7 @@ namespace GraphBLAS
             {
                 if (irow >= m_num_rows || icol >= m_num_cols)
                 {
-                    throw IndexOutOfBoundsException("setElement: index out of bounds");
+                    throw IndexOutOfBoundsException("removeElement: index out of bounds");
                 }
 
                 /// @todo Replace with binary_search
@@ -420,7 +405,7 @@ namespace GraphBLAS
 
                 if (it != m_data[irow].end())
                 {
-                    m_nvals = m_nvals - 1;
+                    --m_nvals;
                     m_data[irow].erase(it);
                 }
             }
@@ -429,7 +414,7 @@ namespace GraphBLAS
             {
                 IndexType nvals(0);
 
-                for (auto elt : m_data)
+                for (auto const &elt : m_data)
                 {
                     nvals += elt.size();
                 }
@@ -456,10 +441,10 @@ namespace GraphBLAS
                 return m_data[row_index];
             }
 
-            RowType const &getRow(IndexType row_index) const
-            {
-                return m_data[row_index];
-            }
+            // RowType const &getRow(IndexType row_index) const
+            // {
+            //     return m_data[row_index];
+            // }
 
             // Allow casting
             template <typename OtherScalarT>
@@ -473,11 +458,9 @@ namespace GraphBLAS
                 m_nvals = m_nvals + new_nvals - old_nvals;
                 //m_data[row_index] = row_data;   // swap here?
                 m_data[row_index].clear();
-                for (auto &tupl : row_data)
+                for (auto&& [idx, val] : row_data)
                 {
-                    m_data[row_index].push_back(
-                        std::make_tuple(std::get<0>(tupl),
-                                        static_cast<ScalarT>(std::get<1>(tupl))));
+                    m_data[row_index].emplace_back(idx, static_cast<ScalarT>(val));
                 }
             }
 
@@ -493,8 +476,9 @@ namespace GraphBLAS
                 m_data[row_index].swap(row_data); // = row_data;
             }
 
+            /// @deprecated Only needed for 4.3.7.3 assign: column variant"
             /// @todo need move semantics.
-            typedef std::vector<std::tuple<IndexType, ScalarT> > const ColType;
+            using ColType = std::vector<std::tuple<IndexType, ScalarT> >;
             ColType getCol(IndexType col_index) const
             {
                 std::vector<std::tuple<IndexType, ScalarT> > data;
@@ -503,20 +487,22 @@ namespace GraphBLAS
                 {
                     if (!m_data[ii].empty())
                     {
-                        for (auto tupl : m_data[ii])
+                        /// @todo replace with binary_search
+                        for (auto&& [idx, val] : m_data[ii])
                         {
-                            if (std::get<0>(tupl) == col_index)
+                            if (idx == col_index)
                             {
-                                data.push_back(std::make_tuple(ii, std::get<1>(tupl)));
+                                data.emplace_back(ii, val);
                             }
                         }
                     }
                 }
 
-                return data;
+                return data;  // hopefully compiles to a move
             }
 
-            // col_data must be in increasing index order
+            /// @deprecated Only needed for 4.3.7.3 assign: column variant"
+            /// @note col_data must be in increasing index order
             /// @todo this could be vastly improved.
             template <typename OtherScalarT>
             void setCol(
@@ -568,11 +554,10 @@ namespace GraphBLAS
                             else if (std::get<0>(*row_it) > col_index)
                             {
                                 //std::cerr << "Inserting new row element" << std::endl;
-                                m_data[row_index].insert(
+                                m_data[row_index].emplace(
                                     row_it,
-                                    std::make_tuple(
-                                        col_index,
-                                        static_cast<ScalarT>(std::get<1>(*it))));
+                                    col_index,
+                                    static_cast<ScalarT>(std::get<1>(*it)));
                                 ++m_nvals;
                                 ++it;
                                 inserted = true;
@@ -582,11 +567,9 @@ namespace GraphBLAS
                         if (!inserted)
                         {
                             //std::cerr << "Appending new row element" << std::endl;
-                            m_data[row_index].insert(
-                                m_data[row_index].end(),
-                                std::make_tuple(
-                                    col_index,
-                                    static_cast<ScalarT>(std::get<1>(*it))));
+                            m_data[row_index].emplace_back(
+                                col_index,
+                                static_cast<ScalarT>(std::get<1>(*it)));
                             ++m_nvals;
                             ++it;
                         }
@@ -602,61 +585,56 @@ namespace GraphBLAS
             }
 
             // Get column indices for a given row
-            void getColumnIndices(IndexType irow, IndexArrayType &v) const
-            {
-                if (irow >= m_num_rows)
-                {
-                    throw IndexOutOfBoundsException(
-                        "getColumnIndices: index out of bounds");
-                }
+            // void getColumnIndices(IndexType irow, IndexArrayType &v) const
+            // {
+            //     if (irow >= m_num_rows)
+            //     {
+            //         throw IndexOutOfBoundsException(
+            //             "getColumnIndices: index out of bounds");
+            //     }
 
-                if (!m_data[irow].empty())
-                {
-                    IndexType ind;
-                    ScalarT val;
-                    v.resize(0);
+            //     if (!m_data[irow].empty())
+            //     {
+            //         v.clear();
 
-                    for (auto tupl : m_data[irow])
-                    {
-                        std::tie(ind, val) = tupl;
-                        v.push_back(ind);
-                    }
-                }
-            }
+            //         for (auto&& [ind, val] : m_data[irow])
+            //         {
+            //             v.emplace_back(ind);
+            //         }
+            //     }
+            // }
 
             // Get row indices for a given column
-            void getRowIndices(IndexType icol, IndexArrayType &v) const
-            {
-                if (icol >= m_num_cols)
-                {
-                    throw IndexOutOfBoundsException(
-                        "getRowIndices: index out of bounds");
-                }
+            // void getRowIndices(IndexType icol, IndexArrayType &v) const
+            // {
+            //     if (icol >= m_num_cols)
+            //     {
+            //         throw IndexOutOfBoundsException(
+            //             "getRowIndices: index out of bounds");
+            //     }
 
-                IndexType ind;
-                ScalarT val;
-                v.resize(0);
+            //     v.clear();
 
-                for (IndexType ii = 0; ii < m_num_rows; ii++)
-                {
-                    if (!m_data[ii].empty())
-                    {
-                        for (auto tupl : m_data[ii])
-                        {
-                            std::tie(ind, val) = tupl;
-                            if (ind == icol)
-                            {
-                                v.push_back(ii);
-                                break;
-                            }
-                            if (ind > icol)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+            //     for (IndexType ii = 0; ii < m_num_rows; ii++)
+            //     {
+            //         if (!m_data[ii].empty())
+            //         {
+            //             /// @todo replace with binary_search
+            //             for (auto&& [ind, val] : m_data[ii])
+            //             {
+            //                 if (ind == icol)
+            //                 {
+            //                     v.emplace_back(ii);
+            //                     break;
+            //                 }
+            //                 if (ind > icol)
+            //                 {
+            //                     break;
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
 
             template<typename RAIteratorIT,
                      typename RAIteratorJT,
@@ -667,13 +645,11 @@ namespace GraphBLAS
             {
                 for (IndexType row = 0; row < m_data.size(); ++row)
                 {
-                    for (auto it = m_data[row].begin();
-                         it != m_data[row].end();
-                         ++it)
+                    for (auto&& [col_idx, val] : m_data[row])
                     {
-                        *row_it = row;              ++row_it;
-                        *col_it = std::get<0>(*it); ++col_it;
-                        *values = std::get<1>(*it); ++values;
+                        *row_it = row;     ++row_it;
+                        *col_it = col_idx; ++col_it;
+                        *values = val;     ++values;
                     }
                 }
             }
@@ -681,45 +657,33 @@ namespace GraphBLAS
             // output specific to the storage layout of this type of matrix
             void printInfo(std::ostream &os) const
             {
+                os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << "> ";
+                os << "(" << m_num_rows << " x " << m_num_cols << "), nvals = "
+                   << nvals() << std::endl;
+
                 // Used to print data in storage format instead of like a matrix
-                #ifdef GRB_SEQUENTIAL_MATRIX_PRINT_STORAGE
-                    os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << ">"
-                       << std::endl;
-                    os << "dimensions: " << m_num_rows << " x " << m_num_cols
-                       << std::endl;
-                    os << "num stored values = " << m_nvals << std::endl;
+                #ifdef GRB_MATRIX_PRINT_RAW_STORAGE
                     for (IndexType row = 0; row < m_data.size(); ++row)
                     {
                         os << row << " :";
-                        for (auto it = m_data[row].begin();
-                             it != m_data[row].end();
-                             ++it)
+                        for (auto&& [idx, val] : m_data[row])
                         {
-                            os << " " << std::get<0>(*it)
-                               << ":" << std::get<1>(*it);
+                            os << " " << idx << ":" << val;
                         }
                         os << std::endl;
                     }
                 #else
-                    IndexType num_rows = nrows();
-                    IndexType num_cols = ncols();
-
-                    os << "backend::LilSparseMatrix<" << typeid(ScalarT).name() << ">"
-                       << std::endl;
-                    os << "(" << num_rows << "x" << num_cols << "), nvals = "
-                       << nvals() << std::endl;
-
-                    for (IndexType row_idx = 0; row_idx < num_rows; ++row_idx)
+                    for (IndexType row_idx = 0; row_idx < m_num_rows; ++row_idx)
                     {
                         // We like to start with a little whitespace indent
                         os << ((row_idx == 0) ? "  [[" : "   [");
 
-                        RowType const &row(getRow(row_idx));
+                        RowType const &row(m_data[row_idx]);
                         IndexType curr_idx = 0;
 
                         if (row.empty())
                         {
-                            while (curr_idx < num_cols)
+                            while (curr_idx < m_num_cols)
                             {
                                 os << ((curr_idx == 0) ? " " : ",  " );
                                 ++curr_idx;
@@ -728,13 +692,10 @@ namespace GraphBLAS
                         else
                         {
                             // Now walk the columns.  A sparse iter would be handy here...
-                            IndexType col_idx;
-                            ScalarT cell_val;
-
                             auto row_it = row.begin();
                             while (row_it != row.end())
                             {
-                                std::tie(col_idx, cell_val) = *row_it;
+                                auto&& [col_idx, cell_val] = *row_it;
                                 while (curr_idx < col_idx)
                                 {
                                     os << ((curr_idx == 0) ? " " : ",  " );
@@ -750,13 +711,13 @@ namespace GraphBLAS
                             }
 
                             // Fill in the rest to the end
-                            while (curr_idx < num_cols)
+                            while (curr_idx < m_num_cols)
                             {
                                 os << ",  ";
                                 ++curr_idx;
                             }
                         }
-                        os << ((row_idx == num_rows - 1 ) ? "]]" : "]\n");
+                        os << ((row_idx == m_num_rows - 1 ) ? "]]" : "]\n");
                     }
                 #endif
             }

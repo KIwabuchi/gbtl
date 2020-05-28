@@ -80,7 +80,7 @@ namespace GraphBLAS
             IndexType nrows(dstMatrix.nrows());
             for (IndexType row_idx = 0; row_idx < nrows; ++row_idx)
             {
-                auto&& srcRow = srcMatrix.getRow(row_idx);
+                auto&& srcRow = srcMatrix[row_idx];
                 dstRow.clear();
 
                 // We need to construct a new row with the appropriate cast!
@@ -167,11 +167,13 @@ namespace GraphBLAS
 
             // pull first value out of the row
             auto A_iter = A_row.begin();
+            D1 a_val;
+            GraphBLAS::IndexType a_idx;
 
             // loop through both ordered sets to compute sparse dot prod
             while ((A_iter != A_row.end()) && (u_idx < u_vals.size()))
             {
-                auto&& [a_idx, a_val] = *A_iter;
+                std::tie(a_idx, a_val) = *A_iter;
                 if (u_idx == a_idx)
                 {
                     if (value_set)
@@ -321,6 +323,8 @@ namespace GraphBLAS
                 {
                     auto&& [v1_idx, v1_val] = *v1_it;
                     auto&& [v2_idx, v2_val] = *v2_it;
+                    //std::tie(v1_idx, v1_val) = *v1_it;
+                    //std::tie(v2_idx, v2_val) = *v2_it;
 
                     if (v2_idx == v1_idx)
                     {
@@ -421,6 +425,10 @@ namespace GraphBLAS
             //    ++stencil_it;
             //}
 
+            D1 v1_val;
+            D2 v2_val;
+            GraphBLAS::IndexType v1_idx, v2_idx;
+
             // loop through both ordered sets to compute ewise_or
             auto v1_it = vec1.begin();
             auto v2_it = vec2.begin();
@@ -428,8 +436,8 @@ namespace GraphBLAS
             {
                 if ((v1_it != vec1.end()) && (v2_it != vec2.end()))
                 {
-                    auto&& [v1_idx, v1_val] = *v1_it;
-                    auto&& [v2_idx, v2_val] = *v2_it;
+                    std::tie(v1_idx, v1_val) = *v1_it;
+                    std::tie(v2_idx, v2_val) = *v2_it;
 
                     // If v1 and v2 both have stored values, it is assumed index
                     // is in stencil_indices so v2 should be stored
@@ -459,7 +467,7 @@ namespace GraphBLAS
                 }
                 else if (v1_it != vec1.end())  // vec2 exhausted
                 {
-                    auto&& [v1_idx, v1_val] = *v1_it;
+                    std::tie(v1_idx, v1_val) = *v1_it;
 
                     if (!searchIndices(stencil_indices, v1_idx))
                     {
@@ -469,7 +477,7 @@ namespace GraphBLAS
                 }
                 else // v2_it != vec2.end()) and vec1 exhausted
                 {
-                    auto&& [v2_idx, v2_val] = *v2_it;
+                    std::tie(v2_idx, v2_val) = *v2_it;
                     ans.emplace_back(v2_idx, static_cast<D3>(v2_val));
                     ++v2_it;
                 }
@@ -535,7 +543,7 @@ namespace GraphBLAS
 
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                ewise_or(tmp_row, C.getRow(row_idx), T.getRow(row_idx), accum);
+                ewise_or(tmp_row, C[row_idx], T[row_idx], accum);
                 Z.setRow(row_idx, tmp_row);
             }
         }
@@ -566,7 +574,7 @@ namespace GraphBLAS
                 if (searchIndices(row_indices, row_idx))
                 {
                     // Row Stenciled. merge C, T, using col stencil\n";
-                    ewise_or_stencil(tmp_row, C.getRow(row_idx), T.getRow(row_idx),
+                    ewise_or_stencil(tmp_row, C[row_idx], T[row_idx],
                                      col_indices);
                     Z.setRow(row_idx, tmp_row);
                 }
@@ -574,7 +582,7 @@ namespace GraphBLAS
                 {
                     // Row not stenciled.  Take row from C only
                     // There should be nothing in T for this row
-                    Z.setRow(row_idx, C.getRow(row_idx));
+                    Z.setRow(row_idx, C[row_idx]);
                 }
             }
         }
@@ -597,7 +605,7 @@ namespace GraphBLAS
 
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                ewise_or(tmp_row, C.getRow(row_idx), T.getRow(row_idx), accum);
+                ewise_or(tmp_row, C[row_idx], T[row_idx], accum);
                 Z.setRow(row_idx, tmp_row);
             }
         }
@@ -897,7 +905,7 @@ namespace GraphBLAS
                    typename MMatrixT>
         void write_with_opt_mask(CMatrixT           &C,
                                  ZMatrixT   const   &Z,
-                                 MMatrixT   const   &mask,
+                                 MMatrixT   const   &Mask,
                                  OutputControlEnum   outp)
         {
             using CScalarType = typename CMatrixT::ScalarType;
@@ -907,8 +915,8 @@ namespace GraphBLAS
             IndexType nRows(C.nrows());
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
-                                mask.getRow(row_idx), outp);
+                apply_with_mask(tmp_row, C[row_idx], Z[row_idx],
+                                Mask[row_idx], outp);
 
                 // Now, set the new one.  Yes, we can optimize this later
                 C.setRow(row_idx, tmp_row);
@@ -933,7 +941,7 @@ namespace GraphBLAS
             IndexType nRows(C.nrows());
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
+                apply_with_mask(tmp_row, C[row_idx], Z[row_idx],
                                 get_complement_row(Mask.m_mat, row_idx),
                                 outp);
 
@@ -960,7 +968,7 @@ namespace GraphBLAS
             IndexType nRows(C.nrows());
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
+                apply_with_mask(tmp_row, C[row_idx], Z[row_idx],
                                 get_structure_row(Mask.m_mat, row_idx),
                                 outp);
 
@@ -987,7 +995,7 @@ namespace GraphBLAS
             IndexType nRows(C.nrows());
             for (IndexType row_idx = 0; row_idx < nRows; ++row_idx)
             {
-                apply_with_mask(tmp_row, C.getRow(row_idx), Z.getRow(row_idx),
+                apply_with_mask(tmp_row, C[row_idx], Z[row_idx],
                                 get_structural_complement_row(Mask.m_mat, row_idx),
                                 outp);
 

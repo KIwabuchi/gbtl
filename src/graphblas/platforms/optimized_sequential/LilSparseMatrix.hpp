@@ -270,15 +270,12 @@ namespace GraphBLAS
                 {
                     return false;
                 }
-                if (m_data.at(irow).empty())
+                if (m_data[irow].empty())
                 {
                     return false;
                 }
 
-                IndexType ind;
-                ScalarT val;
-                //for (auto tupl : m_data[irow])// Range-based loop, access by value
-                for (auto tupl : m_data.at(irow))// Range-based loop, access by value
+                for (auto tupl : m_data[irow])// Range-based loop, access by value
                 {
                     if (std::get<0>(tupl) == icol)
                     {
@@ -305,8 +302,6 @@ namespace GraphBLAS
                     throw NoValueException("extractElement: no data in row");
                 }
 
-                IndexType ind;
-                ScalarT val;
                 for (auto&& [idx, val] : m_data[irow])
                 {
                     if (idx == icol)
@@ -320,7 +315,7 @@ namespace GraphBLAS
             // Set value at index
             void setElement(IndexType irow, IndexType icol, ScalarT const &val)
             {
-                m_data[irow].reserve(m_data[irow].capacity() + 10);
+                //m_data[irow].reserve(m_data[irow].capacity() + 10);
                 if (irow >= m_num_rows || icol >= m_num_cols)
                 {
                     throw IndexOutOfBoundsException("setElement: index out of bounds");
@@ -331,20 +326,16 @@ namespace GraphBLAS
                     m_data[irow].emplace_back(icol, val);
                     ++m_nvals;
                 }
-                else if (std::get<0>(*m_data[irow].begin()) > icol)
-                {
-                    m_data[irow].emplace(m_data[irow].begin(), icol, val);
-                    ++m_nvals;
-                }
                 else
                 {
-                    typename std::vector<std::tuple<IndexType, ScalarT>>::iterator it;
-                    for (it = m_data[irow].begin(); it != m_data[irow].end(); ++it)
+                    for (auto it = m_data[irow].begin();
+                         it != m_data[irow].end();
+                         ++it)
                     {
                         if (std::get<0>(*it) == icol)
                         {
                             // overwrite existing stored value
-                            std::get<1>(*it) =  val;
+                            std::get<1>(*it) = val;
                             return;
                         }
                         else if (std::get<0>(*it) > icol)
@@ -378,8 +369,9 @@ namespace GraphBLAS
                 }
                 else
                 {
-                    typename std::vector<std::tuple<IndexType, ScalarT>>::iterator it;
-                    for (it = m_data[irow].begin(); it != m_data[irow].end(); it++)
+                    for (auto it = m_data[irow].begin();
+                         it != m_data[irow].end();
+                         ++it)
                     {
                         if (std::get<0>(*it) == icol)
                         {
@@ -422,7 +414,7 @@ namespace GraphBLAS
             {
                 IndexType nvals(0);
 
-                for (auto &elt : m_data)
+                for (auto const &elt : m_data)
                 {
                     nvals += elt.size();
                 }
@@ -449,10 +441,10 @@ namespace GraphBLAS
                 return m_data[row_index];
             }
 
-            RowType const &getRow(IndexType row_index) const
-            {
-                return m_data[row_index];
-            }
+            // RowType const &getRow(IndexType row_index) const
+            // {
+            //     return m_data[row_index];
+            // }
 
             // Allow casting
             template <typename OtherScalarT>
@@ -468,8 +460,7 @@ namespace GraphBLAS
                 m_data[row_index].clear();
                 for (auto&& [idx, val] : row_data)
                 {
-                    m_data[row_index].emplace_back(
-                        std::make_tuple(idx, static_cast<ScalarT>(val)));
+                    m_data[row_index].emplace_back(idx, static_cast<ScalarT>(val));
                 }
             }
 
@@ -554,6 +545,8 @@ namespace GraphBLAS
                 setRow(row_index, tmp);
             }
 
+            /// @deprecated Only needed for 4.3.7.3 assign: column variant"
+            /// @todo need move semantics.
             using ColType = std::vector<std::tuple<IndexType, ScalarT> >;
             ColType getCol(IndexType col_index) const
             {
@@ -577,7 +570,8 @@ namespace GraphBLAS
                 return data;  // hopefully compiles to a move
             }
 
-            // col_data must be in increasing index order
+            /// @deprecated Only needed for 4.3.7.3 assign: column variant"
+            /// @note col_data must be in increasing index order
             /// @todo this could be vastly improved.
             template <typename OtherScalarT>
             void setCol(
@@ -660,56 +654,56 @@ namespace GraphBLAS
             }
 
             // Get column indices for a given row
-            void getColumnIndices(IndexType irow, IndexArrayType &v) const
-            {
-                if (irow >= m_num_rows)
-                {
-                    throw IndexOutOfBoundsException(
-                        "getColumnIndices: index out of bounds");
-                }
+            // void getColumnIndices(IndexType irow, IndexArrayType &v) const
+            // {
+            //     if (irow >= m_num_rows)
+            //     {
+            //         throw IndexOutOfBoundsException(
+            //             "getColumnIndices: index out of bounds");
+            //     }
 
-                if (!m_data[irow].empty())
-                {
-                    v.clear();
+            //     if (!m_data[irow].empty())
+            //     {
+            //         v.clear();
 
-                    for (auto&& [ind, val] : m_data[irow])
-                    {
-                        v.emplace_back(ind);
-                    }
-                }
-            }
+            //         for (auto&& [ind, val] : m_data[irow])
+            //         {
+            //             v.emplace_back(ind);
+            //         }
+            //     }
+            // }
 
             // Get row indices for a given column
-            void getRowIndices(IndexType icol, IndexArrayType &v) const
-            {
-                if (icol >= m_num_cols)
-                {
-                    throw IndexOutOfBoundsException(
-                        "getRowIndices: index out of bounds");
-                }
+            // void getRowIndices(IndexType icol, IndexArrayType &v) const
+            // {
+            //     if (icol >= m_num_cols)
+            //     {
+            //         throw IndexOutOfBoundsException(
+            //             "getRowIndices: index out of bounds");
+            //     }
 
-                v.clear();
+            //     v.clear();
 
-                for (IndexType ii = 0; ii < m_num_rows; ii++)
-                {
-                    if (!m_data[ii].empty())
-                    {
-                        /// @todo replace with binary_search
-                        for (auto&& [ind, val] : m_data[ii])
-                        {
-                            if (ind == icol)
-                            {
-                                v.emplace_back(ii);
-                                break;
-                            }
-                            if (ind > icol)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+            //     for (IndexType ii = 0; ii < m_num_rows; ii++)
+            //     {
+            //         if (!m_data[ii].empty())
+            //         {
+            //             /// @todo replace with binary_search
+            //             for (auto&& [ind, val] : m_data[ii])
+            //             {
+            //                 if (ind == icol)
+            //                 {
+            //                     v.emplace_back(ii);
+            //                     break;
+            //                 }
+            //                 if (ind > icol)
+            //                 {
+            //                     break;
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
 
             template<typename RAIteratorIT,
                      typename RAIteratorJT,
@@ -753,7 +747,7 @@ namespace GraphBLAS
                         // We like to start with a little whitespace indent
                         os << ((row_idx == 0) ? "  [[" : "   [");
 
-                        RowType const &row(getRow(row_idx));
+                        RowType const &row(m_data[row_idx]);
                         IndexType curr_idx = 0;
 
                         if (row.empty())

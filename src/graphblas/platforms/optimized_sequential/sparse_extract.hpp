@@ -132,7 +132,7 @@ namespace GraphBLAS
                  row_it != row_end;
                  ++row_it, ++out_row_index)
             {
-                auto row(A.getRow(*row_it));
+                auto row(A[*row_it]);
 
                 // Extract the values from the row
                 vectorExtract(out_row, row, col_begin, col_end);

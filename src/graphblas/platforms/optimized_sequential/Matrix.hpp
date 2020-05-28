@@ -96,6 +96,3 @@ namespace GraphBLAS
         };
     }
 }
-
-// HACK
-#include <graphblas/platforms/optimized_sequential/utility.hpp>

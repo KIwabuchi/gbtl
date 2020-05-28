@@ -464,7 +464,7 @@ namespace GraphBLAS
             // EXTRACT the row of C matrix
             /// @todo creating a Vector and then extracting later can be COSTLY
             using CScalarType = typename CMatrixT::ScalarType;
-            auto C_row(C.getRow(row_index));
+            auto C_row(C[row_index]);
             Vector<CScalarType> c_vec(C.ncols());
             for (auto&& [col_idx, val] : C[row_index])
             {
