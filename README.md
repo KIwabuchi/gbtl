@@ -1,4 +1,4 @@
-# GraphBLAS Template Library (GBTL), v. 2.1 [IN PROGRESS]
+# GraphBLAS Template Library (GBTL), v. 3.0
 
 ## Project Goals
 
@@ -7,7 +7,7 @@ specification in C++ Version 1.3 (specification http://graphblas.org).
 * Graph algorithm library containing commonly used graph algorithms
 implemented with the GraphBLAS primitive operations.
 
-This is Version 2.1 of the C++ implementation and is mathematically
+This is Version 3.0 of the C++ implementation and is mathematically
 equivalent to Version 1.3 of the GraphBLAS C API.  Unlike the first
 version (which predates the GraphBLAS C API Specification), this only
 contains the 'sequential' backend (in the platforms directory) written
@@ -16,7 +16,7 @@ only. Other backends are currently under development.
 
 Support for GPUs that was in version 1.0 is currently not available
 but can be accessed using the git tag: 'Version1'). The API defined by
-GBTL v. 2.0 and later is not backward compatible with v. 1.0.
+GBTL v. 3.0 and later is not backward compatible with v. 2.0.
 
 The implementation of the sequential backend is currently focused on
 correctness over performance.  The project also contains implementations of
@@ -38,6 +38,7 @@ many common graph algorithms using the C++ API:
 * Clustering
   * peer pressure clustering
   * Markov clustering
+  * Louvain
 * Triangle counting (many variants)
 * K-truss enumeration
   * incidence matrix variant
@@ -56,8 +57,8 @@ many common graph algorithms using the C++ API:
 ## Prerequisites
 
 A detailed study of which C++ compilers are required has not been carried
-out.  Anecdotally however, g++ 4.8.5 is not capable of compiling the
-examples and tests, while g++ 6.3.0 and 7.3.0 both work.
+out.  Anecdotally, however, I use a g++ compiler capable of compiling C++17
+Standard code (i.e. g++-9).
 
 ## Building
 
