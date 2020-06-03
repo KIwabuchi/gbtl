@@ -47,7 +47,7 @@ namespace algorithms
      * Given the adjacency matrix of a graph, the idea behind the
      * triangle counting algorithm used is as follows:
      * <ol>
-     * <li>First, split \f$A\f$ into lower and upper triangular matrices such
+     * <li>First, split \f$graph\f$ into lower and upper triangular matrices such
      * that \f$A = L + U\f$.</li>
      *
      * <li>Because the multiplication of \f$L\f$ and \f$U\f$ counts all the
@@ -60,9 +60,6 @@ namespace algorithms
      * <li>The final number of triangles is then
      * \f$\sum\limits_i^N\sum\limits_j^N C_{ij}\f$.</li>
      * </ol>
-     *
-     * However, when implementing the algorithm, various optimizations were
-     * made to improve performance.
      *
      * @param[in]  graph  The graph to compute the number of triangles in.
      *
@@ -82,7 +79,7 @@ namespace algorithms
         GraphBLAS::mxm(B,
                        GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
                        GraphBLAS::ArithmeticSemiring<T>(),
-                       L, GraphBLAS::transpose(L)); //U);
+                       L, U);
 
         MatrixT C(rows, cols);
         GraphBLAS::eWiseMult(C,
@@ -99,6 +96,10 @@ namespace algorithms
     }
 
     //************************************************************************
+    /**
+     * @brief Compute the number of triangles in an undirected graph already
+     *        split using |L.*(L +.* U)|.
+     */
     template<typename MatrixT>
     typename MatrixT::ScalarType triangle_count_masked(MatrixT const &L,
                                                        MatrixT const &U)
@@ -122,6 +123,10 @@ namespace algorithms
     }
 
     //************************************************************************
+    /**
+     * @brief Compute the number of triangles in an undirected graph already
+     *        split using |L.*(L +.* L')|.
+     */
     template<typename MatrixT>
     typename MatrixT::ScalarType triangle_count_masked(MatrixT const &L)
     {
@@ -145,309 +150,43 @@ namespace algorithms
 
     //************************************************************************
     /**
-     * From TzeMeng Low, the FLAME approach #1 to triangle counting
-     *
-     * @param[in] graph  Must be undirected graph with no self-loops; i.e.,
-     *                   matrix is symmetric with zeros on the diagonal.
+     * @brief Compute the number of triangles in an undirected graph already
+     *        split using |L.*(L +.* L)|.
      */
     template<typename MatrixT>
-    typename MatrixT::ScalarType triangle_count_flame1(MatrixT const &graph)
+    typename MatrixT::ScalarType triangle_count_masked_noT(MatrixT const &L)
     {
         using T = typename MatrixT::ScalarType;
-        using VectorT = GraphBLAS::Vector<T>;
+        GraphBLAS::IndexType rows(L.nrows());
+        GraphBLAS::IndexType cols(L.ncols());
 
-        GraphBLAS::IndexType rows(graph.nrows());
-        GraphBLAS::IndexType cols(graph.ncols());
+        MatrixT B(rows, cols);
+        GraphBLAS::mxm(B,
+                       L, GraphBLAS::NoAccumulate(),
+                       GraphBLAS::ArithmeticSemiring<T>(),
+                       L, L);
 
-        if (rows != cols)
-        {
-            throw GraphBLAS::DimensionException(
-                "triangle_count_flame1 matrix is not square");
-        }
-
-        // A graph less than three vertices cannot have any triangles
-        if (rows < 3)
-        {
-            return 0;
-        }
-
-        // "split" is not part of GraphBLAS...placeholder because Masking not
-        // completely implemented
-        MatrixT L(rows, cols), U(rows, cols);
-        GraphBLAS::split(graph, L, U);
-
-        GraphBLAS::IndexArrayType indices = {0};
-
-        T delta(0UL);
-        for (GraphBLAS::IndexType idx = 2; idx < rows; ++idx)
-        {
-            MatrixT A00(idx, idx);
-            VectorT a01(idx);
-            VectorT tmp1(idx);
-
-            indices.push_back(idx - 1);   // [0, 1, ... i - 1]
-
-            GraphBLAS::extract(A00,
-                               GraphBLAS::NoMask(),
-                               GraphBLAS::NoAccumulate(),
-                               U, indices, indices);
-
-            GraphBLAS::extract(a01,
-                               GraphBLAS::NoMask(),
-                               GraphBLAS::NoAccumulate(),
-                               U, indices, idx); ///@todo try row extract
-
-            GraphBLAS::mxv(tmp1,
-                           GraphBLAS::NoMask(),
-                           GraphBLAS::NoAccumulate(),
-                           GraphBLAS::ArithmeticSemiring<T>(),
-                           A00, a01);
-
-            // vector dot product
-            GraphBLAS::eWiseMult(tmp1,
-                                 GraphBLAS::NoMask(),
-                                 GraphBLAS::NoAccumulate(),
-                                 GraphBLAS::Times<T>(),
-                                 a01, tmp1);
-            GraphBLAS::reduce(delta,
-                              GraphBLAS::Plus<T>(),
-                              GraphBLAS::PlusMonoid<T>(),
-                              tmp1);
-
-            //std::cout << "Processed row " << idx << " of " << rows
-            //          << ", Running count: " << delta << std::endl;
-        }
-
-        return delta;
+        T sum = 0;
+        GraphBLAS::reduce(sum,
+                          GraphBLAS::NoAccumulate(),
+                          GraphBLAS::PlusMonoid<T>(),
+                          B);
+        return sum;
     }
 
     //************************************************************************
     /**
-     * From TzeMeng Low, the FLAME approach #1 to triangle counting
-     *
-     * @note Scott: an attempt to 'reduce work at either end'...didn't work
-     *
-     * @param[in] graph  Must be undirected graph with no self-loops; i.e.,
-     *                   matrix is symmetric with zeros on the diagonal.
+     * @brief Compute the number of triangles in an undirected graph already
+     *        split using
+     *            B   = (L +.* U),
+     *            CL  = (L .* B),
+     *            CU  = (U .* B),
+     *            sum = (|CU|+|CL|)/2
      */
-    template<typename MatrixT>
-    typename MatrixT::ScalarType triangle_count_flame1a(MatrixT const &graph)
-    {
-        using T = typename MatrixT::ScalarType;
-        using VectorT = GraphBLAS::Vector<T>;
-
-        GraphBLAS::IndexType rows(graph.nrows());
-        GraphBLAS::IndexType cols(graph.ncols());
-
-        if (rows != cols)
-        {
-            throw GraphBLAS::DimensionException(
-                "triangle_count_flame1 matrix is not square");
-        }
-
-        // A graph less than three vertices cannot have any triangles
-        if (rows < 3)
-        {
-            return 0;
-        }
-
-        // "split" is not part of GraphBLAS...placeholder because Masking not
-        // completely implemented
-        MatrixT L(rows, cols), U(rows, cols);
-        GraphBLAS::split(graph, L, U);
-
-        GraphBLAS::IndexArrayType indices = {0};
-
-        T delta(0UL);
-        for (GraphBLAS::IndexType idx = 2; idx < rows/2; ++idx)
-        {
-            MatrixT A00(idx, idx);
-            VectorT a01(idx);
-            VectorT tmp1(idx);
-
-            indices.push_back(idx - 1);   // [0, 1, ... i - 1]
-
-            GraphBLAS::extract(A00,
-                               GraphBLAS::NoMask(),
-                               GraphBLAS::NoAccumulate(),
-                               U, indices, indices);
-            GraphBLAS::extract(a01,
-                               GraphBLAS::NoMask(),
-                               GraphBLAS::NoAccumulate(),
-                               U, indices, idx);
-
-            GraphBLAS::mxv(tmp1,
-                           GraphBLAS::NoMask(),
-                           GraphBLAS::NoAccumulate(),
-                           GraphBLAS::ArithmeticSemiring<T>(),
-                           A00, a01);
-
-            // vector dot product
-            GraphBLAS::eWiseMult(tmp1,
-                                 GraphBLAS::NoMask(),
-                                 GraphBLAS::NoAccumulate(),
-                                 GraphBLAS::Times<T>(),
-                                 a01, tmp1);
-            GraphBLAS::reduce(delta,
-                              GraphBLAS::Plus<T>(),
-                              GraphBLAS::PlusMonoid<T>(),
-                              tmp1);
-
-            //std::cout << "Processed row " << idx << " of " << rows
-            //          << ", Running count: " << delta << std::endl;
-        }
-
-        for (GraphBLAS::IndexType idx = rows/2; idx < rows; ++idx)
-        {
-            MatrixT A00(idx, idx);
-            VectorT a01(idx);
-            VectorT tmp1(idx);
-
-            indices.push_back(idx - 1);   // [0, 1, ... i - 1]
-
-            GraphBLAS::extract(A00,
-                               GraphBLAS::NoMask(),
-                               GraphBLAS::NoAccumulate(),
-                               U, indices, indices);
-
-            GraphBLAS::extract(a01,
-                               GraphBLAS::NoMask(),
-                               GraphBLAS::NoAccumulate(),
-                               U, indices, idx);
-
-            GraphBLAS::vxm(tmp1,
-                           GraphBLAS::NoMask(),
-                           GraphBLAS::NoAccumulate(),
-                           GraphBLAS::ArithmeticSemiring<T>(),
-                           a01, A00);
-
-            // vector dot product
-            GraphBLAS::eWiseMult(tmp1,
-                                 GraphBLAS::NoMask(),
-                                 GraphBLAS::NoAccumulate(),
-                                 GraphBLAS::Times<T>(),
-                                 a01, tmp1);
-            GraphBLAS::reduce(delta,
-                              GraphBLAS::Plus<T>(),
-                              GraphBLAS::PlusMonoid<T>(),
-                              tmp1);
-
-            //std::cout << "Processed row " << idx << " of " << rows
-            //          << ", Running count: " << delta << std::endl;
-        }
-
-        return delta;
-    }
-
-    //************************************************************************
-    /**
-     * From TzeMeng Low, the FLAME approach #2 to triangle counting
-     *
-     * @param[in] graph  Must be undirected graph with no self-loops; i.e.,
-     *                   matrix is symmetric with zeros on the diagonal.
-     */
-    template<typename MatrixT>
-    typename MatrixT::ScalarType triangle_count_flame2(MatrixT const &graph)
-    {
-        using T = typename MatrixT::ScalarType;
-        using VectorT = GraphBLAS::Vector<T>;
-
-        GraphBLAS::IndexType rows(graph.nrows());
-        GraphBLAS::IndexType cols(graph.ncols());
-
-        if (rows != cols)
-        {
-            throw GraphBLAS::DimensionException(
-                "triangle_count_flame2 matrix is not square");
-        }
-
-        // A graph less than three vertices cannot have any triangles
-        if (rows < 3)
-        {
-            return 0;
-        }
-
-        // the rows that a01 and A02 extract from (they grow)
-        GraphBLAS::IndexArrayType row_indices;
-        row_indices.reserve(rows);
-
-        // the cols that a12 and A02 extract from (they shrink)
-        GraphBLAS::IndexArrayType col_indices;
-        col_indices.reserve(cols);
-        for (GraphBLAS::IndexType idx = 1; idx < cols; ++idx)
-        {
-            col_indices.push_back(idx);
-        }
-
-        T delta(0UL);
-        for (GraphBLAS::IndexType idx = 1; idx < rows - 1; ++idx)
-        {
-            // extract from the upper triangular portion of the adj. matrix only
-            MatrixT A02(idx, cols - idx - 1);
-            VectorT a01(idx);
-            VectorT a12(cols - idx - 1);
-            VectorT tmp1(cols - idx - 1);
-
-            row_indices.push_back(idx - 1);   // [0, 1, ... i - 1]
-            col_indices.erase(col_indices.begin());
-;
-            GraphBLAS::extract(A02,
-                               GraphBLAS::NoMask(),
-                               GraphBLAS::NoAccumulate(),
-                               graph, row_indices, col_indices);
-
-            GraphBLAS::extract(a01,
-                               GraphBLAS::NoMask(),
-                               GraphBLAS::NoAccumulate(),
-                               graph, row_indices, idx); ///@todo try row extract
-
-            GraphBLAS::extract(a12,
-                               GraphBLAS::NoMask(),
-                               GraphBLAS::NoAccumulate(),
-                               GraphBLAS::transpose(graph), col_indices, idx);
-
-            GraphBLAS::mxv(tmp1,
-                           GraphBLAS::NoMask(),
-                           GraphBLAS::NoAccumulate(),
-                           GraphBLAS::ArithmeticSemiring<T>(),
-                           GraphBLAS::transpose(A02), a01);
-
-            // vector dot product
-            GraphBLAS::eWiseMult(tmp1,
-                                 GraphBLAS::NoMask(),
-                                 GraphBLAS::NoAccumulate(),
-                                 GraphBLAS::Times<T>(),
-                                 a12, tmp1);
-            GraphBLAS::reduce(delta,
-                              GraphBLAS::Plus<T>(),
-                              GraphBLAS::PlusMonoid<T>(),
-                              tmp1);
-
-            // DEBUG
-            //std::cerr << "************** Iteration " << idx << " **************"
-            //          << std::endl;
-            //std::cerr << "A02 dimensions = " << idx << " x " << (cols-idx-1)
-            //          << std::endl;
-            //GraphBLAS::print_vector(std::cerr, a01, "a01");
-            //GraphBLAS::print_matrix(std::cerr, A02, "A02");
-            //GraphBLAS::print_vector(std::cerr, a12, "a12");
-            //std::cerr << "delta = " << delta << std::endl;
-
-            //std::cout << "Processed row " << idx << " of " << rows
-            //          << ", Running count: " << delta << std::endl;
-        }
-
-        return delta;
-    }
-
-
-    //************************************************************************
     template<typename LMatrixT, typename MatrixT>
     typename MatrixT::ScalarType triangle_count_newGBTL(LMatrixT const &L,
                                                         MatrixT  const &U)
     {
-        auto start = std::chrono::steady_clock::now();
-
         using T = typename MatrixT::ScalarType;
         GraphBLAS::IndexType rows(L.nrows());
         GraphBLAS::IndexType cols(L.ncols());
@@ -459,12 +198,6 @@ namespace algorithms
                        U);  /// @todo can't use transpose(L) here as LMatrix may
                             /// already be a TransposeView (nesting not supported)
 
-        auto finish = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>
-            (finish - start);
-        start = finish;
-        //std::cout << "mxm elapsed time: " << duration.count() << " msec." << std::endl;
-
         T sum = 0;
         MatrixT C(rows, cols);
         GraphBLAS::eWiseMult(C, GraphBLAS::NoMask(), GraphBLAS::NoAccumulate(),
@@ -473,11 +206,6 @@ namespace algorithms
 
         GraphBLAS::reduce(sum, GraphBLAS::NoAccumulate(),
                           GraphBLAS::PlusMonoid<T>(), C);
-        finish = std::chrono::steady_clock::now();
-        duration = std::chrono::duration_cast<std::chrono::milliseconds>
-            (finish - start);
-        start = finish;
-        //std::cout << "count1 elapsed time: " << duration.count() << " msec." << std::endl;
 
         // for undirected graph you can stop here and return 'sum'
 
@@ -487,10 +215,6 @@ namespace algorithms
 
         GraphBLAS::reduce(sum, GraphBLAS::Plus<T>(),
                           GraphBLAS::PlusMonoid<T>(), C);
-        finish = std::chrono::steady_clock::now();
-        duration = std::chrono::duration_cast<std::chrono::milliseconds>
-            (finish - start);
-        //std::cout << "count2 elapsed time: " << duration.count() << " msec." << std::endl;
 
         return sum / static_cast<T>(2);
     }
@@ -742,9 +466,8 @@ namespace algorithms
         T  num_triangles = 0;
 
         GraphBLAS::IndexType rows(graph.nrows());
-        GraphBLAS::IndexType cols(graph.ncols());
 
-        // assert(rows == cols);
+        /// @todo assert graph matrix is square
 
         // A graph less than three vertices cannot have any triangles
         if (rows < 3)

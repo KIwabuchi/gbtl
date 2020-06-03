@@ -48,52 +48,102 @@ int main(int argc, char **argv)
 
     // Read the edgelist and create the tuple arrays
     std::string pathname(argv[1]);
-    std::ifstream infile(pathname);
+
+
+    Timer<std::chrono::steady_clock, std::chrono::microseconds> my_timer;
+
     GraphBLAS::IndexArrayType iL, iU, iA;
     GraphBLAS::IndexArrayType jL, jU, jA;
-    int64_t num_rows = 0;
-    int64_t max_id = 0;
+    uint64_t num_rows = 0;
+    uint64_t max_id = 0;
     uint64_t src, dst;
-//    for (std::string row; getline(infile, row, '\n');)
-//    {
-//        std::cout << "Row: " << row << std::endl;
-//        sscanf(row.c_str(), "%ld\t%ld", &src, &dst);
-    while (infile)
+
+    my_timer.start();
     {
-        infile >> src >> dst;
-        //std::cout << "Read: " << src << ", " << dst << std::endl;
-        if (src > max_id) max_id = src;
-        if (dst > max_id) max_id = dst;
-
-        if (src < dst)
+        std::ifstream infile(pathname);
+        while (infile)
         {
-            iA.push_back(src);
-            jA.push_back(dst);
+            infile >> src >> dst;
+            //std::cout << "Read: " << src << ", " << dst << std::endl;
+            if (src > max_id) max_id = src;
+            if (dst > max_id) max_id = dst;
 
-            iU.push_back(src);
-            jU.push_back(dst);
+            if (src < dst)
+            {
+                iA.push_back(src);
+                jA.push_back(dst);
+
+                iU.push_back(src);
+                jU.push_back(dst);
+            }
+            else if (dst < src)
+            {
+                iA.push_back(src);
+                jA.push_back(dst);
+
+                iL.push_back(src);
+                jL.push_back(dst);
+            }
+            // else ignore self loops
+
+            ++num_rows;
         }
-        else if (dst < src)
-        {
-            iA.push_back(src);
-            jA.push_back(dst);
-
-            iL.push_back(src);
-            jL.push_back(dst);
-        }
-        // else ignore self loops
-
-        ++num_rows;
     }
+    my_timer.stop();
+    std::cout << "Elapsed read time: " << my_timer.elapsed() << " usec." << std::endl;
+
     std::cout << "Read " << num_rows << " rows." << std::endl;
     std::cout << "#Nodes = " << (max_id + 1) << std::endl;
 
+    // sort the
+    using DegIdx = std::tuple<GraphBLAS::IndexType,GraphBLAS::IndexType>;
+    my_timer.start();
+    std::vector<DegIdx> degrees(max_id + 1);
+    for (GraphBLAS::IndexType idx = 0; idx <= max_id; ++idx)
+    {
+        degrees[idx] = {0UL, idx};
+    }
+
+    {
+        std::ifstream infile(pathname);
+        while (infile)
+        {
+            infile >> src >> dst;
+            if (src != dst)
+            {
+                std::get<0>(degrees[src]) += 1;
+            }
+        }
+    }
+
+    std::sort(degrees.begin(), degrees.end(),
+              [](DegIdx a, DegIdx b) { return std::get<0>(b) < std::get<0>(a); });
+
+    //relabel
+    for (auto &idx : iA) { idx = std::get<1>(degrees[idx]); }
+    for (auto &idx : jA) { idx = std::get<1>(degrees[idx]); }
+    for (auto &idx : iL) { idx = std::get<1>(degrees[idx]); }
+    for (auto &idx : jL) { idx = std::get<1>(degrees[idx]); }
+    for (auto &idx : iU) { idx = std::get<1>(degrees[idx]); }
+    for (auto &idx : jU) { idx = std::get<1>(degrees[idx]); }
+
+    my_timer.stop();
+    std::cout << "Elapsed sort/relabel time: " << my_timer.elapsed() << " usec." << std::endl;
+
+    GraphBLAS::IndexType idx(0);
+    for (auto&& row : degrees)
+    {
+        std::cout << idx << " <-- " << std::get<1>(row)
+                  << ": deg = " << std::get<0>(row) << std::endl;
+        idx++;
+    }
+
     GraphBLAS::IndexType NUM_NODES(max_id + 1);
-    typedef int32_t T;
+    using T = int32_t;
     std::vector<T> v(iA.size(), 1);
 
     /// @todo change scalar type to unsigned int or GraphBLAS::IndexType
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> MatType;
+    using MatType = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     MatType A(NUM_NODES, NUM_NODES);
     MatType L(NUM_NODES, NUM_NODES);
@@ -106,32 +156,46 @@ int main(int argc, char **argv)
     std::cout << "Running algorithm(s)..." << std::endl;
     T count(0);
 
-    Timer<std::chrono::steady_clock> my_timer;
-
-    // Perform triangle counting with three different algorithms
+    // Perform triangle counting with different algorithms
     //===================
     my_timer.start();
-    count = algorithms::triangle_count_newGBTL(L, U);
+    count = algorithms::triangle_count(A);
     my_timer.stop();
 
-    std::cout << "# triangles (newGBTL) = " << count << std::endl;
-    std::cout << "Elapsed time: " << my_timer.elapsed() << " msec." << std::endl;
+    std::cout << "# triangles (L,U=split(A); B=LL'; C=A.*B; #=|C|/2) = " << count << std::endl;
+    std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
 
     //===================
     my_timer.start();
     count = algorithms::triangle_count_masked(L, U);
     my_timer.stop();
 
-    std::cout << "# triangles (LU) = " << count << std::endl;
-    std::cout << "Elapsed time: " << my_timer.elapsed() << " msec." << std::endl;
+    std::cout << "# triangles (C<L> = L +.* U; #=|C|) = " << count << std::endl;
+    std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
 
     //===================
     my_timer.start();
     count = algorithms::triangle_count_masked(L);
     my_timer.stop();
 
-    std::cout << "# triangles (masked) = " << count << std::endl;
-    std::cout << "Elapsed time: " << my_timer.elapsed() << " msec." << std::endl;
+    std::cout << "# triangles (C<L> = L +.* L'; #=|C|) = " << count << std::endl;
+    std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
+
+    //===================
+    my_timer.start();
+    count = algorithms::triangle_count_masked_noT(L);
+    my_timer.stop();
+
+    std::cout << "# triangles (C<L> = L +.* L; #=|C|) = " << count << std::endl;
+    std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
+
+    //===================
+    my_timer.start();
+    count = algorithms::triangle_count_newGBTL(L, U);
+    my_timer.stop();
+
+    std::cout << "# triangles (B=LU; C=L.*B; #=|C|) = " << count << std::endl;
+    std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
 
     //count = algorithms::triangle_count_flame1_newGBTL(U);
     //std::cout << "# triangles = " << count << std::endl;

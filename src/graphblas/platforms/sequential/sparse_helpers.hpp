@@ -731,12 +731,12 @@ namespace GraphBLAS
          *
          * If outp == REPLACE:
          *
-         * L(C) = \f[ {(i,j,Zij):(i,j) \in (ind(Z) \cap ind(M))} \f]
+         * \f[ L(C) = {(i,j,Zij):(i,j) \in (ind(Z) \cap ind(M))} \f]
          *
          * If outp == MERGE:
          *
-         * L(C) = {(i,j,Zij):(i,j) \in (ind(C) \cap int(\not M))} \cup
-         *        {(i,j,Zij):(i,j) \in (ind(Z) \cap int(\not M))}
+         * \f[ L(C) = {(i,j,Zij):(i,j) \in (ind(C) \cap ind(\neg M))} \cup
+         *            {(i,j,Zij):(i,j) \in (ind(Z) \cap ind(\neg M))} \f]
          *
          * @tparam CScalarT The scalar type of the C vector input AND result.
          * @tparam ZScalarT The scalar type of the Z vector input.

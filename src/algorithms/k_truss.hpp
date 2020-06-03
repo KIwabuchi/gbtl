@@ -41,10 +41,9 @@ namespace
     template <typename D1, typename D2=D1, typename D3=D1>
     struct FirstEqualsTwo
     {
-        typedef D3 result_type;
         D3 operator()(D1 lhs, D2 rhs)
         {
-            result_type res(0);
+            D3 res(0);
             if (lhs == static_cast<D1>(2))
                 res = static_cast<D3>(rhs);
             return res;
@@ -58,8 +57,6 @@ namespace
     template <typename T, typename LessT = std::less<T>>
     struct SupportTest
     {
-        typedef bool result_type;
-
         T const m_threshold;
 
         SupportTest(T threshold) : m_threshold(threshold) {}
@@ -74,8 +71,6 @@ namespace
     template <typename T, typename LessT = std::less<T>>
     struct SupportMinTest
     {
-        typedef bool result_type;
-
         T const m_threshold;
 
         SupportMinTest(T threshold) : m_threshold(threshold) {}
@@ -95,7 +90,7 @@ namespace algorithms
     EMatrixT k_truss(EMatrixT const       &Ein,        // incidence array
                      GraphBLAS::IndexType  k_size)
     {
-        typedef typename EMatrixT::ScalarType EdgeType;
+        using EdgeType = typename EMatrixT::ScalarType;
 
         //GraphBLAS::print_matrix(std::cout, Ein, "incidence");
 
@@ -289,7 +284,7 @@ namespace algorithms
     AMatrixT k_truss2(AMatrixT const       &Ain,   // undirected adjacency matrix
                       GraphBLAS::IndexType  k_size)
     {
-        typedef typename AMatrixT::ScalarType AType;
+        using AType = typename AMatrixT::ScalarType;
 
         //GraphBLAS::print_matrix(std::cout, Ain, "adjacency");
 

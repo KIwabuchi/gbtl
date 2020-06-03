@@ -81,9 +81,9 @@ int main(int argc, char **argv)
 
     IndexType const NUM_NODES(read_edge_list(pathname, iA, jA));
 
-    typedef int32_t T;
-    typedef Matrix<T> MatType;
-    typedef Matrix<bool> BoolMatType;
+    using T = int32_t;
+    using MatType = Matrix<T>;
+    using BoolMatType = Matrix<bool>;
     std::vector<T> v(iA.size(), 1);
     std::vector<bool> bv(iA.size(), true);
     MatType A(NUM_NODES, NUM_NODES);
@@ -95,9 +95,8 @@ int main(int argc, char **argv)
     M.build(iA.begin(), jA.begin(), bv.begin(), iA.size());
 
     std::cout << "Running algorithm(s)... nvals = " << M.nvals() << std::endl;
-    T count(0);
 
-    Timer<std::chrono::system_clock, std::chrono::microseconds> my_timer;
+    Timer<std::chrono::steady_clock, std::chrono::microseconds> my_timer;
     MatType C(NUM_NODES, NUM_NODES);
     mxm(C,
         NoMask(),
@@ -106,18 +105,9 @@ int main(int argc, char **argv)
         A, B);
 
     //=====================================================
-    // Perform matrix multiplies with 4 different kernels
+    // Perform 18 different matrix multiplies for each of 4
+    // different combinations of input transposes.
     //=====================================================
-    //===================
-    // Perform matrix multiplies with reference implementation
-    std::cout << "OPTIMIZED IMPLEMENTATION:" << std::endl;
-    // C.clear();
-    // my_timer.start();
-    // mxm_original(C, NoMask(), NoAccumulate(),
-    //                         ArithmeticSemiring<double>(),
-    //                         A, B);
-    // my_timer.stop();
-    // std::cout << "C := A+.*B                : " << my_timer.elapsed() << " usec, C.nvals = " << C.nvals() << std::endl;
 
     //===================
     // A*B

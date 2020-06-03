@@ -343,7 +343,6 @@ namespace GraphBLAS
                            ColSequenceT     const &col_indices,
                            OutputControlEnum       outp)
         {
-            using CScalarType = typename CMatrixT::ScalarType;
             using AScalarType = typename AMatrixT::ScalarType;
 
             // execution error checks
@@ -582,7 +581,7 @@ namespace GraphBLAS
                 decltype(accum(std::declval<CScalarType>(),
                                std::declval<ValueT>()))>;
 
-            LilSparseMatrix<CScalarType> Z(C.nrows(), C.ncols());
+            LilSparseMatrix<ZScalarType> Z(C.nrows(), C.ncols());
             ewise_or_stencil_opt_accum(Z, C, T,
                                        setupIndices(row_indices, C.nrows()),
                                        setupIndices(col_indices, C.ncols()),

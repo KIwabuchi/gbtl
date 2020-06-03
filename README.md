@@ -4,23 +4,32 @@
 
 * Complete, mathematically equivalent implementation of the GraphBLAS C API
 specification in C++ Version 1.3 (specification http://graphblas.org).
-* Graph algorithm library containing commonly used graph algorithms
-implemented with the GraphBLAS primitive operations.
+* Graph algorithm library containing examples of commonly used graph
+algorithms implemented with the GraphBLAS primitive operations.
 
 This is Version 3.0 of the C++ implementation and is mathematically
-equivalent to Version 1.3 of the GraphBLAS C API.  Unlike the first
-version (which predates the GraphBLAS C API Specification), this only
-contains the 'sequential' backend (in the platforms directory) written
-for a single CPU and is intended as a reference implementation
-only. Other backends are currently under development.
+equivalent to Version 1.3 of the GraphBLAS C API.  The API defined by
+GBTL v. 3.0 release is not backward compatible with GBTL v. 2.0.
+
+The file structure and build system support defining multiple
+different 'backend' implementations (platforms), but only one of these
+can be configured and compiled at a time.  However, if multiple
+different build directories are used (extending what is shown below),
+then each can configured for a different platform.
+
+This release contains the 'sequential' backend in the platforms
+directory that is written for a single CPU. It is intended as a
+reference implementation focusing on correctness, but contains some
+modest performance improvements over previous releases.  An
+experimental platform called 'optimized_sequential' is currently under
+development and is exploring more comprehensive performance
+improvements (currently only for the mxm operation).
 
 Support for GPUs that was in version 1.0 is currently not available
-but can be accessed using the git tag: 'Version1'). The API defined by
-GBTL v. 3.0 and later is not backward compatible with v. 2.0.
+but can be accessed using the git tag: '1.0.0').
 
-The implementation of the sequential backend is currently focused on
-correctness over performance.  The project also contains implementations of
-many common graph algorithms using the C++ API:
+The project also contains example implementations of many common graph
+algorithms using the C++ API:
 
 * Breadth-first traversal (aka BFS)
   * level BFS
@@ -54,47 +63,59 @@ many common graph algorithms using the C++ API:
   * radius, diameter
   * vertex eccentricity
 
+Work is underway to port some of the algorithms in LAGraph repository to GBTL.
+
 ## Prerequisites
 
-A detailed study of which C++ compilers are required has not been carried
-out.  Anecdotally, however, I use a g++ compiler capable of compiling C++17
-Standard code (i.e. g++-9).
+A detailed study of which C++ compilers are required has not been
+carried out.  The cmake build system is currently configured to
+require C++17 support.  I use a g++-9 compiler.
+
+Building the unit tests also requires the "Boost Test Library: The
+Unit Test Framework."
 
 ## Building
 
 This project is designed to use cmake to build and use an "out of
-source" style build to make it easy to clean up. We build in to a
-"build" directory in the top-level directory by following these steps:
+source" style build to make it easy to clean up. The tests and demos can be
+built in to a "build" directory in the top-level directory by following
+these steps:
 
+```
 $ mkdir build
 $ cd build
-$ cmake [-DPLATFORM=<backend>] ../src
+$ cmake [-DPLATFORM=<platform name>] [-DCMAKE_BUILD_TYPE={Release,Debug}] ../src
 $ make
+```
 
-The PLATFORM argument to cmake specifies which platform-specific source
-code (also referred to as the backend) should be configured for the build
-and the value must correspond to a subdirectory in
+The optional `PLATFORM` argument to `cmake` specifies which platform-specific
+source code (also referred to as the backend) should be configured for the
+build and the value must correspond to a subdirectory in
 "gbtl/src/graphblas/platforms/" and that subdirectory must have a
 "backend_include.hpp" file.  If this argument is omitted it defaults to
-configuring the "sequential" platform.
+configuring the "sequential" platform. The other platform currently available
+is "optimized_sequential" which is currently under development to improve the
+performance of various operations.
 
-Using "make -i -j8" tries to build every test (ignoring all erros) and
-uses all eight the CPU's cores to speed up the build (use a number
-appropriate for your system).
+The optional `CMAKE_BUILD_TYPE` argument to `cmake` can be used to build debug
+or release (using `-O3` compiler option) versions of the library. The default is
+`Debug`.
 
-There is a convenience script to do this from scratch called
-rebuild.sh that also removes all the old content from a previous use
-of clean_build.sh.
+The compiler used to build the library can be changed by
+specifying `-DCXX=<pathname_to_compiler>` on the cmake commandline as well.
+
+Once cmake is done building the Makefiles, options to make can be used.  For
+example, using "make -i -j8" tries to build every test (ignoring all errors)
+and uses 8 threads to speed up the build (use a number appropriate for the
+number of cores/hyperthreads on your system).
+
+There is a convenience script to do all of this from scratch called
+rebuild.sh that also removes all the old content from a previous build.
 
 For CLion support in the cmake project settings "Build, Execution,
 Deployment > CMake > Generation path:" set it to "../build" to use the
-same make files as that created by the clean build process so that
+same makefiles as that created by the clean build process so that
 there aren't two different build trees.
-
-There is also a script called "clean_cmake.sh" that removes all the
-files, if cmake is run in the src directory or in the root (gbtl)
-directory.
-
 
 ## Installation
 
@@ -108,8 +129,10 @@ a location in your include path.
 Documentation can be generated using the Doxygen documentation system.  To
 generate documentation run doxygen from the src directory:
 
+```
 $ cd src
 $ doxygen
+```
 
 All documentation is built in the 'docs' subdirectory.
 
@@ -143,11 +166,18 @@ Carnegie Mellon University, or Battelle Memorial Institute. The views
 and opinions of authors expressed herein do not necessarily state or
 reflect those of the United States Government or any agency thereof.
 
+DM20-0442
+
 Please see “AUTHORS” file for a list of known contributors.
 
 This release is an update of:
 
 1. GraphBLAS Template Library (GBTL)
-(https://github.com/cmu-sei/gbtl/blob/master/LICENSE) Copyright 2015
+(https://github.com/cmu-sei/gbtl/blob/1.0.0/LICENSE) Copyright 2015
 Carnegie Mellon University and The Trustees of Indiana. DM17-0037,
 DM-0002659
+
+2. GraphBLAS Template Library (GBTL)
+(https://github.com/cmu-sei/gbtl/blob/2.0.0/LICENSE) Copyright 2018
+Carnegie Mellon University, Battelle Memorial Institute, and Authors.
+DM18-0559

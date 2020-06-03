@@ -116,7 +116,7 @@ namespace
 //****************************************************************************
 int main(int argc, char **argv)
 {
-    typedef int T;
+    using T = int;
 
     // create an incidence matrix from the data
     IndexType num_edges = 0;
@@ -145,7 +145,6 @@ int main(int argc, char **argv)
     print_matrix(std::cout, E, "Incidence");
 
     std::cout << "Running k-truss algorithm..." << std::endl;
-    T count(0);
 
     auto Eout3 = algorithms::k_truss(E, 3);
     std::cout << "===============================================" << std::endl;

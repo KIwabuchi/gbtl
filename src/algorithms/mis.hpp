@@ -44,11 +44,10 @@ namespace
     class SetInvDegreeRandom
     {
     public:
-        typedef T result_type;
         SetInvDegreeRandom(double seed = 0.) { m_generator.seed(seed); }
 
         template <typename DegreeT>
-        __device__ __host__ inline result_type operator()(
+        __device__ __host__ inline T operator()(
             bool,   // candidate_flag,
             DegreeT degree)
         {
@@ -131,10 +130,9 @@ namespace algorithms
 
         //GraphBLAS::print_matrix(std::cout, graph, "Graph");
 
-        using T = typename MatrixT::ScalarType;
         using RealT = float;
-        typedef GraphBLAS::Vector<RealT> RealVector;
-        typedef GraphBLAS::Vector<bool> BoolVector;
+        using RealVector = GraphBLAS::Vector<RealT>;
+        using BoolVector = GraphBLAS::Vector<bool>;
 
         RealVector prob(num_vertices);
         RealVector neighbor_max(num_vertices);

@@ -346,20 +346,26 @@ namespace algorithms
     }
 
     //************************************************************************
-    std::default_random_engine             gen;
-    std::uniform_real_distribution<double> dist;
 
     // Return a random value that is scaled by the inverse of the degree.
+    /// @warning This operator has state.
     template <typename T=float>
     struct SetRandom
     {
-        typedef T result_type;
-        SetRandom() = default;
+    public:
+        SetRandom(double seed = 0.) { m_generator.seed(seed); }
 
         template <typename DegreeT>
-        inline T operator()(bool, DegreeT d) {
-            return static_cast<T>(0.0001 + dist (gen)/(1.+2.*d));
+        inline T operator()(bool,   // candidate_flag - ignored
+                            DegreeT degree)
+        {
+            return static_cast<T>(0.0001 +
+                                  m_distribution(m_generator)/(1. + 2.*degree));
         }
+
+    private:
+        std::default_random_engine             m_generator;
+        std::uniform_real_distribution<double> m_distribution;
     };
 
     /**
@@ -393,7 +399,6 @@ namespace algorithms
     void mis_appendixB6(GrB::Vector<bool> &iset, MatrixT const &A,
                         double seed = 0.)
     {
-        gen.seed(seed);
         GrB::IndexType n(A.nrows());
 
         GrB::Vector<float> prob(n);
@@ -412,10 +417,12 @@ namespace algorithms
         GrB::assign(iset, GrB::complement(degrees), GrB::NoAccumulate(),
                     true, GrB::AllIndices(), GrB::REPLACE);
 
+        SetRandom<float> set_random(seed);
+
         while (candidates.nvals() > 0) {
             // compute a random probability scaled by inverse of degree.
             GrB::eWiseMult(prob, GrB::NoMask(), GrB::NoAccumulate(),
-                           SetRandom<float>(), candidates, degrees);
+                           set_random, candidates, degrees);
 
             // find the max probability of all neighbors
             GrB::mxv(neighbor_max, candidates, GrB::NoAccumulate(),

@@ -32,7 +32,7 @@ template <class ClockT = std::chrono::system_clock,
 class Timer
 {
 public:
-    typedef std::chrono::time_point<ClockT> TimeType;
+    using TimeType = std::chrono::time_point<ClockT>;
 
     Timer() : start_time(), stop_time() {}
 

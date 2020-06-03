@@ -42,7 +42,7 @@ namespace GraphBLAS
     class MatrixStructuralComplementView
     {
     public:
-        typedef bool  ScalarType;
+        using ScalarType = bool;
 
         MatrixStructuralComplementView(MatrixT const &mat)
             : m_mat(mat)
@@ -91,7 +91,7 @@ namespace GraphBLAS
     class VectorStructuralComplementView
     {
     public:
-        typedef bool  ScalarType;
+        using ScalarType = bool;
 
         VectorStructuralComplementView(VectorT const &vec)
             : m_vec(vec)

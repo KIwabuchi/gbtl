@@ -1156,8 +1156,8 @@ namespace GraphBLAS
 
     //************************************************************************
     /**
-     * @brief  Return a view that complements the structure of a matrix.
-     * @param[in]  Mask  The matrix to complement
+     * @brief  Return a view that uses only the structure of a matrix mask.
+     * @param[in]  Mask  The matrix to take the structure of
      *
      */
     template<typename MatrixT,
@@ -1168,8 +1168,8 @@ namespace GraphBLAS
     }
 
     /**
-     * @brief  Return a view that uses only the structure of a matrix.
-     * @param[in]  Mask  The matrix to structure
+     * @brief  Return a view that complements a matrix mask.
+     * @param[in]  Mask  The matrix to complement
      *
      */
     template<typename MatrixT,
@@ -1180,8 +1180,8 @@ namespace GraphBLAS
     }
 
     /**
-     * @brief  Return a view that complements the structure of a matrix.
-     * @param[in]  Mask  The matrix to structure
+     * @brief  Return a view that complements the structure of a matrix mask.
+     * @param[in]  structure_view  The matrix structure view to complement
      *
      */
     template<class MatrixT,
@@ -1196,8 +1196,8 @@ namespace GraphBLAS
 
     //************************************************************************
     /**
-     * @brief  Return a view that complements the structure of a vector.
-     * @param[in]  Mask  The vector to complement
+     * @brief  Return a view that uses only the structure of a vector mask mask.
+     * @param[in]  mask  The vector to take the structure of
      *
      */
     template<class VectorT,
@@ -1208,8 +1208,8 @@ namespace GraphBLAS
     }
 
     /**
-     * @brief  Return a view that uses only the structure of a vector.
-     * @param[in]  Mask  The vector to structure
+     * @brief  Return a view that complements a vector mask.
+     * @param[in]  mask  The vector to take the complement of
      *
      */
     template<class VectorT,
@@ -1220,8 +1220,8 @@ namespace GraphBLAS
     }
 
     /**
-     * @brief  Return a view that complements the structure of a vector.
-     * @param[in]  Mask  The vector to structure
+     * @brief  Return a view that complements the structure of a vector mask.
+     * @param[in]  structure_view  The vector structure view to complement
      *
      */
     template<class VectorT,

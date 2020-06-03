@@ -40,8 +40,8 @@
 
 namespace GraphBLAS
 {
-    typedef uint64_t IndexType;
-    typedef std::vector<IndexType> IndexArrayType;
+    using IndexType = uint64_t;  /// @todo Consider template param for index type
+    using IndexArrayType = std::vector<IndexType>;
 
     //**************************************************************************
     // When an operation uses a mask this controls what happens to non-masked
@@ -66,12 +66,6 @@ namespace GraphBLAS
     class NoMask
     {
     public:
-        //typedef bool ScalarType;             // arbitrary type; not necessary
-        //typedef backend::NoMask BackendType; // not necessary
-
-        //backend::NoMask m_mat;  // @todo make const?
-        //backend::NoMask m_vec;
-
         friend std::ostream &operator<<(std::ostream             &os,
                                         NoMask          const    &mask)
         {
@@ -163,17 +157,17 @@ namespace GraphBLAS
 
 namespace std
 {
-    /// @TODO; It seems that unit tests can't find this!
-    inline std::ostream &
-    operator<<(std::ostream &os, const std::vector<long unsigned int> vec)
-    {
-        bool first = true;
-        for (auto it = vec.begin(); it != vec.end(); ++it)
-        {
-            os << (first ? "" : ",") << *it;
-            first = false;
-        }
-        return os;
-    }
+    /// @todo It seems that unit tests can't find this!
+    // inline std::ostream &
+    // operator<<(std::ostream &os, const std::vector<long unsigned int> vec)
+    // {
+    //     bool first = true;
+    //     for (auto it = vec.begin(); it != vec.end(); ++it)
+    //     {
+    //         os << (first ? "" : ",") << *it;
+    //         first = false;
+    //     }
+    //     return os;
+    // }
 
 } // namespace std

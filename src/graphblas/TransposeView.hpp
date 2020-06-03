@@ -45,7 +45,7 @@ namespace GraphBLAS
     class TransposeView
     {
     public:
-        typedef typename MatrixT::ScalarType ScalarType;
+        using ScalarType = typename MatrixT::ScalarType;
 
         TransposeView(MatrixT const &mat)
             : m_mat(mat)

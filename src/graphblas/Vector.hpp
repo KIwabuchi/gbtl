@@ -45,13 +45,15 @@ namespace GraphBLAS
     class Vector
     {
     public:
-        typedef ScalarT ScalarType;
-        typedef typename detail::vector_generator::result<
+        using ScalarType = ScalarT;
+        using BackendType = typename detail::vector_generator::result<
             ScalarT,
             detail::SparsenessCategoryTag,
             TagsT... ,
-            detail::NullTag >::type BackendType;
-        //typedef GraphBLAS::backend::Vector<ScalarT> BackendType;
+            detail::NullTag >::type;
+
+        // current equivalent:
+        //using BackendType = GraphBLAS::backend::Vector<ScalarT>;
 
         Vector() = delete;
 

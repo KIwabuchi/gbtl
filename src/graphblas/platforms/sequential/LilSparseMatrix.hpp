@@ -233,8 +233,6 @@ namespace GraphBLAS
                 // Need to do nothing if size stays the same or increases
                 if (new_num_cols < m_num_cols)
                 {
-                    IndexType new_nvals(0UL);
-
                     // Need to eliminate any entries beyond new limit
                     // when decreasing
                     for (auto &row : m_data)
@@ -474,6 +472,75 @@ namespace GraphBLAS
 
                 m_nvals = m_nvals + new_nvals - old_nvals;
                 m_data[row_index].swap(row_data); // = row_data;
+            }
+
+
+            // Allow casting. TODO Do we need one that does not need casting?
+            // mergeRow with no accumulator is same as setRow
+            template <typename OtherScalarT, typename AccumT>
+            void mergeRow(
+                IndexType row_index,
+                std::vector<std::tuple<IndexType, OtherScalarT> > &row_data,
+                NoAccumulate const &op)
+            {
+                setRow(row_index, row_data);
+            }
+
+
+            // Allow casting. TODO Do we need one that does not need casting?
+            template <typename OtherScalarT, typename AccumT>
+            void mergeRow(
+                IndexType row_index,
+                std::vector<std::tuple<IndexType, OtherScalarT> > &row_data,
+                AccumT const &op)
+            {
+                if (row_data.empty()) return;
+                if (m_data[row_index].empty())
+                {
+                    setRow(row_index, row_data);
+                    return;
+                }
+
+                std::vector<std::tuple<IndexType, ScalarT> > tmp;
+                auto l_it(m_data[row_index].begin());
+                auto r_it(row_data.begin());
+                while ((l_it != m_data[row_index].end()) &&
+                       (r_it != row_data.end()))
+                {
+                    IndexType li = std::get<0>(*l_it);
+                    IndexType ri = std::get<0>(*r_it);
+                    if (li < ri)
+                    {
+                        tmp.emplace_back(*l_it);
+                        ++l_it;
+                    }
+                    else if (ri < li)
+                    {
+                        tmp.emplace_back(
+                            ri, static_cast<ScalarT>(std::get<1>(*r_it)));
+                        ++r_it;
+                    }
+                    else
+                    {
+                        tmp.emplace_back(
+                            li, static_cast<ScalarT>(op(std::get<1>(*l_it),
+                                                        std::get<1>(*r_it))));
+                        ++l_it;
+                        ++r_it;
+                    }
+                }
+
+                while (l_it != m_data[row_index].end())
+                {
+                    tmp.emplace_back(*l_it);  ++l_it;
+                }
+
+                while (r_it != row_data.end())
+                {
+                    tmp.emplace_back(*r_it);  ++r_it;
+                }
+
+                setRow(row_index, tmp);
             }
 
             /// @deprecated Only needed for 4.3.7.3 assign: column variant"

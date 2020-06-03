@@ -139,8 +139,8 @@ namespace
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_test_basic_one_root_source_index)
 {
-    typedef double T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = double;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -176,8 +176,8 @@ BOOST_AUTO_TEST_CASE(bfs_test_basic_one_root_source_index)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_test_basic_one_root)
 {
-    typedef double T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = double;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -216,8 +216,8 @@ BOOST_AUTO_TEST_CASE(bfs_test_basic_one_root)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_batch_test_basic_one_root)
 {
-    typedef double T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = double;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -256,8 +256,8 @@ BOOST_AUTO_TEST_CASE(bfs_batch_test_basic_one_root)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_batch_test_basic_one_root_integer)
 {
-    typedef unsigned int T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = unsigned int;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -296,8 +296,8 @@ BOOST_AUTO_TEST_CASE(bfs_batch_test_basic_one_root_integer)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_batch_test_basic)
 {
-    typedef double T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = double;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
     GraphBLAS::IndexType const NUM_NODES(9);
 
     GraphBLAS::IndexArrayType i = {0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
@@ -347,8 +347,8 @@ BOOST_AUTO_TEST_CASE(bfs_batch_test_basic)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_batch_test_gilbert)
 {
-    typedef double T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = double;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(7);
 
@@ -396,8 +396,8 @@ BOOST_AUTO_TEST_CASE(bfs_batch_test_gilbert)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_level_test_one_root_source)
 {
-    typedef bool T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = bool;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -433,8 +433,8 @@ BOOST_AUTO_TEST_CASE(bfs_level_test_one_root_source)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_level_test_one_root)
 {
-    typedef double T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = double;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -473,8 +473,8 @@ BOOST_AUTO_TEST_CASE(bfs_level_test_one_root)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_level_test_one_root_integer)
 {
-    typedef unsigned int T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = unsigned int;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -512,9 +512,9 @@ BOOST_AUTO_TEST_CASE(bfs_level_test_one_root_integer)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_level_masked_test_one_root)
 {
-    typedef double T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
-    typedef GraphBLAS::Vector<T> GrBVector;
+    using T = double;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
+    using GrBVector = GraphBLAS::Vector<T>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -552,9 +552,9 @@ BOOST_AUTO_TEST_CASE(bfs_level_masked_test_one_root)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_level_masked_test_one_root_integer)
 {
-    typedef unsigned int T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
-    typedef GraphBLAS::Vector<T> GrBVector;
+    using T = unsigned int;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
+    using GrBVector = GraphBLAS::Vector<T>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -592,8 +592,8 @@ BOOST_AUTO_TEST_CASE(bfs_level_masked_test_one_root_integer)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(batch_bfs_level_masked_test_one_root)
 {
-    typedef double T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = double;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -631,8 +631,8 @@ BOOST_AUTO_TEST_CASE(batch_bfs_level_masked_test_one_root)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(batch_bfs_level_masked_test_one_root_integer)
 {
-    typedef unsigned int T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
+    using T = unsigned int;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -670,9 +670,9 @@ BOOST_AUTO_TEST_CASE(batch_bfs_level_masked_test_one_root_integer)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_level_masked_v2_test_one_root)
 {
-    typedef double T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
-    typedef GraphBLAS::Vector<T> GrBVector;
+    using T = double;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
+    using GrBVector = GraphBLAS::Vector<T>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);
@@ -710,9 +710,9 @@ BOOST_AUTO_TEST_CASE(bfs_level_masked_v2_test_one_root)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(bfs_level_masked_v2_test_one_root_integer)
 {
-    typedef unsigned int T;
-    typedef GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag> GrBMatrix;
-    typedef GraphBLAS::Vector<T> GrBVector;
+    using T = unsigned int;
+    using GrBMatrix = GraphBLAS::Matrix<T, GraphBLAS::DirectedMatrixTag>;
+    using GrBVector = GraphBLAS::Vector<T>;
 
     GraphBLAS::IndexType const NUM_NODES(9);
     GraphBLAS::IndexType const START_INDEX(5);

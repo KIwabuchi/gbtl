@@ -233,8 +233,6 @@ namespace GraphBLAS
                 // Need to do nothing if size stays the same or increases
                 if (new_num_cols < m_num_cols)
                 {
-                    IndexType new_nvals(0UL);
-
                     // Need to eliminate any entries beyond new limit
                     // when decreasing
                     for (auto &row : m_data)

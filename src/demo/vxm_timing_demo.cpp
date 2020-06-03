@@ -81,10 +81,10 @@ int main(int argc, char **argv)
 
     IndexType const NUM_NODES(read_edge_list(pathname, iA, jA));
 
-    typedef int32_t T;
-    typedef Matrix<T> MatType;
-    typedef Vector<T> VecType;
-    typedef Vector<bool> BoolVecType;
+    using T = int32_t;
+    using MatType = Matrix<T>;
+    using VecType = Vector<T>;
+    using BoolVecType = Vector<bool>;
     std::vector<T> v(iA.size(), 1);
     std::vector<bool> bv(iA.size(), true);
     MatType A(NUM_NODES, NUM_NODES);
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     std::cout << "u.nvals = " << u.nvals() << std::endl;
     T count(0);
 
-    Timer<std::chrono::system_clock, std::chrono::microseconds> my_timer;
+    Timer<std::chrono::steady_clock, std::chrono::microseconds> my_timer;
 
     // warm up
     vxm(w, NoMask(), NoAccumulate(), ArithmeticSemiring<double>(), u, A);

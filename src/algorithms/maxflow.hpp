@@ -83,7 +83,6 @@ static void relabel(MatrixT const &C,
 {
     using T = typename MatrixT::ScalarType;
     GraphBLAS::IndexType num_nodes(C.nrows());
-    GraphBLAS::IndexType cols(C.ncols());
 
     T min_height = std::numeric_limits<T>::max();
     for (GraphBLAS::IndexType v = 0; v < num_nodes; ++v)
@@ -108,7 +107,6 @@ static void discharge(MatrixT const &C,
                       GraphBLAS::IndexType u)
 {
     GraphBLAS::IndexType num_nodes(C.nrows());
-    GraphBLAS::IndexType cols(C.ncols());
 
     while (at(excess,u) > 0)
     {
@@ -316,7 +314,6 @@ namespace algorithms
     {
         using T = typename MatrixT::ScalarType;
         GraphBLAS::IndexType num_nodes(graph.nrows());
-        GraphBLAS::IndexType cols(graph.ncols());
 
         // assert num_nodes == cols
 

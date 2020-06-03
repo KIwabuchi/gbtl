@@ -69,7 +69,7 @@ namespace GraphBLAS
         {
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
-            IndexType ncol_A(A.ncols());
+            //IndexType ncol_A(A.ncols());
             IndexType nrow_B(B.nrows());
             IndexType ncol_B(B.ncols());
             //Frontend checks the dimensions, but use C explicitly
@@ -79,14 +79,12 @@ namespace GraphBLAS
             using AScalarType = typename AMatrixT::ScalarType;
             using BScalarType = typename BMatrixT::ScalarType;
             using CScalarType = typename CMatrixT::ScalarType;
-            using CColType = std::vector<std::tuple<IndexType,CScalarType> >;
 
             // =================================================================
             // Do the basic product work with the binaryop.
             using TScalarType = decltype(op(std::declval<AScalarType>(),
                                             std::declval<BScalarType>()));
             LilSparseMatrix<TScalarType> T(nrow_C, ncol_C);
-            using TRowType = typename LilSparseMatrix<TScalarType>::RowType;
 
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
@@ -158,7 +156,7 @@ namespace GraphBLAS
 
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
-            IndexType ncol_A(A.ncols());
+            //IndexType ncol_A(A.ncols());
             IndexType nrow_B(B.nrows());
             IndexType ncol_B(B.ncols());
             //Frontend checks the dimensions, but use C explicitly
@@ -168,14 +166,12 @@ namespace GraphBLAS
             using AScalarType = typename AMatrixT::ScalarType;
             using BScalarType = typename BMatrixT::ScalarType;
             using CScalarType = typename CMatrixT::ScalarType;
-            using CColType = std::vector<std::tuple<IndexType,CScalarType> >;
 
             // =================================================================
             // Do the basic product work with the binaryop.
             using TScalarType = decltype(op(std::declval<AScalarType>(),
                                             std::declval<BScalarType>()));
             LilSparseMatrix<TScalarType> T(nrow_C, ncol_C);
-            using TRowType = typename LilSparseMatrix<TScalarType>::RowType;
 
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
@@ -245,7 +241,7 @@ namespace GraphBLAS
 
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
-            IndexType ncol_A(A.ncols());
+            //IndexType ncol_A(A.ncols());
             IndexType nrow_B(B.nrows());
             IndexType ncol_B(B.ncols());
             //Frontend checks the dimensions, but use C explicitly
@@ -255,14 +251,12 @@ namespace GraphBLAS
             using AScalarType = typename AMatrixT::ScalarType;
             using BScalarType = typename BMatrixT::ScalarType;
             using CScalarType = typename CMatrixT::ScalarType;
-            using CColType = std::vector<std::tuple<IndexType,CScalarType> >;
 
             // =================================================================
             // Do the basic product work with the binaryop.
             using TScalarType = decltype(op(std::declval<AScalarType>(),
                                             std::declval<BScalarType>()));
             LilSparseMatrix<TScalarType> T(nrow_C, ncol_C);
-            using TRowType = typename LilSparseMatrix<TScalarType>::RowType;
 
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {
@@ -284,9 +278,6 @@ namespace GraphBLAS
                                 TScalarType T_val(op(val_A, val_B));
                                 IndexType T_row_idx(row_idxA*ncol_B + col_idxB);
                                 T[T_row_idx].emplace_back(T_col_idx, T_val);
-                                //std::cerr << "row,col,va = " << T_row_idx
-                                //          << "," << T_col_idx << ","
-                                //          << T_val << std::endl;
                             }
                         }
                     }
@@ -336,7 +327,7 @@ namespace GraphBLAS
 
             // Dimension checks happen in front end
             IndexType nrow_A(A.nrows());
-            IndexType ncol_A(A.ncols());
+            //IndexType ncol_A(A.ncols());
             IndexType nrow_B(B.nrows());
             IndexType ncol_B(B.ncols());
             //Frontend checks the dimensions, but use C explicitly
@@ -346,14 +337,12 @@ namespace GraphBLAS
             using AScalarType = typename AMatrixT::ScalarType;
             using BScalarType = typename BMatrixT::ScalarType;
             using CScalarType = typename CMatrixT::ScalarType;
-            using CColType = std::vector<std::tuple<IndexType,CScalarType> >;
 
             // =================================================================
             // Do the basic product work with the binaryop.
             using TScalarType = decltype(op(std::declval<AScalarType>(),
                                             std::declval<BScalarType>()));
             LilSparseMatrix<TScalarType> T(nrow_C, ncol_C);
-            using TRowType = typename LilSparseMatrix<TScalarType>::RowType;
 
             if ((A.nvals() > 0) && (B.nvals() > 0))
             {

@@ -85,8 +85,6 @@ namespace GraphBLAS
             {
                 GRB_LOG_VERBOSE("out_idx = " << out_idx);
                 IndexType wanted_idx = *col_it;
-                IndexType tmp_idx;
-                AScalarT tmp_value;
 
                 // Search through the outputs find one that matches.
                 auto A_it = vec_src.begin();
@@ -327,9 +325,6 @@ namespace GraphBLAS
             GRB_LOG_VERBOSE("w<m,z> := u(indices)");
             check_index_array_content(indices, u.size(),
                                       "extract(std vec): indices >= u.size");
-
-            using WScalarType = typename WVectorT::ScalarType;
-            using CColType = std::vector<std::tuple<IndexType,WScalarType> >;
 
             GRB_LOG_VERBOSE("u inside: " << u);
 

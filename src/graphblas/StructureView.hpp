@@ -42,7 +42,7 @@ namespace GraphBLAS
     class MatrixStructureView
     {
     public:
-        typedef bool  ScalarType;
+        using ScalarType = bool;
 
         MatrixStructureView(MatrixT const &mat)
             : m_mat(mat)
@@ -88,7 +88,7 @@ namespace GraphBLAS
     class VectorStructureView
     {
     public:
-        typedef bool    ScalarType;
+        using ScalarType = bool;
 
         VectorStructureView(VectorT const &vec)
             : m_vec(vec)

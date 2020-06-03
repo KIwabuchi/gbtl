@@ -96,15 +96,16 @@ BOOST_AUTO_TEST_CASE(maxflow_ford_fulk_test)
 //****************************************************************************
 BOOST_AUTO_TEST_CASE(maxflow_ford_fulk_test_counter_example)
 {
-    //       2  2
-    //      1--6--3
-    //  2  /     / \  10
-    //    /     /   \
-    //   0     /     5
-    //    \   / 9   /
-    //  9  \ /     /  2
-    //      2-----4
-    //         7
+    /*       2  2
+     *      1--6--3
+     *  2  /     / \  10
+     *    /     /                               \
+     *   0     /     5
+     *    \   / 9   /
+     *  9  \ /     /  2
+     *      2-----4
+     *         7
+     */
     IndexArrayType      i = {0, 0, 1, 2, 2, 3, 4, 6};
     IndexArrayType      j = {1, 2, 6, 3, 4, 5, 5, 3};
     std::vector<double> v = {2, 9, 2, 9, 7,10, 2, 2};

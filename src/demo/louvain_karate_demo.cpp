@@ -115,7 +115,7 @@ GraphBLAS::IndexArrayType j = {
 //****************************************************************************
 int main(int argc, char **argv)
 {
-    typedef GraphBLAS::Matrix<double> MatType;
+    using MatType = GraphBLAS::Matrix<double>;
     MatType A(NUM_NODES, NUM_NODES);
 
     // Read the edgelist and create the tuple arrays

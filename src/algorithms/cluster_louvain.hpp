@@ -41,14 +41,14 @@ namespace
 {
     //************************************************************************
     // Return a random value that is scaled by the value passed in
+    /// @warning this operator has state
     template <typename T=float>
     class SetRandom
     {
     public:
-        typedef T      result_type;
         SetRandom(double seed = 0.) { m_generator.seed(seed); }
 
-        inline result_type operator()(T val)
+        inline T operator()(T val)
         {
             return static_cast<T>(val*m_distribution(m_generator) + 0.0001);
         }
@@ -121,7 +121,6 @@ namespace algorithms
         unsigned int   max_iters = std::numeric_limits<unsigned int>::max())
     {
         using T = typename MatrixT::ScalarType;
-        using RealMatrixT = GraphBLAS::Matrix<RealT>;
         unsigned int iters = 0;
 
         GraphBLAS::IndexType rows(graph.nrows());
@@ -346,7 +345,6 @@ namespace algorithms
         unsigned int   max_iters = std::numeric_limits<unsigned int>::max())
     {
         using T = typename MatrixT::ScalarType;
-        using RealMatrixT = GraphBLAS::Matrix<RealT>;
         unsigned int iters = 0;
 
         GraphBLAS::IndexType rows(graph.nrows());

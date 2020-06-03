@@ -53,14 +53,14 @@ namespace GraphBLAS
     class Matrix
     {
     public:
-        typedef ScalarT     ScalarType;
-        typedef typename detail::matrix_generator::result<
+        using ScalarType = ScalarT;
+        using BackendType = typename detail::matrix_generator::result<
             ScalarT,
             detail::SparsenessCategoryTag,
             detail::DirectednessCategoryTag,
             TagsT... ,
             detail::NullTag,
-            detail::NullTag >::type BackendType;
+            detail::NullTag >::type;
 
         /**
          * @brief Construct an empty matrix with the specified shape.

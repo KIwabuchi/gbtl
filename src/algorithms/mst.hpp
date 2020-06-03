@@ -54,7 +54,6 @@ namespace algorithms
     template<typename D1, typename D2 = D1, typename D3 = D1>
     struct MSTPlus
     {
-        typedef D3 result_type;
         inline D3 operator()(D1 const &lhs, MSTType<D2> const &rhs)
         {
             return lhs + rhs.second;
@@ -65,7 +64,6 @@ namespace algorithms
     template<typename D1>
     struct MSTMin
     {
-        typedef MSTType<D1> result_type;
         inline MSTType<D1> operator()(MSTType<D1> const &lhs,
                                       MSTType<D1> const &rhs)
         {

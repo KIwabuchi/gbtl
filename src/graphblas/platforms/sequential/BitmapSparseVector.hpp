@@ -45,7 +45,7 @@ namespace GraphBLAS
         class BitmapSparseVector
         {
         public:
-            typedef ScalarT ScalarType;
+            using ScalarType = ScalarT;
 
             // Ambiguous with size constructor
             // template <typename OtherVectorT>
@@ -284,7 +284,7 @@ namespace GraphBLAS
             /**
              * @brief Resize the vector (smaller or larger)
              *
-             * @param[in]  nsize  New number of elements (zero is invalid)
+             * @param[in]  new_size  New number of elements (zero is invalid)
              *
              */
             void resize(IndexType new_size)

@@ -69,7 +69,7 @@ namespace GraphBLAS
         {
             GRB_LOG_VERBOSE("w<m,z> := u .+ v");
             // =================================================================
-            // Do the basic ewise-and work: t = u .+ v
+            // Do the basic ewise-or work: t = u .+ v
             using D3ScalarType =
                 decltype(op(std::declval<typename UVectorT::ScalarType>(),
                             std::declval<typename VVectorT::ScalarType>()));

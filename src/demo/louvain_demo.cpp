@@ -52,8 +52,8 @@ int main(int argc, char **argv)
     GraphBLAS::IndexArrayType iA;
     GraphBLAS::IndexArrayType jA;
     std::vector<double> weights;
-    int64_t num_rows = 0;
-    int64_t max_id = 0;
+    uint64_t num_rows = 0;
+    uint64_t max_id = 0;
     uint64_t src, dst, weight;
     while (infile)
     {
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 
     GraphBLAS::IndexType NUM_NODES(max_id + 1);
 
-    typedef GraphBLAS::Matrix<double> MatType;
+    using MatType = GraphBLAS::Matrix<double>;
 
     MatType A(NUM_NODES, NUM_NODES);
     A.build(iA.begin(), jA.begin(), weights.begin(), iA.size());

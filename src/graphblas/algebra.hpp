@@ -344,11 +344,6 @@ namespace GraphBLAS
 } // namespace GraphBLAS
 
 
-typedef GraphBLAS::LogicalOr<bool>    GrB_LOR;
-typedef GraphBLAS::LogicalAnd<bool>   GrB_LAND;
-typedef GraphBLAS::LogicalXor<bool>   GrB_LXOR;
-typedef GraphBLAS::LogicalXnor<bool>  GrB_LXNOR;
-
 //****************************************************************************
 // Monoids
 //****************************************************************************
@@ -371,7 +366,7 @@ typedef GraphBLAS::LogicalXnor<bool>  GrB_LXNOR;
     struct M_NAME                                               \
     {                                                           \
     public:                                                     \
-        typedef ScalarT result_type;                            \
+        using result_type = ScalarT;                            \
                                                                 \
         ScalarT identity() const                                \
         {                                                       \
@@ -408,7 +403,7 @@ namespace GraphBLAS
                     typename std::enable_if_t<std::is_integral_v<ScalarT> > >
     {
     public:
-        typedef ScalarT result_type;
+        using result_type = ScalarT;
 
         ScalarT identity() const
         {
@@ -427,7 +422,7 @@ namespace GraphBLAS
                     typename std::enable_if_t<std::is_floating_point_v<ScalarT> > >
     {
     public:
-        typedef ScalarT result_type;
+        using result_type = ScalarT;
 
         ScalarT identity() const
         {
@@ -455,7 +450,7 @@ namespace GraphBLAS
                     typename std::enable_if_t<std::is_integral_v<ScalarT> > >
     {
     public:
-        typedef ScalarT result_type;
+        using result_type = ScalarT;
 
         ScalarT identity() const
         {
@@ -474,7 +469,7 @@ namespace GraphBLAS
                     typename std::enable_if_t<std::is_floating_point_v<ScalarT> > >
     {
     public:
-        typedef ScalarT result_type;
+        using result_type = ScalarT;
 
         ScalarT identity() const
         {
@@ -505,9 +500,9 @@ namespace GraphBLAS
     class SRNAME                                                        \
     {                                                                   \
     public:                                                             \
-        typedef D1 first_argument_type;                                 \
-        typedef D2 second_argument_type;                                \
-        typedef D3 result_type;                                         \
+        using first_argument_type = D1;                                 \
+        using second_argument_type = D2;                                \
+        using result_type = D3;                                         \
                                                                         \
         D3 add(D3 a, D3 b) const                                        \
         { return ADD_MONOID<D3>()(a, b); }                              \
@@ -590,7 +585,7 @@ namespace GraphBLAS
     struct MultiplicativeOpFromSemiring
     {
     public:
-        //typedef typename SemiringT::result_type          result_type;
+        //using result_type = typename SemiringT::result_type;
 
         MultiplicativeOpFromSemiring() = delete;
         MultiplicativeOpFromSemiring(SemiringT const &sr) : sr(sr) {}
@@ -611,7 +606,7 @@ namespace GraphBLAS
     struct AdditiveMonoidFromSemiring
     {
     public:
-        //typedef typename SemiringT::result_type result_type;
+        //using result_type = typename SemiringT::result_type;
 
         AdditiveMonoidFromSemiring() = delete;
         AdditiveMonoidFromSemiring(SemiringT const &sr) : sr(sr) {}

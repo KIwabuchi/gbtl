@@ -45,10 +45,6 @@ namespace algorithms
     template<typename D1, typename D2 = D1, typename D3 = bool>
     struct EqualTest
     {
-        typedef D1 lhs_type;
-        typedef D2 rhs_type;
-        typedef D3 result_type;
-
         EqualTest(bool &difference_flag) : m_difference_flag(difference_flag)
         {
             m_difference_flag = false;
@@ -295,8 +291,6 @@ namespace algorithms
     template <typename ScalarT>
     struct SelectInRange
     {
-        typedef bool result_type;
-
         ScalarT const m_low, m_high;
 
         SelectInRange(ScalarT low, ScalarT high) : m_low(low), m_high(high) {}
