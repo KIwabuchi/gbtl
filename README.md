@@ -2,14 +2,17 @@
 
 ## Project Goals
 
-* Complete, mathematically equivalent implementation of the GraphBLAS C API
-specification in C++ Version 1.3 (specification http://graphblas.org).
+* Complete, mathematically equivalent implementation of the GraphBLAS
+C API Specification (current specification http://graphblas.org).
+* Use of modern, idiomatic C++ for the implementation and provide a
+testing ground for the GraphBLAS C++ API Specification development.
 * Graph algorithm library containing examples of commonly used graph
 algorithms implemented with the GraphBLAS primitive operations.
 
 This is Version 3.0 of the C++ implementation and is mathematically
 equivalent to Version 1.3 of the GraphBLAS C API.  The API defined by
-GBTL v. 3.0 release is not backward compatible with GBTL v. 2.0.
+this (v. 3.0) release is not backward compatible with GBTL v. 2.0. See
+the ChangeLog file for details.
 
 The project also contains example implementations of many common graph
 algorithms using the C++ API:
