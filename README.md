@@ -11,23 +11,6 @@ This is Version 3.0 of the C++ implementation and is mathematically
 equivalent to Version 1.3 of the GraphBLAS C API.  The API defined by
 GBTL v. 3.0 release is not backward compatible with GBTL v. 2.0.
 
-The file structure and build system support defining multiple
-different 'backend' implementations (platforms), but only one of these
-can be configured and compiled at a time.  However, if multiple
-different build directories are used (extending what is shown below),
-then each can configured for a different platform.
-
-This release contains the 'sequential' backend in the platforms
-directory that is written for a single CPU. It is intended as a
-reference implementation focusing on correctness, but contains some
-modest performance improvements over previous releases.  An
-experimental platform called 'optimized_sequential' is currently under
-development and is exploring more comprehensive performance
-improvements (currently only for the mxm operation).
-
-Support for GPUs that was in version 1.0 is currently not available
-but can be accessed using the git tag: '1.0.0').
-
 The project also contains example implementations of many common graph
 algorithms using the C++ API:
 
@@ -65,7 +48,28 @@ algorithms using the C++ API:
 
 Work is underway to port some of the algorithms in LAGraph repository to GBTL.
 
-## Prerequisites
+## Backend Implementations Available
+
+The file structure and build system support defining multiple
+different 'backend' implementations (platforms), but only one of these
+can be configured and compiled at a time.  However, if multiple
+different build directories are used (extending what is shown below),
+then each can configured for a different platform.
+
+This release contains the 'sequential' backend in the platforms
+directory that is written for a single CPU. It is intended as a
+reference implementation focusing on correctness, but contains some
+modest performance improvements over previous releases.  An
+experimental platform called 'optimized_sequential' is currently under
+development and is exploring more comprehensive performance
+improvements (currently only for the mxm operation).
+
+Support for GPUs that was in version 1.0 is currently not available
+but can be accessed using the git tag: '1.0.0').
+
+## Building
+
+### Prerequisites
 
 A detailed study of which C++ compilers are required has not been
 carried out.  The cmake build system is currently configured to
@@ -74,7 +78,7 @@ require C++17 support.  I use a g++-9 compiler.
 Building the unit tests also requires the "Boost Test Library: The
 Unit Test Framework."
 
-## Building
+### Compilation
 
 This project is designed to use cmake to build and use an "out of
 source" style build to make it easy to clean up. The tests and demos can be
@@ -117,14 +121,14 @@ Deployment > CMake > Generation path:" set it to "../build" to use the
 same makefiles as that created by the clean build process so that
 there aren't two different build trees.
 
-## Installation
+### Installation
 
 The current library is set up as a header only library.  To install this
 library, copy the graphblas directory, its subdirectories and the
 specific platform subdirectory (sans the platform's test directories) to
 a location in your include path.
 
-## Documentation
+### Documentation
 
 Documentation can be generated using the Doxygen documentation system.  To
 generate documentation run doxygen from the src directory:
