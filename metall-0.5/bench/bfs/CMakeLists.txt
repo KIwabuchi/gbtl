@@ -1,0 +1,11 @@
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+else()
+    MESSAGE(STATUS "OpenMP is not found. Use single thread in BFS")
+endif()
+
+add_executable(run_bfs_bench_metall run_bfs_bench_metall.cpp)
+add_executable(run_bfs_bench_metall_multiple run_bfs_bench_metall_multiple.cpp)
+add_executable(run_bfs_bench_bip run_bfs_bench_bip.cpp)
