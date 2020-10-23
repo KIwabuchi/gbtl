@@ -40,6 +40,7 @@
 #include <string>
 #include <graphblas/algebra.hpp>
 #include <graphblas/indices.hpp>
+#include <boost/container/vector.hpp>
 
 //****************************************************************************
 
@@ -202,10 +203,10 @@ namespace grb
 
         //************************************************************************
         /// A dot product of two sparse vectors (vectors<tuple(index,value)>)
-        template <typename D1, typename D2, typename D3, typename SemiringT>
+        template <typename D1, typename D2, typename D3, typename SemiringT, typename allocator_t>
         bool dot(D3                                                &ans,
-                 std::vector<std::tuple<grb::IndexType,D1> > const &vec1,
-                 std::vector<std::tuple<grb::IndexType,D2> > const &vec2,
+                 boost::container::vector<std::tuple<grb::IndexType,D1>, allocator_t > const &vec1,
+                 boost::container::vector<std::tuple<grb::IndexType,D2>, allocator_t > const &vec2,
                  SemiringT                                          op)
         {
             bool value_set(false);
@@ -307,10 +308,10 @@ namespace grb
         //************************************************************************
         /// A reduction of a sparse vector (vector<tuple(index,value)>) using a
         /// binary op or a monoid.
-        template <typename D1, typename D3, typename BinaryOpT>
+        template <typename D1, typename D3, typename BinaryOpT, typename allocator_t>
         bool reduction(
             D3                                                &ans,
-            std::vector<std::tuple<grb::IndexType,D1> > const &vec,
+            boost::container::vector<std::tuple<grb::IndexType,D1>, allocator_t > const &vec,
             BinaryOpT                                          op)
         {
             if (vec.empty())
@@ -799,14 +800,15 @@ namespace grb
          * @param outp     If REPLACE, we should always clear the values specified
          *                 by the mask regardless if they are overlayed.
          */
-        template < typename CScalarT,
-                   typename ZScalarT,
-                   typename MScalarT>
+        template < typename R1,
+                   typename R2,
+                   typename R3,
+                   typename R4>
         void apply_with_mask(
-            std::vector<std::tuple<IndexType, CScalarT> >          &result,
-            std::vector<std::tuple<IndexType, CScalarT> > const    &c_vec,
-            std::vector<std::tuple<IndexType, ZScalarT> > const    &z_vec,
-            std::vector<std::tuple<IndexType, MScalarT> > const    &mask_vec,
+            R1          &result,
+            R2 const    &c_vec,
+            R3 const    &z_vec,
+            R4 const    &mask_vec,
             OutputControlEnum                                       outp)
         {
             auto c_it = c_vec.begin();
@@ -848,7 +850,7 @@ namespace grb
                 {
                     // Now, at the mask point add the value from Z if we have one.
                     result.emplace_back(
-                        mask_idx, static_cast<CScalarT>(std::get<1>(*z_it)));
+                        mask_idx, static_cast<int>(std::get<1>(*z_it)));
                 }
 
                 // If there is a C here, skip it

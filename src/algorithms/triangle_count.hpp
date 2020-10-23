@@ -63,6 +63,31 @@ namespace algorithms
      *
      * @return The number of triangles in graph.
      */
+
+
+     //************************************************************************
+     /**
+      * @brief Compute the number of triangles in an undirected graph already
+      *        split using |L.*(L +.* L')|.
+      */
+     template<typename MatrixT>
+     typename MatrixT::ScalarType triangle_count_masked(MatrixT const &L)
+     {
+         using T = typename MatrixT::ScalarType;
+         grb::IndexType rows(L.nrows());
+         grb::IndexType cols(L.ncols());
+
+         MatrixT B(rows, cols);
+         grb::mxm(B, L, grb::NoAccumulate(),
+                  grb::ArithmeticSemiring<T>(), L, grb::transpose(L));
+
+         T sum = 0;
+         grb::reduce(sum, grb::NoAccumulate(), grb::PlusMonoid<T>(), B);
+         return sum;
+     }
+
+    /*
+
     template<typename MatrixT>
     typename MatrixT::ScalarType triangle_count(MatrixT const &graph)
     {
@@ -90,7 +115,7 @@ namespace algorithms
     /**
      * @brief Compute the number of triangles in an undirected graph already
      *        split using |L.*(L +.* U)|.
-     */
+     * /
     template<typename MatrixT>
     typename MatrixT::ScalarType triangle_count_masked(MatrixT const &L,
                                                        MatrixT const &U)
@@ -107,32 +132,12 @@ namespace algorithms
         return sum;
     }
 
-    //************************************************************************
-    /**
-     * @brief Compute the number of triangles in an undirected graph already
-     *        split using |L.*(L +.* L')|.
-     */
-    template<typename MatrixT>
-    typename MatrixT::ScalarType triangle_count_masked(MatrixT const &L)
-    {
-        using T = typename MatrixT::ScalarType;
-        grb::IndexType rows(L.nrows());
-        grb::IndexType cols(L.ncols());
-
-        MatrixT B(rows, cols);
-        grb::mxm(B, L, grb::NoAccumulate(),
-                 grb::ArithmeticSemiring<T>(), L, grb::transpose(L));
-
-        T sum = 0;
-        grb::reduce(sum, grb::NoAccumulate(), grb::PlusMonoid<T>(), B);
-        return sum;
-    }
 
     //************************************************************************
     /**
      * @brief Compute the number of triangles in an undirected graph already
      *        split using |L.*(L +.* L)|.
-     */
+     * /
     template<typename MatrixT>
     typename MatrixT::ScalarType triangle_count_masked_noT(MatrixT const &L)
     {
@@ -156,7 +161,7 @@ namespace algorithms
      *            CL  = (L .* B),
      *            CU  = (U .* B),
      *            sum = (|CU|+|CL|)/2
-     */
+     * /
     template<typename LMatrixT, typename MatrixT>
     typename MatrixT::ScalarType triangle_count_newGBTL(LMatrixT const &L,
                                                         MatrixT  const &U)
@@ -188,4 +193,7 @@ namespace algorithms
 
         return sum / static_cast<T>(2);
     }
+
+    */
+
 } // algorithms

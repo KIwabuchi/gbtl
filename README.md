@@ -6,10 +6,56 @@ Metall is a memory allocator for persistent memory. Version 0.5
 More Info at : https://github.com/LLNL/metall/releases/tag/v0.5
 
 GraphBlas Template Library is a modern idiomatic C++ reference implementation of the GraphBLAS C API Specification and has examples of commonly used graph algorithms implemented with the GraphBLAS primitive operations.
-More Info at: https://github.com/cmu-sei/gbtl
+More Info at: https://github.com/cmu-sei/gbtl. This repository uses the GBTL master branch.
+
+## Summary of the changes:
+
+#### 1. gbtl/src/graphblas/demo/triangle_count_demo.cpp
+
+The `grb::Matrix` type is now a metall matrix type (persistent type) with metall manager allocator.
+There are 2 scopes in the application program. 
+In the first scope, we create a metall manager and construct a metall matrix L. We then build the L matrix as usual. 
+In the second scope, we reattach to the previously created metall manager and call the algorithm on the metall matrix L.
+Here, only `algorithms::triangle_count_masked(*L)` is used. `(C<L> = L +.* L'; #=|C|)`
 
 
-This repository uses the GBTL master branch and has 4 major changes.
+#### 2. gbtl/src/algorithms/triangle_count.hpp
+
+No changes here. Just commented out all the other triangle counting algorithms except `|L.*(L +.* L')| triangle_count_masked(L)`. Note that, the temporary B matrix uses `MatrixT::ScalarType` (Non-persistent type) and not metall matrix (persistent type)
+
+
+#### 3. gbtl/src/graphblas/Matrix.hpp
+
+Removed all tags in frontend matrix class `matrix_generator BackendType` and  uses direct ` using BackendType = grb::backend::LilSparseMatrix<ScalarT, allocator_t>;`
+In the template parameters, we added `typename allocator_t = std::allocator<char>` as an additional argument to the matrix class. This allocator_t is passed down to all the constructors in this Matrix class and wherever template parameters are used.
+
+                
+#### 4. gbtl/src/graphblas/types.hpp
+
+Added a template parameter to the frontend Matrix class wrapper `typename Metall_Manager_Alloc_Type`
+
+
+#### 5. gbtl/src/graphblas/platforms/sequential/LilSparseMatrix.hpp
+
+Vector of vectors with scoped allocator adaptor is added here. In multi-level containers, you have to use scoped_allocator_adaptor in the most outer container (`outer_vector_type`) so that the inner containers (`RowType` or the inner vector) obtain their allocator arguments from the outer containers's scoped_allocator_adaptor. The `element type` is bound to std::allocator_traits.
+
+In the template parameters, we added an additional argument `typename allocator_t = std::allocator<char>` to the `LilSparseMatrix` class. This `allocator_t` is passed down to all the constructors in this `LilSparseMatrix` class and whereever template parameters are used. This allocator is assigned to `m_data`. 
+
+
+
+#### 6. gbtl/src/graphblas/platforms/sequential/sparse_helpers.hpp
+
+In the `dot` function, `reduction` function, and `apply_with_mask` function, We added a argument `typename allocator_t` in the template parameters and replaced `std::vector` with `boost::container::vector`.
+
+Hardcoded point fix at `apply_with_mask` function (should be replaced in future)
+    
+    result.emplace_back(mask_idx, static_cast<CScalarT>(std::get<1>(*z_it)));
+    result.emplace_back(mask_idx, static_cast<int>(std::get<1>(*z_it)));
+
+
+
+
+### Summary
 
 1. Removed all tags in frontend matrix class "matrix_generator" BackendType and  uses
       `BackendType = grb::backend::LilSparseMatrix<ScalarT>;`
@@ -94,3 +140,53 @@ This repository uses the GBTL master branch and has 4 major changes.
 ### To Run Just Metall:
 
     ./adjacency_list_graph.exe
+
+
+
+
+  
+
+## Results
+
+  
+
+Just using algorithms::triangle_count_masked(L)
+
+  
+
+### With default backend type
+
+    kaushik2@p8umbc2:~/gbtl$ g++-9 -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/sequential src/demo/triangle_count_demo.cpp -o gbtl_tc
+    kaushik2@p8umbc2:~/gbtl$ ./gbtl_tc src/demo/triangle_count_data_ca-HepTh.tsv
+    Elapsed read time: 24791 usec.
+    Read 51947 rows.
+    #Nodes = 9877
+    Elapsed sort/relabel time: 42535 usec.
+    0 <-- 86: deg = 65
+    1 <-- 15: deg = 60
+    ...
+    9874 <-- 4561: deg = 1
+    9875 <-- 9549: deg = 0
+    9876 <-- 9600: deg = 0
+    Running algorithm(s)...
+    # triangles (C<L> = L +.* L'; #=|C|) = 28339
+    Elapsed time: 8.47587e+07 usec.
+  
+
+### With Metall and GBTL
+
+    kaushik2@p8umbc2:~/Metallizing_GBTL$ g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/sequential -I./metall-0.5/include/ ./src/demo/triangle_count_demo.cpp -o gbtl_tc.exe -lstdc++fs 
+    kaushik2@p8umbc2:~/Metallizing_GBTL$ ./gbtl_tc.exe gbtl/src/demo/triangle_count_data_ca-HepTh.tsv
+    Elapsed read time: 24729 usec.
+    Read 51947 rows.
+    #Nodes = 9877
+    Elapsed sort/relabel time: 42643 usec.
+    0 <-- 86: deg = 65
+    1 <-- 15: deg = 60
+    2 <-- 54: deg = 59
+    ....
+    9875 <-- 9549: deg = 0
+    9876 <-- 9600: deg = 0
+    Running algorithm(s)...   
+    # triangles (C<L> = L +.* L'; #=|C|) = 28339
+    Elapsed time: 2.76846e+08 usec.
