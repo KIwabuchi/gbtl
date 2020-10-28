@@ -174,6 +174,7 @@ int main(int argc, char **argv)
 
         std::cout << "# triangles (C<L> = L +.* L'; #=|C|) = " << count << std::endl;
         std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
+        manager.destroy<Metall_MatType>("gbtl_vov_matrix"); // Destroy the object
     }
 
 /*
