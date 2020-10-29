@@ -174,8 +174,25 @@ int main(int argc, char **argv)
 
         std::cout << "# triangles (C<L> = L +.* L'; #=|C|) = " << count << std::endl;
         std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
+    }
+
+    {
+        metall::manager manager(metall::open_only, "/tmp/kaushik/datastore");
+        Metall_MatType *L = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
+
+        std::cout << "Running algorithm(s)..." << std::endl;
+        T count(0);
+
+        my_timer.start();
+        count = algorithms::triangle_count_masked_noT(*L);
+        my_timer.stop();
+
+        std::cout << "# triangles (C<L> = L +.* L; #=|C|) = " << count << std::endl;
+        std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
         manager.destroy<Metall_MatType>("gbtl_vov_matrix"); // Destroy the object
     }
+
+
 
 /*
     // Perform triangle counting with different algorithms

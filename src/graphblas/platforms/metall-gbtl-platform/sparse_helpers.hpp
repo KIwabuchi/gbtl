@@ -1372,15 +1372,15 @@ namespace grb
         /// vector<tuple<Index, value>>
         ///
         /// c += a_ik*b[:]
-        template<typename CScalarT,
-                 typename SemiringT,
-                 typename AScalarT,
-                 typename BScalarT>
+        template<typename R1,
+                 typename R2,
+                 typename R3,
+                 typename R4>
         void axpy(
-            std::vector<std::tuple<IndexType, CScalarT>>       &c,
-            SemiringT                                           semiring,
-            AScalarT                                            a,
-            std::vector<std::tuple<IndexType, BScalarT>> const &b)
+            R1 &c,
+            R2 semiring,
+            R3 a,
+            R4 const &b)
         {
             GRB_LOG_FN_BEGIN("axpy");
             auto c_it = c.begin();
@@ -1403,7 +1403,7 @@ namespace grb
                 {
                     GRB_LOG_VERBOSE("Inserting");
                     c_it = c.insert(c_it,
-                                    std::make_tuple(j, static_cast<CScalarT>(t_j)));
+                                    std::make_tuple(j, static_cast<int>(t_j)));
                     ++c_it;
                 }
             }
