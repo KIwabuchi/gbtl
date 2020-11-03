@@ -811,6 +811,7 @@ namespace grb
             R4 const    &mask_vec,
             OutputControlEnum                                       outp)
         {
+            using scType = std::tuple_element_t<1, typename R3::value_type>;
             auto c_it = c_vec.begin();
             auto z_it = z_vec.begin();
             auto mask_it = mask_vec.begin();
@@ -850,7 +851,7 @@ namespace grb
                 {
                     // Now, at the mask point add the value from Z if we have one.
                     result.emplace_back(
-                        mask_idx, static_cast<int>(std::get<1>(*z_it)));
+                        mask_idx, static_cast<scType>(std::get<1>(*z_it)));
                 }
 
                 // If there is a C here, skip it
@@ -1384,7 +1385,7 @@ namespace grb
         {
             GRB_LOG_FN_BEGIN("axpy");
             auto c_it = c.begin();
-
+            using scType = std::tuple_element_t<1, typename R1::value_type>;
             for (auto&& [j, b_j] : b)
             {
                 GRB_LOG_VERBOSE("j = " << j);
@@ -1403,7 +1404,7 @@ namespace grb
                 {
                     GRB_LOG_VERBOSE("Inserting");
                     c_it = c.insert(c_it,
-                                    std::make_tuple(j, static_cast<int>(t_j)));
+                                    std::make_tuple(j, static_cast<scType>(t_j)));
                     ++c_it;
                 }
             }
