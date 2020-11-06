@@ -1,0 +1,4 @@
+[submodule "metall"]
+	path = metall
+	url = https://github.com/LLNL/metall.git
+	branch = feature/fallback_allocator_adaptor
