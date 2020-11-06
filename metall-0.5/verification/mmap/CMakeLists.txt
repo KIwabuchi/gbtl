@@ -1,2 +1,0 @@
-add_executable(run_many_files_mmap_bench run_many_files_mmap_bench.cpp)
-add_executable(verify_mmap verify_mmap.cpp)
