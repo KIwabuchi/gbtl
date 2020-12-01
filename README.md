@@ -2,8 +2,8 @@
 
 The goal of this project is to prototype a persistent memory allocator for GBTL container.
 
-Metall is a memory allocator for persistent memory. Version 0.5
-More Info at : https://github.com/LLNL/metall/releases/tag/v0.5
+Metall is a memory allocator for persistent memory. Version 0.6
+More Info at : https://github.com/LLNL/metall/releases/tag/v0.6
 
 GraphBlas Template Library is a modern idiomatic C++ reference implementation of the GraphBLAS C API Specification and has examples of commonly used graph algorithms implemented with the GraphBLAS primitive operations.
 More Info at: https://github.com/cmu-sei/gbtl. This repository uses the GBTL master branch.
@@ -89,7 +89,7 @@ Hardcoded point fix at `apply_with_mask` function (should be replaced in future)
           -I./src/graphblas/detail                              # Include header files from gbtl detail dir
           -I./src                                               # Include header files from gbtl src dir
           -I./src/graphblas/platforms/metall-gbtl-platform      # Include header files from gbtl metall-gbtl-platform dir
-          -I./metall-0.5/include/                               # Include header files from metall include dir
+          -I./metall/include/                               # Include header files from metall include dir
           -I/path/to/boost/include                              # Include header files from boost include dir [mostly optional]
           -L/usr/lib/gcc/lib64                                  # Link with the gcc library directory [mostly optional]
           ./src/demo/triangle_count_demo.cpp                    # My cpp program
@@ -99,7 +99,7 @@ Hardcoded point fix at `apply_with_mask` function (should be replaced in future)
 
 
 
-          g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall-0.5/include/  ./src/demo/triangle_count_demo.cpp   -o  gbtl_tc.exe   -lstdc++fs   
+          g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall/include/  ./src/demo/triangle_count_demo.cpp   -o  gbtl_tc.exe   -lstdc++fs   
 
 ### To Run:
 
@@ -128,14 +128,14 @@ Hardcoded point fix at `apply_with_mask` function (should be replaced in future)
     g++ -std=c++17
         -I/path/to/boost/include
         -L/usr/lib/gcc/lib64
-        -I./metall-0.5/include/
-        ./metall-0.5/example/adjacency_list_graph.cpp
+        -I./metall/include/
+        ./metall/example/adjacency_list_graph.cpp
         -o
         adjacency_list_graph.exe  
         -lstdc++fs
 
 
-        g++ -std=c++17 -I./metall-0.5/include/ ./metall-0.5/example/adjacency_list_graph.cpp -o  adjacency_list_graph.exe -lstdc++fs
+        g++ -std=c++17 -I./metall/include/ ./metall/example/adjacency_list_graph.cpp -o  adjacency_list_graph.exe -lstdc++fs
 
 ### To Run Just Metall:
 
@@ -177,7 +177,7 @@ Just using algorithms::triangle_count_masked(L)
 
 ### With metall-gbtl-platform platform backend type
 
-    [velusamy@flash21:gbtl]$ g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall-0.5/include/  ./src/demo/triangle_count_demo.cpp   -o  gbtl_tc.exe   -lstdc++fs
+    [velusamy@flash21:gbtl]$ g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall/include/  ./src/demo/triangle_count_demo.cpp   -o  gbtl_tc.exe   -lstdc++fs
     [velusamy@flash21:gbtl]$ ./gbtl_tc.exe src/demo/triangle_count_data_ca-HepTh.tsv 
     Elapsed read time: 18941 usec.
     Read 51947 rows.
@@ -192,4 +192,10 @@ Just using algorithms::triangle_count_masked(L)
     Running algorithm(s)...
     # triangles (C<L> = L +.* L'; #=|C|) = 28339
     Elapsed time: 1.15253e+08 usec.
+    Running algorithm(s)...
+    # triangles (C<L> = L +.* L; #=|C|) = 28339
+    Elapsed time: 111927 usec.
+
+
+
 
