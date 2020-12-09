@@ -762,13 +762,13 @@ namespace grb
     }
 
     // 4.3.8.2: matrix variant
-    template<typename CScalarT,
+    template<typename PMatrixT,
              typename MaskT,
              typename AccumT,
              typename UnaryOpT,
              typename AMatrixT,
              typename ...CTagsT>
-    inline void apply(Matrix<CScalarT, CTagsT...> &C,
+    inline void apply(PMatrixT                       &C,
                       MaskT                 const &Mask,
                       AccumT                const &accum,
                       UnaryOpT                     op,
@@ -872,7 +872,7 @@ namespace grb
     }
 
     // 4.3.8.4: matrix binaryop variants
-    template<typename CScalarT,
+    template<typename PMatrixT,
              typename MaskT,
              typename AccumT,
              typename BinaryOpT,
@@ -880,7 +880,7 @@ namespace grb
              typename SecondT,
              typename ...CTagsT>
     inline void apply(
-        Matrix<CScalarT, CTagsT...> &C,
+        PMatrixT             &C,
         MaskT                 const &Mask,
         AccumT                const &accum,
         BinaryOpT                    op,

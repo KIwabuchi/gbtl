@@ -350,10 +350,10 @@ namespace grb
         ///
         /// @note ans must be a unique vector from either vec1 or vec2
         template <typename D1, typename D2, typename D3, typename BinaryOpT>
-        void ewise_or(std::vector<std::tuple<grb::IndexType,D3> >       &ans,
-                      std::vector<std::tuple<grb::IndexType,D1> > const &vec1,
-                      std::vector<std::tuple<grb::IndexType,D2> > const &vec2,
-                      BinaryOpT                                          op)
+        void ewise_or(D1       &ans,
+                      D2 const &vec1,
+                      D3 const &vec2,
+                      BinaryOpT op)
         {
             if (((void*)&ans == (void*)&vec1) || ((void*)&ans == (void*)&vec2))
             {
@@ -366,6 +366,7 @@ namespace grb
             // point to first entries of the vectors
             auto v1_it = vec1.begin();
             auto v2_it = vec2.begin();
+            using scType = std::tuple_element_t<1, typename D3::value_type>;
 
             // loop through both ordered sets to compute ewise_or
             while ((v1_it != vec1.end()) || (v2_it != vec2.end()))
@@ -380,32 +381,32 @@ namespace grb
                     if (v2_idx == v1_idx)
                     {
                         ans.emplace_back(v1_idx,
-                                         static_cast<D3>(op(v1_val, v2_val)));
+                                         static_cast<scType>(op(v1_val, v2_val)));
 
                         ++v2_it;
                         ++v1_it;
                     }
                     else if (v2_idx > v1_idx)
                     {
-                        ans.emplace_back(v1_idx, static_cast<D3>(v1_val));
+                        ans.emplace_back(v1_idx, static_cast<scType>(v1_val));
                         ++v1_it;
                     }
                     else
                     {
-                        ans.emplace_back(v2_idx, static_cast<D3>(v2_val));
+                        ans.emplace_back(v2_idx, static_cast<scType>(v2_val));
                         ++v2_it;
                     }
                 }
                 else if (v1_it != vec1.end())
                 {
                     ans.emplace_back(std::get<0>(*v1_it),
-                                     static_cast<D3>(std::get<1>(*v1_it)));
+                                     static_cast<scType>(std::get<1>(*v1_it)));
                     ++v1_it;
                 }
                 else // v2_it != vec2.end())
                 {
                     ans.emplace_back(std::get<0>(*v2_it),
-                                     static_cast<D3>(std::get<1>(*v2_it)));
+                                     static_cast<scType>(std::get<1>(*v2_it)));
                     ++v2_it;
                 }
             }
@@ -676,15 +677,15 @@ namespace grb
         }
 
         //**********************************************************************
-        template <typename ZScalarT,
-                  typename WVectorT,
-                  typename TScalarT,
-                  typename BinaryOpT>
+        template <typename R1,
+                  typename R2,
+                  typename R3,
+                  typename R4>
         void ewise_or_opt_accum_1D(
-            std::vector<std::tuple<grb::IndexType,ZScalarT>>       &z,
-            WVectorT const                                         &w,
-            std::vector<std::tuple<grb::IndexType,TScalarT>> const &t,
-            BinaryOpT                                               accum)
+            R1       &z,
+            R2 const &w,
+            R3 const &t,
+            R4 accum)
         {
             //z.clear();
             ewise_or(z, w.getContents(), t, accum);

@@ -97,14 +97,14 @@ namespace grb
 
         //**********************************************************************
         // Implementation of 4.3.8.2 Matrix variant of Apply: C<M,z> := op(A)
-        template<typename CScalarT,
+        template<typename PMatrixT,
                  typename MaskT,
                  typename AccumT,
                  typename UnaryOpT,
                  typename AMatrixT,
                  typename ...CTagsT>
         inline void apply(
-            grb::backend::Matrix<CScalarT, CTagsT...>       &C,
+            PMatrixT                                           &C,
             MaskT                                     const &Mask,
             AccumT                                    const &accum,
             UnaryOpT                                         op,
@@ -137,7 +137,7 @@ namespace grb
             using ZScalarType = std::conditional_t<
                 std::is_same_v<AccumT, NoAccumulate>,
                 TScalarType,
-                decltype(accum(std::declval<CScalarT>(),
+                decltype(accum(std::declval<grb::IndexType>(),
                                std::declval<TScalarType>()))>;
 
             LilSparseMatrix<ZScalarType> Z(nrows, ncols);
