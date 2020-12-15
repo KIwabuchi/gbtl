@@ -28,16 +28,9 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
-
-#define GRAPHBLAS_DEBUG 1
-
-#include <graphblas/graphblas.hpp>
-#include <algorithms/triangle_count.hpp>
 #include "Timer.hpp"
-
-
-#include <metall/metall.hpp>
-#include <metall_utility/fallback_allocator_adaptor.hpp>
+#include <graphblas/graphblas.hpp>
+#include <algorithms/sssp.hpp>
 
 
 //****************************************************************************
@@ -50,7 +43,7 @@ int main(int argc, char **argv)
     }
 
     // Read the edgelist and create the tuple arrays
-    std::string input_file(argv[1]);
+    std::string pathname(argv[1]);
 
 
     Timer<std::chrono::steady_clock, std::chrono::microseconds> my_timer;
@@ -63,7 +56,7 @@ int main(int argc, char **argv)
 
     my_timer.start();
     {
-        std::ifstream infile(input_file);
+        std::ifstream infile(pathname);
         while (infile)
         {
             infile >> src >> dst;
@@ -98,9 +91,10 @@ int main(int argc, char **argv)
     std::cout << "Read " << num_rows << " rows." << std::endl;
     std::cout << "#Nodes = " << (max_id + 1) << std::endl;
 
+    my_timer.start();
+
     // sort the
     using DegIdx = std::tuple<grb::IndexType,grb::IndexType>;
-    my_timer.start();
     std::vector<DegIdx> degrees(max_id + 1);
     for (grb::IndexType idx = 0; idx <= max_id; ++idx)
     {
@@ -108,7 +102,7 @@ int main(int argc, char **argv)
     }
 
     {
-        std::ifstream infile(input_file);
+        std::ifstream infile(pathname);
         while (infile)
         {
             infile >> src >> dst;
@@ -123,86 +117,40 @@ int main(int argc, char **argv)
               [](DegIdx a, DegIdx b) { return std::get<0>(b) < std::get<0>(a); });
 
     //relabel
-    for (auto &idx : iA) { idx = std::get<1>(degrees[idx]); }
-    for (auto &idx : jA) { idx = std::get<1>(degrees[idx]); }
+   
     for (auto &idx : iL) { idx = std::get<1>(degrees[idx]); }
     for (auto &idx : jL) { idx = std::get<1>(degrees[idx]); }
-    for (auto &idx : iU) { idx = std::get<1>(degrees[idx]); }
-    for (auto &idx : jU) { idx = std::get<1>(degrees[idx]); }
+    
 
-    my_timer.stop();
-    std::cout << "Elapsed sort/relabel time: " << my_timer.elapsed() << " usec." << std::endl;
 
-/*     grb::IndexType idx(0);
+    /*    grb::IndexType idx(0);
     for (auto&& row : degrees)
     {
         std::cout << idx << " <-- " << std::get<1>(row)
                   << ": deg = " << std::get<0>(row) << std::endl;
         idx++;
     } */
+    my_timer.stop();
+    std::cout << "Elapsed sort/relabel time: " << my_timer.elapsed() << " usec." << std::endl;
+
     my_timer.start();
-
-    using T = int32_t;
-    using allocator_t = metall::utility::fallback_allocator_adaptor<metall::manager::allocator_type<char>>;
-    using Metall_MatType = grb::Matrix<T, allocator_t>;
-    //using MatType = grb::Matrix<T, grb::DirectedMatrixTag>;
-
     grb::IndexType NUM_NODES(max_id + 1);
-    std::vector<T> v(iA.size(), 1);
+    std::vector<double> v(iA.size(), 1);
+    grb::Matrix<double> G_tn(NUM_NODES, NUM_NODES);
+    G_tn.build(iA.begin(), jA.begin(), v.begin(), iA.size());
 
-    {
-        metall::manager manager(metall::create_only, "/tmp/kaushik/datastore");
-        Metall_MatType *L = manager.construct<Metall_MatType>("gbtl_vov_matrix")
-                        ( NUM_NODES, NUM_NODES, manager.get_allocator());
-        L->build(iL.begin(), jL.begin(), v.begin(), iL.size());
-
-        //Metall_MatType A(NUM_NODES, NUM_NODES);
-        //Metall_MatType L(NUM_NODES, NUM_NODES);
-        //Metall_MatType U(NUM_NODES, NUM_NODES);
-        //A->build(iA.begin(), jA.begin(), v.begin(), iA.size());
-        //U->build(iU.begin(), jU.begin(), v.begin(), iU.size());
-    }
+    // compute one shortest paths
+    grb::Vector<double> path(NUM_NODES);
+    path.setElement(0, 0);
     my_timer.stop();
-    std::cout << "Graph Construction time: " << my_timer.elapsed() << " usec." << std::endl;  
-    
+    std::cout << "Graph Construction time: " << my_timer.elapsed() << " usec." << std::endl;
 
 
-/*
-    {
-        metall::manager manager(metall::open_only, "/tmp/kaushik/datastore");
-        Metall_MatType *L = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
-
-        std::cout << "Running algorithm(s)..." << std::endl;
-        T count(0);
-
-        my_timer.start();
-        count = algorithms::triangle_count_masked(*L);
-        my_timer.stop();
-
-        std::cout << "# triangles (C<L> = L +.* L'; #=|C|) = " << count << std::endl;
-        std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
-    }
-*/
     my_timer.start();
-
-    {
-        metall::manager manager(metall::open_only, "/tmp/kaushik/datastore");
-        Metall_MatType *L = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
-
-        std::cout << "Running algorithm(s)..." << std::endl;
-        T count(0);
-
-        my_timer.start();
-        count = algorithms::triangle_count_masked_noT(*L);
-        my_timer.stop();
-
-        std::cout << "# triangles (C<L> = L +.* L; #=|C|) = " << count << std::endl;
-        std::cout << "Elapsed time: " << my_timer.elapsed() << " usec." << std::endl;
-        manager.destroy<Metall_MatType>("gbtl_vov_matrix"); // Destroy the object
-    }
+    algorithms::sssp(G_tn, path);
+   // grb::print_vector(std::cout, path, "single SSSP results");
     my_timer.stop();
-    std::cout << "Algorithm time: " << my_timer.elapsed() << " usec." << std::endl;
-
+    std::cout << "algorithm time: " << my_timer.elapsed() << " usec." << std::endl;
 
     return 0;
 }

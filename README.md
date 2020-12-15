@@ -111,7 +111,7 @@ Hardcoded point fix at `apply_with_mask` function (should be replaced in future)
     g++ -std=gnu++1z
           -I./src/graphblas/detail
           -I./src
-          -I./src/graphblas/platforms/sequential-platform
+          -I./src/graphblas/platforms/sequential
           src/demo/triangle_count_demo.cpp
           -o
           gbtl_tc

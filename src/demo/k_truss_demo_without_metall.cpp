@@ -27,38 +27,50 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 #include <chrono>
 #include "Timer.hpp"
-
 #include <graphblas/graphblas.hpp>
-#include <algorithms/bfs.hpp>
+#include <algorithms/k_truss.hpp>
 
-#include <metall/metall.hpp>
-#include <metall_utility/fallback_allocator_adaptor.hpp>
+using namespace grb;
+
+//****************************************************************************
+namespace
+{
+    IndexArrayType i = {
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33};
+
+    IndexArrayType j = {
+        1,2,3,4,5,6,7,8,10,11,12,13,17,19,21,31,     
+        8,9,13,14,15,18,19,20,22,23,26,27,28,29,30,31,32};
+}
 
 //****************************************************************************
 int main(int argc, char **argv)
 {
-    if (argc < 2)
+ if (argc < 2)
     {
         std::cerr << "ERROR: too few arguments." << std::endl;
         exit(1);
     }
 
     // Read the edgelist and create the tuple arrays
-    std::string input_file(argv[1]);
+    std::string pathname(argv[1]);
+
 
     Timer<std::chrono::steady_clock, std::chrono::microseconds> my_timer;
-
     grb::IndexArrayType iL, iU, iA;
     grb::IndexArrayType jL, jU, jA;
+
     uint64_t num_rows = 0;
     uint64_t max_id = 0;
     uint64_t src, dst;
 
     my_timer.start();
     {
-        std::ifstream infile(input_file);
+        std::ifstream infile(pathname);
         while (infile)
         {
             infile >> src >> dst;
@@ -95,80 +107,45 @@ int main(int argc, char **argv)
 
     my_timer.start();
 
-    // sort the
-    using DegIdx = std::tuple<grb::IndexType,grb::IndexType>;
-    std::vector<DegIdx> degrees(max_id + 1);
-    for (grb::IndexType idx = 0; idx <= max_id; ++idx)
-    {
-        degrees[idx] = {0UL, idx};
-    }
+    using T = int;
 
+    // create an incidence matrix from the data
+    IndexType num_edges = 0;
+    IndexType num_nodes = 0;
+    IndexArrayType edge_array, node_array;
+    // count edges in upper triangle of A
+    for (IndexType ix = 0; ix < iA.size(); ++ix)
     {
-        std::ifstream infile(input_file);
-        while (infile)
+        if (i[ix] < j[ix])
         {
-            infile >> src >> dst;
-            if (src != dst)
-            {
-                std::get<0>(degrees[src]) += 1;
-            }
+            edge_array.push_back(num_edges);
+            node_array.push_back(iA[ix]);
+            edge_array.push_back(num_edges);
+            node_array.push_back(jA[ix]);
+            ++num_edges;
+
+            num_nodes = std::max(num_nodes, iA[ix]);
+            num_nodes = std::max(num_nodes, jA[ix]);
         }
     }
+    ++num_nodes;
+    std::vector<T> v(edge_array.size(), 1);
 
-    std::sort(degrees.begin(), degrees.end(),
-              [](DegIdx a, DegIdx b) { return std::get<0>(b) < std::get<0>(a); });
-
-    //relabel
-   
-    for (auto &idx : iL) { idx = std::get<1>(degrees[idx]); }
-    for (auto &idx : jL) { idx = std::get<1>(degrees[idx]); }
+    Matrix<T> E(num_edges, num_nodes);
+    E.build(edge_array.begin(), node_array.begin(), v.begin(), v.size());
     
-
-
-    /*    grb::IndexType idx(0);
-    for (auto&& row : degrees)
-    {
-        std::cout << idx << " <-- " << std::get<1>(row)
-                  << ": deg = " << std::get<0>(row) << std::endl;
-        idx++;
-    } */
     my_timer.stop();
-    std::cout << "Elapsed sort/relabel time: " << my_timer.elapsed() << " usec." << std::endl;
+    std::cout << "Graph Construction time: " << my_timer.elapsed() << " usec." << std::endl;
+ 
+
+    std::cout << "Running k-truss algorithm..." << std::endl;
+
     my_timer.start();
 
-    grb::IndexType NUM_NODES(max_id + 1);
-    using T = grb::IndexType;
-    std::vector<T> v(iA.size(), 1);
-
-    /// @todo change scalar type to unsigned int or grb::IndexType
-
-    using allocator_t = metall::utility::fallback_allocator_adaptor<metall::manager::allocator_type<char>>;
-    using Metall_GBMatrix = grb::Matrix<T, allocator_t>;
-    {
-        metall::manager manager(metall::create_only, "/tmp/kaushik/datastore");
-        Metall_GBMatrix *G_tn = manager.construct<Metall_GBMatrix>("gbtl_vov_matrix")
-                        ( NUM_NODES, NUM_NODES, manager.get_allocator());
-        G_tn->build(iA.begin(), jA.begin(), v.begin(), iA.size());
-        //grb::print_matrix(std::cout, *G_tn, "Graph adjacency matrix:"); 
-    }
-
+    auto Eout3 = algorithms::k_truss(E, 3); 
     my_timer.stop();
-    std::cout << "Graph Construction time: " << my_timer.elapsed() << " usec." << std::endl;  
-    my_timer.start();
+    std::cout << "algorithms Edges in 3-trusses: " << my_timer.elapsed() << " usec." << std::endl;
 
-    {
-        metall::manager manager(metall::open_only, "/tmp/kaushik/datastore");
-        Metall_GBMatrix *G_tn = manager.find<Metall_GBMatrix>("gbtl_vov_matrix").first;
-        grb::Vector<T> parent_list(NUM_NODES);
-        grb::Vector<T> root(NUM_NODES);
-        root.setElement(iA.front(), jA.front());
-        // Perform a single BFS
-        algorithms::bfs(*G_tn, root, parent_list);
-        //grb::print_vector(std::cout, parent_list, "Parent list for root at vertex 3");
-    }
-
-    my_timer.stop();
-    std::cout << "Algorithm time: " << my_timer.elapsed() << " usec." << std::endl;
-
+       
     return 0;
 }
