@@ -133,7 +133,7 @@ int main(int argc, char **argv)
     //================= Graph Construction in Metall Scope ========================
 
     {
-        metall::manager manager(metall::create_only, "/tmp/kaushik/datastore");
+        metall::manager manager(metall::create_only, "/mnt/pmem/pm0/k1-datastore");
         Metall_MatType *A = manager.construct<Metall_MatType>("gbtl_vov_matrix")
                         ( NUM_NODES, NUM_NODES, manager.get_allocator());
         A->build(iA.begin(), jA.begin(), v.begin(), iA.size());
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 
     my_timer.start();
     {
-        metall::manager manager(metall::open_only, "/tmp/kaushik/datastore");
+        metall::manager manager(metall::open_only, "/mnt/pmem/pm0/k1-datastore");
         Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
         T count(0);
         count = algorithms::triangle_count_masked_noT(*A);
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
     //================= single BFS in Metall Scope ================================
     my_timer.start();
     {
-        metall::manager manager(metall::open_only, "/tmp/kaushik/datastore");
+        metall::manager manager(metall::open_only, "/mnt/pmem/pm0/k1-datastore");
         Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
         grb::Vector<T> parent_list(NUM_NODES);
         grb::Vector<T> root(NUM_NODES);
@@ -171,6 +171,5 @@ int main(int argc, char **argv)
                 << " usec." << std::endl;
 
     
-
     return 0;
 }
