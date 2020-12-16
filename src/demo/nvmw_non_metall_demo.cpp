@@ -157,13 +157,13 @@ int main(int argc, char **argv)
     // grb::print_vector(std::cout, path, "single SSSP results");
     my_timer.stop();
     std::cout << "SSSP algorithm time: \t\t" << my_timer.elapsed() << " usec." << std::endl;
-*/
     //=========================2-K-truss================================
     my_timer.start();
     auto Eout2 = algorithms::k_truss(A, 2); 
     my_timer.stop();
     std::cout << "2-trusses algorithm time: \t" << my_timer.elapsed() << " usec." << std::endl;
 
+*/
 
 
     return 0;
