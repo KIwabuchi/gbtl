@@ -164,7 +164,6 @@ int main(int argc, char **argv)
         root.setElement(iA.front(), jA.front());
         algorithms::bfs(*A, root, parent_list);
         //grb::print_vector(std::cout, parent_list, "Parent list for root at vertex 3");
-        manager.destroy<Metall_MatType>("gbtl_vov_matrix"); // Destroy the object
     }
     my_timer.stop();
     std::cout << "BFS Algorithm time: \t\t" << my_timer.elapsed() 
