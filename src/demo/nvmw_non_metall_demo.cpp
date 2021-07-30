@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     // Read the edgelist and create the tuple arrays
     std::string pathname(argv[1]);
 
-    Timer<std::chrono::steady_clock, std::chrono::microseconds> my_timer;
+    Timer<std::chrono::steady_clock, std::chrono::milliseconds> my_timer;
 
     grb::IndexArrayType iL, iU, iA;
     grb::IndexArrayType jL, jU, jA;
@@ -129,15 +129,7 @@ int main(int argc, char **argv)
     A.build(iA.begin(), jA.begin(), v.begin(), iA.size());
 
     my_timer.stop();
-    std::cout << "Graph Construction time: \t" << my_timer.elapsed() << " usec." << std::endl;
-
-    //=========================Triangle Counting================================
-     T count(0);
-    my_timer.start();
-    count = algorithms::triangle_count(A);
-    my_timer.stop();
-    std::cout << "TC Algorithm time: \t\t" << my_timer.elapsed() 
-                << " usec. Triangles=" << count << std::endl;
+    std::cout << "Graph Construction time: \t" << my_timer.elapsed() << " milli seconds." << std::endl;
 
     //=========================single BFS================================
     my_timer.start();
@@ -147,23 +139,15 @@ int main(int argc, char **argv)
     algorithms::bfs(A, root, parent_list);
     //grb::print_vector(std::cout, parent_list, "Parent list for root at vertex 3");
     my_timer.stop();
-    std::cout << "BFS Algorithm time: \t\t" << my_timer.elapsed() << " usec." << std::endl;
+    std::cout << "BFS Algorithm time: \t\t" << my_timer.elapsed() << "  milli seconds." << std::endl;
 
-/*    //=========================one SSSP================================
+    //=========================Triangle Counting================================
+     T count(0);
     my_timer.start();
-    grb::Vector<double> path(NUM_NODES);
-    path.setElement(iA.front(), jA.front());
-    algorithms::sssp(A, path);
-    // grb::print_vector(std::cout, path, "single SSSP results");
+    count = algorithms::triangle_count(A);
     my_timer.stop();
-    std::cout << "SSSP algorithm time: \t\t" << my_timer.elapsed() << " usec." << std::endl;
-    //=========================2-K-truss================================
-    my_timer.start();
-    auto Eout2 = algorithms::k_truss(A, 2); 
-    my_timer.stop();
-    std::cout << "2-trusses algorithm time: \t" << my_timer.elapsed() << " usec." << std::endl;
-
-*/
+    std::cout << "TC Algorithm time: \t\t" << my_timer.elapsed() 
+                << " milli seconds. Triangles=" << count << std::endl;
 
 
     return 0;
