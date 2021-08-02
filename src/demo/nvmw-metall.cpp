@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     // Read the edgelist and create the tuple arrays
     std::string pathname(argv[1]);
 
-    Timer<std::chrono::steady_clock, std::chrono::microseconds> my_timer;
+    Timer<std::chrono::steady_clock, std::chrono::milliseconds> my_timer;
 
     grb::IndexArrayType iL, iU, iA;
     grb::IndexArrayType jL, jU, jA;
@@ -133,31 +133,32 @@ int main(int argc, char **argv)
     //================= Graph Construction in Metall Scope ========================
 
     {
-        metall::manager manager(metall::create_only, "/mnt/pmem/pm0/k1-datastore");
+        metall::manager manager(metall::create_only, "/mnt/pmem/pm0/datastore");
         Metall_MatType *A = manager.construct<Metall_MatType>("gbtl_vov_matrix")
                         ( NUM_NODES, NUM_NODES, manager.get_allocator());
         A->build(iA.begin(), jA.begin(), v.begin(), iA.size());
     }
     my_timer.stop();
     std::cout << "Graph Construction time: \t" << my_timer.elapsed() 
-                << " usec." << std::endl;  
+                << " milli seconds." << std::endl;  
     
-     //================= Triangle Counting in Metall Scope =========================
+
+    //================= Triangle Counting in Metall Scope =========================
 
     my_timer.start();
     {
-        metall::manager manager(metall::open_only, "/mnt/pmem/pm0/k1-datastore");
+        metall::manager manager(metall::open_only, "/mnt/pmem/pm0/datastore");
         Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
         T count(0);
         count = algorithms::triangle_count_masked_noT(*A);
     }
     my_timer.stop();
-    std::cout << "TC Algorithm time: \t\t" << my_timer.elapsed() << " usec." << std::endl;
+    std::cout << "TC Algorithm time: \t\t" << my_timer.elapsed() << " milli seconds." << std::endl;
 
     //================= single BFS in Metall Scope ================================
     my_timer.start();
     {
-        metall::manager manager(metall::open_only, "/mnt/pmem/pm0/k1-datastore");
+        metall::manager manager(metall::open_only, "/mnt/pmem/pm0/datastore");
         Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
         grb::Vector<T> parent_list(NUM_NODES);
         grb::Vector<T> root(NUM_NODES);
@@ -169,6 +170,9 @@ int main(int argc, char **argv)
     std::cout << "BFS Algorithm time: \t\t" << my_timer.elapsed() 
                 << " usec." << std::endl;
 
-    
+
+
     return 0;
+
+
 }
