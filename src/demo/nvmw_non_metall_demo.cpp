@@ -144,7 +144,7 @@ int main(int argc, char **argv)
     //=========================Triangle Counting================================
      T count(0);
     my_timer.start();
-    count = algorithms::triangle_count(A);
+    count = algorithms::triangle_count_masked_noT(A);
     my_timer.stop();
     std::cout << "TC Algorithm time: \t\t" << my_timer.elapsed() 
                 << " milli seconds. Triangles=" << count << std::endl;
