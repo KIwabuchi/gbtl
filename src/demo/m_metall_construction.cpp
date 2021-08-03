@@ -1,30 +1,3 @@
-/*
- * GraphBLAS Template Library (GBTL), Version 3.0
- *
- * Copyright 2020 Carnegie Mellon University, Battelle Memorial Institute, and
- * Authors.
- *
- * THIS MATERIAL WAS PREPARED AS AN ACCOUNT OF WORK SPONSORED BY AN AGENCY OF
- * THE UNITED STATES GOVERNMENT.  NEITHER THE UNITED STATES GOVERNMENT NOR THE
- * UNITED STATES DEPARTMENT OF ENERGY, NOR THE UNITED STATES DEPARTMENT OF
- * DEFENSE, NOR CARNEGIE MELLON UNIVERSITY, NOR BATTELLE, NOR ANY OF THEIR
- * EMPLOYEES, NOR ANY JURISDICTION OR ORGANIZATION THAT HAS COOPERATED IN THE
- * DEVELOPMENT OF THESE MATERIALS, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR
- * ASSUMES ANY LEGAL LIABILITY OR RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
- * OR USEFULNESS OR ANY INFORMATION, APPARATUS, PRODUCT, SOFTWARE, OR PROCESS
- * DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED
- * RIGHTS.
- *
- * Released under a BSD-style license, please see LICENSE file or contact
- * permission@sei.cmu.edu for full terms.
- *
- * [DISTRIBUTION STATEMENT A] This material has been approved for public release
- * and unlimited distribution.  Please see Copyright notice for non-US
- * Government use and distribution.
- *
- * DM20-0442
- */
-
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -130,10 +103,15 @@ int main(int argc, char **argv)
     grb::IndexType NUM_NODES(max_id + 1);
     std::vector<T> v(iA.size(), 1);
 
+    std::cout <<  "NUM_NODES :"  <<  NUM_NODES  << std::endl;  
+    std::cout <<  "iA.front() :" <<  iA.front() << std::endl; 
+    std::cout <<  "jA.front() :" <<  jA.front() << std::endl;
+
+
     //================= Graph Construction in Metall Scope ========================
 
     {
-        metall::manager manager(metall::create_only, "/dev/shm/datastore");
+        metall::manager manager(metall::create_only, "/mnt/ssd/datastore");
         Metall_MatType *A = manager.construct<Metall_MatType>("gbtl_vov_matrix")
                         ( NUM_NODES, NUM_NODES, manager.get_allocator());
         A->build(iA.begin(), jA.begin(), v.begin(), iA.size());
@@ -142,37 +120,5 @@ int main(int argc, char **argv)
     std::cout << "Graph Construction time: \t" << my_timer.elapsed() 
                 << " milli seconds." << std::endl;  
     
-
-    //================= Triangle Counting in Metall Scope =========================
-
-    my_timer.start();
-    {
-        metall::manager manager(metall::open_only, "/dev/shm/datastore");
-        Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
-        T count(0);
-        count = algorithms::triangle_count_masked_noT(*A);
-    }
-    my_timer.stop();
-    std::cout << "TC Algorithm time: \t\t" << my_timer.elapsed() << " milli seconds." << std::endl;
-
-    //================= single BFS in Metall Scope ================================
-    my_timer.start();
-    {
-        metall::manager manager(metall::open_only, "/dev/shm/datastore");
-        Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
-        grb::Vector<T> parent_list(NUM_NODES);
-        grb::Vector<T> root(NUM_NODES);
-        root.setElement(iA.front(), jA.front());
-        algorithms::bfs(*A, root, parent_list);
-        //grb::print_vector(std::cout, parent_list, "Parent list for root at vertex 3");
-    }
-    my_timer.stop();
-    std::cout << "BFS Algorithm time: \t\t" << my_timer.elapsed() 
-                << " milli seconds." << std::endl;
-
-
-
     return 0;
-
-
 }
