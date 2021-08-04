@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 
     {
         my_timer.start();
-        metall::manager manager(metall::open_only, "/mnt/ssd/datastore");
+        metall::manager manager(metall::open_read_only, "/mnt/ssd/datastore");
         Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
         my_timer.stop();
         std::cout << "TC re-attach time: \t\t" << my_timer.elapsed() 

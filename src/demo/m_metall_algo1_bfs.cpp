@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     //================= single BFS in Metall Scope ================================
     {
         my_timer.start();
-        metall::manager manager(metall::open_only, "/mnt/ssd/datastore");
+        metall::manager manager(metall::open_read_only, "/mnt/ssd/datastore");
         Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
         my_timer.stop();
         std::cout << "BFS re-attach time: \t\t" << my_timer.elapsed() 
