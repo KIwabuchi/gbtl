@@ -4,14 +4,9 @@
 #include "Timer.hpp"
 
 #include <graphblas/graphblas.hpp>
-#include <algorithms/triangle_count.hpp>
-#include <algorithms/sssp.hpp>
-#include <algorithms/bfs.hpp>
-#include <algorithms/cluster_louvain.hpp>
-#include <algorithms/k_truss.hpp>
 
 #include <metall/metall.hpp>
-#include <metall_utility/fallback_allocator_adaptor.hpp>
+#include <metall/utility/fallback_allocator_adaptor.hpp>
 
 //****************************************************************************
 int main(int argc, char **argv)
@@ -111,7 +106,7 @@ int main(int argc, char **argv)
     //================= Graph Construction in Metall Scope ========================
 
     {
-        metall::manager manager(metall::create_only, "/mnt/ssd/datastore");
+        metall::manager manager(metall::create_only, "/dev/shm/datastore");
         Metall_MatType *A = manager.construct<Metall_MatType>("gbtl_vov_matrix")
                         ( NUM_NODES, NUM_NODES, manager.get_allocator());
         A->build(iA.begin(), jA.begin(), v.begin(), iA.size());

@@ -308,16 +308,18 @@ namespace grb
         //************************************************************************
         /// A reduction of a sparse vector (vector<tuple(index,value)>) using a
         /// binary op or a monoid.
-        template <typename D1, typename D3, typename BinaryOpT, typename allocator_t>
+        template <typename D3, typename BinaryOpT, typename vec_t>
         bool reduction(
             D3                                                &ans,
-            boost::container::vector<std::tuple<grb::IndexType,D1>, allocator_t > const &vec,
+            vec_t         const &vec,
             BinaryOpT                                          op)
         {
             if (vec.empty())
             {
                 return false;
             }
+
+            using D1 = std::tuple_element_t<1, typename vec_t::value_type>;
 
             using D3ScalarType =
                 decltype(op(std::declval<D1>(), std::declval<D1>()));

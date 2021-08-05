@@ -40,7 +40,9 @@ With Metall nvm		LLNL-altus			/mnt/ssd/datastore
 
 
 
- 
+spack find -p boost
+
+For altus system 
 
 g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall/include/ -I./home/velusamy/spack/opt/spack/linux-centos7-x86_64/gcc-4.8.5/boost-1.73.0-wu3z2ipyy4yzsje7afep3xkenjeeq4fj -pthread ./src/demo/m_metall_construction.cpp   -o  m_metall_construction.exe   -lstdc++fs   -O3
 
@@ -51,6 +53,19 @@ g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/me
 g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall/include/ -I./home/velusamy/spack/opt/spack/linux-centos7-x86_64/gcc-4.8.5/boost-1.73.0-wu3z2ipyy4yzsje7afep3xkenjeeq4fj -pthread ./src/demo/m_metall_algo2_tc.cpp   -o  m_metall_algo2_tc.exe   -lstdc++fs   -O3
 
 
+For Flash system
+
+g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall/include/ -I./g/g90/velusamy/softwares/spack/opt/spack/linux-rhel7-haswell/gcc-8.1.0/boost-1.73.0-fxe7xvtjsbexcqdl6genvt7kxgvbsogs -pthread ./src/demo/m_metall_construction.cpp   -o  m_metall_construction.exe   -lstdc++fs   -O3
+
+
+g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall/include/ -I./g/g90/velusamy/softwares/spack/opt/spack/linux-rhel7-haswell/gcc-8.1.0/boost-1.73.0-fxe7xvtjsbexcqdl6genvt7kxgvbsogs -pthread ./src/demo/m_metall_algo1_bfs.cpp   -o  m_metall_algo1_bfs.exe   -lstdc++fs   -O3
+
+
+g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall/include/ -I./g/g90/velusamy/softwares/spack/opt/spack/linux-rhel7-haswell/gcc-8.1.0/boost-1.73.0-fxe7xvtjsbexcqdl6genvt7kxgvbsogs -pthread ./src/demo/m_metall_algo2_tc.cpp   -o  m_metall_algo2_tc.exe   -lstdc++fs   -O3
+
+
+
+g++ -std=gnu++1z -I./src/graphblas/detail -I./src -I./src/graphblas/platforms/metall-gbtl-platform  -I./metall/include/ -I./g/g90/velusamy/softwares/spack/opt/spack/linux-rhel7-haswell/gcc-8.1.0/boost-1.73.0-fxe7xvtjsbexcqdl6genvt7kxgvbsogs -pthread ./src/demo/m_metall_algo3_pr.cpp   -o  m_metall_algo3_pr.exe   -lstdc++fs   -O3
 
 
 

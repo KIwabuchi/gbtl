@@ -5,13 +5,9 @@
 
 #include <graphblas/graphblas.hpp>
 #include <algorithms/triangle_count.hpp>
-#include <algorithms/sssp.hpp>
-#include <algorithms/bfs.hpp>
-#include <algorithms/cluster_louvain.hpp>
-#include <algorithms/k_truss.hpp>
 
 #include <metall/metall.hpp>
-#include <metall_utility/fallback_allocator_adaptor.hpp>
+#include <metall/utility/fallback_allocator_adaptor.hpp>
 
 //****************************************************************************
 int main(int argc, char **argv)
@@ -27,7 +23,7 @@ int main(int argc, char **argv)
 
     {
         my_timer.start();
-        metall::manager manager(metall::open_read_only, "/mnt/ssd/datastore");
+        metall::manager manager(metall::open_read_only, "/dev/shm/datastore");
         Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
         my_timer.stop();
         std::cout << "TC re-attach time: \t\t" << my_timer.elapsed() 
