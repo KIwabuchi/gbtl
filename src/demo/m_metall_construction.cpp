@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     //================= Graph Construction in Metall Scope ========================
 
     {
-        metall::manager manager(metall::create_only, "/dev/shm/datastore");
+        metall::manager manager(metall::create_only, "/mnt/ssd/datastore");
         Metall_MatType *A = manager.construct<Metall_MatType>("gbtl_vov_matrix")
                         ( NUM_NODES, NUM_NODES, manager.get_allocator());
         A->build(iA.begin(), jA.begin(), v.begin(), iA.size());
