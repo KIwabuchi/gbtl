@@ -14,15 +14,6 @@ spack load boost
 git clone https://github.com/kaushikvelusamy/gbtl.git
 cd gbtl
 
-For Non Metall Case
-====================
-
-git checkout master
-
-g++ -std=gnu++1z           -I./src/graphblas/detail           -I./src           -I./src/graphblas/platforms/sequential           src/demo/nvmw_non_metall_demo.cpp           -o           nvmw_non_metall_demo -O3
-
-./nvmw_non_metall_demo src/demo/ca-AstroPh_adj.tsv
- 
 
 For Metall Case (Just check the datastore location in nvmw-metall.cpp) DRAM/NVM/Optane
 ================================================================================
