@@ -86,7 +86,7 @@ int main(int argc, char **argv)
               [](DegIdx a, DegIdx b) { return std::get<0>(b) < std::get<0>(a); });
 
     //relabel
-   
+
     for (auto &idx : iL) { idx = std::get<1>(degrees[idx]); }
     for (auto &idx : jL) { idx = std::get<1>(degrees[idx]); }
 
@@ -98,8 +98,8 @@ int main(int argc, char **argv)
     grb::IndexType NUM_NODES(max_id + 1);
     std::vector<T> v(iA.size(), 1);
 
-    std::cout <<  "NUM_NODES :"  <<  NUM_NODES  << std::endl;  
-    std::cout <<  "iA.front() :" <<  iA.front() << std::endl; 
+    std::cout <<  "NUM_NODES :"  <<  NUM_NODES  << std::endl;
+    std::cout <<  "iA.front() :" <<  iA.front() << std::endl;
     std::cout <<  "jA.front() :" <<  jA.front() << std::endl;
 
 
@@ -110,10 +110,14 @@ int main(int argc, char **argv)
         Metall_MatType *A = manager.construct<Metall_MatType>("gbtl_vov_matrix")
                         ( NUM_NODES, NUM_NODES, manager.get_allocator());
         A->build(iA.begin(), jA.begin(), v.begin(), iA.size());
+
+        manager.construct<grb::IndexType>("NUM_NODES")(NUM_NODES);
+        manager.construct<T>("iA.front()")(iA.front());
+        manager.construct<T>("jA.front()")(jA.front());
     }
     my_timer.stop();
-    std::cout << "Graph Construction time: \t" << my_timer.elapsed() 
-                << " milli seconds." << std::endl;  
-    
+    std::cout << "Graph Construction time: \t" << my_timer.elapsed()
+                << " milli seconds." << std::endl;
+
     return 0;
 }

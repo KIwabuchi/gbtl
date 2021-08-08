@@ -12,6 +12,11 @@
 //****************************************************************************
 int main(int argc, char **argv)
 {
+  if (argc < 2) {
+    std::cerr << "ERROR: Metall datastore path is not given." << std::endl;
+    exit(1);
+  }
+
     Timer<std::chrono::steady_clock, std::chrono::milliseconds> my_timer;
     using T = int32_t;
 
@@ -23,14 +28,13 @@ int main(int argc, char **argv)
 
     {
         my_timer.start();
-        metall::manager manager(metall::open_read_only, "/mnt/ssd/datastore");
+        metall::manager manager(metall::open_read_only, argv[1]);
         Metall_MatType *A = manager.find<Metall_MatType>("gbtl_vov_matrix").first;
-        my_timer.stop();
-        std::cout << "TC re-attach time: \t\t" << my_timer.elapsed() 
-                  << " milli seconds." << std::endl;
+        // my_timer.stop();
+        // std::cout << "TC re-attach time: \t\t" << my_timer.elapsed()
+        //           << " milli seconds." << std::endl;
 
-        
-        my_timer.start();
+        // my_timer.start();
         T count(0);
         count = algorithms::triangle_count_masked_noT(*A);
         my_timer.stop();
